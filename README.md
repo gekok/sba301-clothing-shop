@@ -100,9 +100,7 @@ Lý do collation `Vietnamese_CI_AS`: hỗ trợ tiếng Việt có dấu, case-i
 2. Trong **Security → Logins** → chuột phải `sa` (hoặc tài khoản dev mình muốn dùng) → **Properties** → đặt password của riêng mình.
 3. Tab **Status** → Login = **Enabled** → OK.
 4. Restart service `MSSQLSERVER` (services.msc).
-5. Mở `backend/src/main/resources/application.properties` → điền `spring.datasource.username` + `spring.datasource.password` theo tài khoản vừa setup ở máy.
-
-> ⚠️ **Tuyệt đối KHÔNG commit username/password thật lên git.** File `application.properties` trong repo chỉ chứa placeholder (`YOUR_DB_USERNAME`/`YOUR_DB_PASSWORD`). Mỗi dev tự điền local trên máy mình. Khi deploy production phải dùng env var (`${DB_USERNAME}`/`${DB_PASSWORD}`) hoặc secret manager + grant tối thiểu quyền cần thiết, không dùng `sa`.
+5. Mở `backend/src/main/resources/application.properties` → sửa `spring.datasource.username` + `spring.datasource.password` theo tài khoản SQL Server của máy mình (vd `sa` / `1234`). Không commit thay đổi creds lên repo.
 
 **Bước 3** — tạo schema. Có 2 cách:
 
@@ -289,7 +287,7 @@ ecommerce/
 │       │   ├── mapper/                         # MapStruct @Mapper(componentModel = "spring")
 │       │   └── exception/                      # Custom exceptions + @RestControllerAdvice
 │       └── resources/
-│           ├── application.properties
+│           ├── application.properties          # Config chính (sửa creds DB theo máy mình, đừng commit creds)
 │           ├── data.sql                        # Seed (optional)
 │           └── db/migration/                   # Flyway (sau khi schema ổn)
 └── frontend/
@@ -374,7 +372,7 @@ docs(readme): add setup steps for SQL Server
 - Check service `MSSQLSERVER` đang chạy: `services.msc`
 - Check port: `netstat -ano | findstr 1433`
 - Bật TCP/IP trong SQL Server Configuration Manager → SQL Server Network Configuration → Protocols for MSSQLSERVER → TCP/IP = **Enabled** → restart service
-- Check tài khoản SQL Server đã enabled + đúng password (đã điền vào `application.properties` local), SQL Server đang ở mixed-mode authentication
+- Check tài khoản SQL Server đã enabled + đúng password (đã điền vào `application.properties`), SQL Server đang ở mixed-mode authentication
 
 **Lỗi "The driver could not establish a secure connection"**
 - Thêm `;encrypt=true;trustServerCertificate=true` vào JDBC URL (đã có trong `application.properties` mẫu)
