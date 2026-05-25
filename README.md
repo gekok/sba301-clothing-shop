@@ -325,11 +325,16 @@ ecommerce/
 
 | # | Người | Phần phụ trách | Việc cần làm chính |
 |---|---|---|---|
-| 1 | A | Tài khoản & địa chỉ | Đăng ký, đăng nhập, xem/sửa thông tin cá nhân, quản lý danh sách địa chỉ giao hàng |
+| 1 | A | Tài khoản, địa chỉ & **phân quyền** | Đăng ký, đăng nhập (sinh JWT), xem/sửa thông tin cá nhân, quản lý sổ địa chỉ. **Phụ trách luôn Spring Security**: cài JWT filter, cấu hình ai (ADMIN / STAFF / CUSTOMER) được gọi API nào, viết sẵn helper `@PreAuthorize("hasRole('ADMIN')")`… cho 4 người còn lại dùng |
 | 2 | B | Sản phẩm & danh mục | Hiển thị danh mục, danh sách sản phẩm, chi tiết sản phẩm (size + màu), trang admin thêm/sửa/xoá sản phẩm |
 | 3 | C | Giỏ hàng & đặt hàng online | Thêm vào giỏ, cập nhật số lượng, đặt hàng, chọn cách thanh toán, xem lịch sử đơn của mình |
 | 4 | D | Quản trị & bán tại shop | Trang admin duyệt đơn, đổi trạng thái đơn (giao / huỷ), nhân viên tạo đơn tại cửa hàng (POS), ghi lại lịch sử thao tác của admin |
 | 5 | E | Đánh giá & layout chung | Người mua xong viết đánh giá sản phẩm, làm phần giao diện chung (thanh menu, footer, routing, lưu trạng thái đăng nhập) |
+
+> **Quy ước phân quyền chung** (cả 5 người phải nắm):
+> - Mỗi API trên controller phải ghi rõ vai trò được gọi bằng `@PreAuthorize` — vd `hasRole('ADMIN')`, `hasAnyRole('ADMIN','STAFF')`, `hasRole('CUSTOMER')`, hoặc `permitAll()` cho endpoint public (đăng ký, login, xem sản phẩm).
+> - Người 1 viết sẵn `SecurityConfig` + JWT filter — 4 người còn lại chỉ cần annotate controller, không cần đụng vào security infra.
+> - Khi quên không annotate, default chặn hết (deny by default) → endpoint mới sẽ trả 403 cho tới khi được khai báo rõ vai trò.
 
 ---
 
