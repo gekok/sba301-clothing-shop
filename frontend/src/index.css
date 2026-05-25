@@ -1,0 +1,5 @@
+/* Override / extra style cho project — Bootstrap đã load trước trong main.jsx */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background-color: #f7f7f7;
+}
