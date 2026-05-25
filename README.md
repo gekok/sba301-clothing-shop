@@ -102,12 +102,11 @@ Lý do collation `Vietnamese_CI_AS`: hỗ trợ tiếng Việt có dấu, case-i
 4. Restart service `MSSQLSERVER` (services.msc).
 5. Mở `backend/src/main/resources/application.properties` → sửa `spring.datasource.username` + `spring.datasource.password` theo tài khoản SQL Server của máy mình (vd `sa` / `1234`). Không commit thay đổi creds lên repo.
 
-**Bước 3** — tạo schema. Có 2 cách:
+**Bước 3** — tạo schema. Mở `docs/db.sql` trong SSMS rồi F5 — file này tạo đủ 14 bảng + seed sẵn 4 user mẫu, 2 danh mục, 2 sản phẩm với 6 variant để test.
 
-- **Cách A (dev nhanh)**: để Hibernate auto-generate. Trong `application.properties` set `spring.jpa.hibernate.ddl-auto=update`. Lần đầu chạy BE, Hibernate tự `CREATE TABLE` dựa trên entity.
-- **Cách B (production)**: dùng file SQL hoặc Flyway/Liquibase migration. Generate DDL từ `docs/erd.dbml` (dbdiagram.io → Export to MSSQL), review tay, commit vào `backend/src/main/resources/db/migration/V1__init.sql`.
+Sau khi chạy `db.sql` xong, set `spring.jpa.hibernate.ddl-auto=validate` trong `application.properties` để Hibernate chỉ kiểm tra schema khớp entity, không sửa.
 
-→ Nhóm bắt đầu nên dùng **Cách A**. Sau khi schema ổn (~2 tuần) chuyển sang Cách B để version-control schema.
+(Nếu chỉ muốn thử nhanh, để nguyên `ddl-auto=update` thì Hibernate sẽ tự tạo bảng từ entity — bỏ qua `db.sql`. Nhưng không có sẵn seed data.)
 
 ### 3.3. Cài backend
 
@@ -139,7 +138,7 @@ spring.datasource.password=YOUR_DB_PASSWORD
 spring.datasource.driver-class-name=com.microsoft.sqlserver.jdbc.SQLServerDriver
 
 # ===== JPA / Hibernate =====
-# dev only — production dùng Flyway/Liquibase
+# update: tự tạo/sửa bảng theo entity. Đổi 'validate' nếu đã chạy docs/db.sql tay.
 spring.jpa.hibernate.ddl-auto=update
 spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.SQLServerDialect
 spring.jpa.properties.hibernate.format_sql=true
@@ -287,9 +286,7 @@ ecommerce/
 │       │   ├── mapper/                         # MapStruct @Mapper(componentModel = "spring")
 │       │   └── exception/                      # Custom exceptions + @RestControllerAdvice
 │       └── resources/
-│           ├── application.properties          # Config chính (sửa creds DB theo máy mình, đừng commit creds)
-│           ├── data.sql                        # Seed (optional)
-│           └── db/migration/                   # Flyway (sau khi schema ổn)
+│           └── application.properties          # Config chính (sửa creds DB theo máy mình, đừng commit creds)
 └── frontend/
     ├── package.json
     ├── vite.config.js
@@ -326,13 +323,13 @@ ecommerce/
 
 ## 7. Chia việc (5 người)
 
-| # | Người | Domain | Entity / module | API chính |
-|---|---|---|---|---|
-| 1 | A | Auth + User | User, Address | login, register, profile, address CRUD |
-| 2 | B | Catalog | Category, Product, ProductVariant, ProductImage | product search/filter, admin CRUD catalog |
-| 3 | C | Cart + Customer Order | Cart, CartItem, Order (online), Payment | add to cart, checkout, view order history |
-| 4 | D | Admin + POS | Order (IN_STORE), AuditLog | admin dashboard, staff POS create order, order status update |
-| 5 | E | Review + FE shared | Review + React shared components | review CRUD, layout, routing, AuthContext |
+| # | Người | Phần phụ trách | Việc cần làm chính |
+|---|---|---|---|
+| 1 | A | Tài khoản & địa chỉ | Đăng ký, đăng nhập, xem/sửa thông tin cá nhân, quản lý danh sách địa chỉ giao hàng |
+| 2 | B | Sản phẩm & danh mục | Hiển thị danh mục, danh sách sản phẩm, chi tiết sản phẩm (size + màu), trang admin thêm/sửa/xoá sản phẩm |
+| 3 | C | Giỏ hàng & đặt hàng online | Thêm vào giỏ, cập nhật số lượng, đặt hàng, chọn cách thanh toán, xem lịch sử đơn của mình |
+| 4 | D | Quản trị & bán tại shop | Trang admin duyệt đơn, đổi trạng thái đơn (giao / huỷ), nhân viên tạo đơn tại cửa hàng (POS), ghi lại lịch sử thao tác của admin |
+| 5 | E | Đánh giá & layout chung | Người mua xong viết đánh giá sản phẩm, làm phần giao diện chung (thanh menu, footer, routing, lưu trạng thái đăng nhập) |
 
 ---
 

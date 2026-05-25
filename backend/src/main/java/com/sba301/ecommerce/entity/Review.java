@@ -37,7 +37,7 @@ public class Review {
             foreignKey = @ForeignKey(name = "fk_reviews_order_item"))
     private OrderItem orderItem;
 
-    // 1..5 — also enforce a CHECK constraint at DB level via schema migration
+    // 1..5 — CHECK constraint đã đặt trong docs/db.sql
     @Column(nullable = false)
     private Short rating;
 
