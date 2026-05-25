@@ -16,6 +16,11 @@ dist-ssr/
 .vite/
 *.local
 
+# ===== Lock files (mỗi dev tự npm install riêng) =====
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
 # ===== Environment files (commit .env.example, KHÔNG commit .env thật) =====
 .env
 .env.local
