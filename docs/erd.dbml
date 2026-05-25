@@ -1,0 +1,259 @@
+// ============================================================
+// SBA301 — Small E-commerce (Clothing) — ERD
+// Database: SQL Server
+// Paste this file at https://dbdiagram.io/d to render the diagram
+// ============================================================
+
+Project sba301_ecommerce {
+  database_type: 'MSSQL'
+  Note: 'Small clothing e-commerce. 3 roles: ADMIN / STAFF / CUSTOMER. 2 order channels: ONLINE (customer self-checkout) and IN_STORE (staff creates order at shop).'
+}
+
+// ------------------------------------------------------------
+// ENUMS (modeled as CHECK constraints in SQL Server)
+// ------------------------------------------------------------
+Enum user_role {
+  ADMIN
+  STAFF
+  CUSTOMER
+}
+
+Enum product_status {
+  DRAFT
+  ACTIVE
+  HIDDEN
+}
+
+Enum order_channel {
+  ONLINE
+  IN_STORE
+}
+
+Enum order_status {
+  PENDING
+  CONFIRMED
+  SHIPPING
+  DELIVERED
+  CANCELLED
+  COMPLETED
+}
+
+Enum order_payment_status {
+  UNPAID
+  PAID
+  REFUNDED
+}
+
+Enum payment_method {
+  CASH
+  COD
+  BANK_TRANSFER
+  MOMO
+  VNPAY
+}
+
+Enum payment_txn_status {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+// ------------------------------------------------------------
+// A. USERS & ADDRESSES
+// ------------------------------------------------------------
+Table users {
+  id bigint [pk, increment]
+  email nvarchar(190) [unique, note: 'nullable for walk-in customers']
+  password_hash nvarchar(255) [note: 'nullable for walk-in customers']
+  full_name nvarchar(150) [not null]
+  phone nvarchar(20)
+  role user_role [not null, default: 'CUSTOMER']
+  is_active bit [not null, default: 1]
+  created_at datetime2 [not null, default: `SYSUTCDATETIME()`]
+  updated_at datetime2 [not null, default: `SYSUTCDATETIME()`]
+  deleted_at datetime2 [note: 'soft delete']
+
+  Indexes {
+    role
+    phone
+  }
+}
+
+Table addresses {
+  id bigint [pk, increment]
+  user_id bigint [not null, ref: > users.id]
+  recipient_name nvarchar(150) [not null]
+  phone nvarchar(20) [not null]
+  province nvarchar(100) [not null]
+  district nvarchar(100) [not null]
+  ward nvarchar(100)
+  street nvarchar(255) [not null]
+  is_default bit [not null, default: 0]
+  created_at datetime2 [not null, default: `SYSUTCDATETIME()`]
+}
+
+// ------------------------------------------------------------
+// B. CATALOG (categories / products / variants / images)
+// ------------------------------------------------------------
+Table categories {
+  id bigint [pk, increment]
+  parent_id bigint [ref: > categories.id, note: 'self-reference for sub-categories']
+  name nvarchar(150) [not null]
+  slug nvarchar(180) [unique, not null]
+  display_order int [not null, default: 0]
+  is_active bit [not null, default: 1]
+}
+
+Table products {
+  id bigint [pk, increment]
+  category_id bigint [not null, ref: > categories.id]
+  name nvarchar(255) [not null]
+  slug nvarchar(280) [unique, not null]
+  description nvarchar(max)
+  brand nvarchar(100)
+  base_price decimal(18,2) [not null]
+  status product_status [not null, default: 'DRAFT']
+  created_at datetime2 [not null, default: `SYSUTCDATETIME()`]
+  updated_at datetime2 [not null, default: `SYSUTCDATETIME()`]
+  deleted_at datetime2
+
+  Indexes {
+    category_id
+    status
+  }
+}
+
+Table product_variants {
+  id bigint [pk, increment]
+  product_id bigint [not null, ref: > products.id]
+  sku nvarchar(64) [unique, not null]
+  size nvarchar(20) [not null]
+  color nvarchar(50) [not null]
+  price decimal(18,2) [not null]
+  stock_quantity int [not null, default: 0]
+  is_active bit [not null, default: 1]
+  version bigint [not null, default: 0, note: 'optimistic locking @Version']
+
+  Indexes {
+    (product_id, size, color) [unique]
+  }
+}
+
+Table product_images {
+  id bigint [pk, increment]
+  product_id bigint [not null, ref: > products.id]
+  url nvarchar(500) [not null]
+  display_order int [not null, default: 0]
+  is_primary bit [not null, default: 0]
+}
+
+// ------------------------------------------------------------
+// C. CART (online customer only)
+// ------------------------------------------------------------
+Table carts {
+  id bigint [pk, increment]
+  user_id bigint [unique, not null, ref: > users.id]
+  created_at datetime2 [not null, default: `SYSUTCDATETIME()`]
+  updated_at datetime2 [not null, default: `SYSUTCDATETIME()`]
+}
+
+Table cart_items {
+  id bigint [pk, increment]
+  cart_id bigint [not null, ref: > carts.id]
+  variant_id bigint [not null, ref: > product_variants.id]
+  quantity int [not null]
+  added_at datetime2 [not null, default: `SYSUTCDATETIME()`]
+
+  Indexes {
+    (cart_id, variant_id) [unique]
+  }
+}
+
+// ------------------------------------------------------------
+// D. ORDERS & PAYMENTS (covers both ONLINE and IN_STORE)
+// ------------------------------------------------------------
+Table orders {
+  id bigint [pk, increment]
+  order_code nvarchar(30) [unique, not null, note: 'e.g. ON20260525-0001 or PS20260525-0001']
+  user_id bigint [not null, ref: > users.id, note: 'customer; for walk-in POS use a shared "walkin" user']
+  channel order_channel [not null]
+  created_by_staff_id bigint [ref: > users.id, note: 'NULL for self-service online; set for POS / staff-assisted']
+  shipping_address_id bigint [ref: > addresses.id, note: 'NULL for IN_STORE']
+  subtotal decimal(18,2) [not null]
+  shipping_fee decimal(18,2) [not null, default: 0]
+  total_amount decimal(18,2) [not null]
+  status order_status [not null, default: 'PENDING']
+  payment_status order_payment_status [not null, default: 'UNPAID']
+  note nvarchar(500)
+  created_at datetime2 [not null, default: `SYSUTCDATETIME()`]
+  updated_at datetime2 [not null, default: `SYSUTCDATETIME()`]
+
+  Indexes {
+    user_id
+    status
+    channel
+    created_at
+  }
+}
+
+Table order_items {
+  id bigint [pk, increment]
+  order_id bigint [not null, ref: > orders.id]
+  variant_id bigint [not null, ref: > product_variants.id]
+  product_name nvarchar(255) [not null, note: 'snapshot at order time']
+  variant_info nvarchar(100) [not null, note: 'snapshot e.g. "Size M / Đỏ"']
+  unit_price decimal(18,2) [not null, note: 'snapshot at order time']
+  quantity int [not null]
+  subtotal decimal(18,2) [not null]
+}
+
+Table payments {
+  id bigint [pk, increment]
+  order_id bigint [not null, ref: > orders.id]
+  method payment_method [not null]
+  amount decimal(18,2) [not null]
+  transaction_ref nvarchar(100) [note: 'gateway txn id / bank ref']
+  status payment_txn_status [not null, default: 'PENDING']
+  paid_at datetime2
+  created_at datetime2 [not null, default: `SYSUTCDATETIME()`]
+
+  Indexes {
+    order_id
+    status
+  }
+}
+
+// ------------------------------------------------------------
+// E. REVIEWS & AUDIT
+// ------------------------------------------------------------
+Table reviews {
+  id bigint [pk, increment]
+  user_id bigint [not null, ref: > users.id]
+  product_id bigint [not null, ref: > products.id]
+  order_item_id bigint [not null, ref: > order_items.id, note: 'ensures user has actually purchased']
+  rating tinyint [not null, note: '1..5 enforced via CHECK constraint']
+  comment nvarchar(1000)
+  created_at datetime2 [not null, default: `SYSUTCDATETIME()`]
+
+  Indexes {
+    (user_id, order_item_id) [unique]
+    product_id
+  }
+}
+
+Table audit_logs {
+  id bigint [pk, increment]
+  actor_user_id bigint [ref: > users.id]
+  action nvarchar(80) [not null, note: 'e.g. PRODUCT_CREATED, PRICE_UPDATED, ORDER_CANCELLED']
+  target_type nvarchar(50) [not null, note: 'e.g. PRODUCT, ORDER, USER']
+  target_id bigint [not null]
+  changes nvarchar(max) [note: 'JSON dump of before/after fields']
+  created_at datetime2 [not null, default: `SYSUTCDATETIME()`]
+
+  Indexes {
+    (target_type, target_id)
+    actor_user_id
+    created_at
+  }
+}
