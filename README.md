@@ -94,15 +94,15 @@ GO
 
 Lý do collation `Vietnamese_CI_AS`: hỗ trợ tiếng Việt có dấu, case-insensitive (so sánh "Áo" = "áo").
 
-**Bước 2** — tạo user app riêng (không dùng `sa` cho dev):
+**Bước 2** — bật SQL Server Authentication (mixed-mode) để app kết nối bằng username/password.
 
-```sql
-USE master;
-CREATE LOGIN sba301_app WITH PASSWORD = 'Sba301@2026';
-USE sba301_ecommerce;
-CREATE USER sba301_app FOR LOGIN sba301_app;
-ALTER ROLE db_owner ADD MEMBER sba301_app;
-```
+1. SSMS → chuột phải server name → **Properties** → tab **Security** → chọn **SQL Server and Windows Authentication mode** → OK.
+2. Trong **Security → Logins** → chuột phải `sa` (hoặc tài khoản dev mình muốn dùng) → **Properties** → đặt password của riêng mình.
+3. Tab **Status** → Login = **Enabled** → OK.
+4. Restart service `MSSQLSERVER` (services.msc).
+5. Mở `backend/src/main/resources/application.properties` → điền `spring.datasource.username` + `spring.datasource.password` theo tài khoản vừa setup ở máy.
+
+> ⚠️ **Tuyệt đối KHÔNG commit username/password thật lên git.** File `application.properties` trong repo chỉ chứa placeholder (`YOUR_DB_USERNAME`/`YOUR_DB_PASSWORD`). Mỗi dev tự điền local trên máy mình. Khi deploy production phải dùng env var (`${DB_USERNAME}`/`${DB_PASSWORD}`) hoặc secret manager + grant tối thiểu quyền cần thiết, không dùng `sa`.
 
 **Bước 3** — tạo schema. Có 2 cách:
 
@@ -134,9 +134,10 @@ Bấm **Generate**, giải nén, copy thư mục `src/main/java/com/sba301/ecomm
 spring.application.name=sba301-ecommerce
 
 # ===== DataSource (SQL Server) =====
-spring.datasource.url=jdbc:sqlserver://localhost:1433;databaseName=sba301_ecommerce;encrypt=true;trustServerCertificate=true
-spring.datasource.username=sba301_app
-spring.datasource.password=Sba301@2026
+# Mỗi dev điền username/password local của máy mình — KHÔNG commit creds thật.
+spring.datasource.url=jdbc:sqlserver://localhost:1433; DatabaseName=sba301_ecommerce; encrypt=true; trustServerCertificate=true;
+spring.datasource.username=YOUR_DB_USERNAME
+spring.datasource.password=YOUR_DB_PASSWORD
 spring.datasource.driver-class-name=com.microsoft.sqlserver.jdbc.SQLServerDriver
 
 # ===== JPA / Hibernate =====
@@ -373,7 +374,7 @@ docs(readme): add setup steps for SQL Server
 - Check service `MSSQLSERVER` đang chạy: `services.msc`
 - Check port: `netstat -ano | findstr 1433`
 - Bật TCP/IP trong SQL Server Configuration Manager → SQL Server Network Configuration → Protocols for MSSQLSERVER → TCP/IP = **Enabled** → restart service
-- Check user `sba301_app` có quyền `db_owner` trên DB
+- Check tài khoản SQL Server đã enabled + đúng password (đã điền vào `application.properties` local), SQL Server đang ở mixed-mode authentication
 
 **Lỗi "The driver could not establish a secure connection"**
 - Thêm `;encrypt=true;trustServerCertificate=true` vào JDBC URL (đã có trong `application.properties` mẫu)

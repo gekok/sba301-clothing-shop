@@ -29,7 +29,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <!-- Pinned dependency versions (locked for the exam environment) -->
-        <mssql-jdbc.version>12.8.1.jre11</mssql-jdbc.version>
+        <mssql-jdbc.version>13.4.0.jre11</mssql-jdbc.version>
         <jjwt.version>0.12.6</jjwt.version>
         <springdoc.version>2.6.0</springdoc.version>
         <mapstruct.version>1.6.0</mapstruct.version>
