@@ -96,7 +96,7 @@ CREATE TABLE dbo.products (
     category_id     BIGINT          NOT NULL,
     name            NVARCHAR(255)   NOT NULL,
     slug            NVARCHAR(280)   NOT NULL,
-    description     NVARCHAR(MAX)   NULL,
+    description     NVARCHAR(4000)  NULL,
     brand           NVARCHAR(100)   NULL,
     base_price      DECIMAL(18,2)   NOT NULL,
     status          NVARCHAR(20)    NOT NULL CONSTRAINT df_prod_status DEFAULT 'DRAFT',
@@ -248,7 +248,7 @@ CREATE TABLE dbo.reviews (
     user_id         BIGINT          NOT NULL,
     product_id      BIGINT          NOT NULL,
     order_item_id   BIGINT          NOT NULL,
-    rating          TINYINT         NOT NULL,
+    rating          INT             NOT NULL,
     comment         NVARCHAR(1000)  NULL,
     created_at      DATETIME2       NOT NULL CONSTRAINT df_review_created DEFAULT SYSUTCDATETIME(),
     CONSTRAINT uk_reviews_user_order_item UNIQUE (user_id, order_item_id),
@@ -269,7 +269,7 @@ CREATE TABLE dbo.audit_logs (
     action          NVARCHAR(80)    NOT NULL,
     target_type     NVARCHAR(50)    NOT NULL,
     target_id       BIGINT          NOT NULL,
-    changes         NVARCHAR(MAX)   NULL,    -- JSON dump
+    changes         NVARCHAR(4000)  NULL,    -- JSON dump
     created_at      DATETIME2       NOT NULL CONSTRAINT df_audit_created DEFAULT SYSUTCDATETIME(),
     CONSTRAINT fk_audit_actor FOREIGN KEY (actor_user_id) REFERENCES dbo.users(id)
 );
