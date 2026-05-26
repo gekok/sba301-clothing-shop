@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -39,16 +40,12 @@ public class Review {
 
     // 1..5 — CHECK constraint đã đặt trong docs/db.sql
     @Column(nullable = false)
-    private Short rating;
+    private Integer rating;
 
     @Column(length = 1000)
     private String comment;
 
+    @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
-
-    @PrePersist
-    void onCreate() {
-        this.createdAt = LocalDateTime.now();
-    }
 }

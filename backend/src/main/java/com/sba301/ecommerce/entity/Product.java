@@ -34,8 +34,7 @@ public class Product extends BaseEntity {
     @Column(nullable = false, length = 280)
     private String slug;
 
-    @Lob
-    @Column(columnDefinition = "NVARCHAR(MAX)")
+    @Column(length = 4000)
     private String description;
 
     @Column(length = 100)

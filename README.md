@@ -305,6 +305,8 @@ ecommerce/
         └── utils/                     # Helpers (format currency, date)
 ```
 
+> **Lưu ý về `package-info.java`**: trong các package backend hiện đang có sẵn file `package-info.java` đặt chỗ (scaffolding) để giữ folder + giúp IDE nhận diện package từ đầu. Khi mỗi người **bắt đầu thêm file thật vào package mình phụ trách** (vd Người 2 thêm `ProductController.java` vào `controller/`), thì **xoá luôn `package-info.java`** trong package đó. Maven vẫn detect package OK khi folder có file Java khác. Không cần giữ scaffolding sau khi triển khai code thật.
+
 ---
 
 ## 6. Schema design notes (đọc trước khi code)
