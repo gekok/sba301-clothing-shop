@@ -1,0 +1,3 @@
+# Every PR to this repository requires review from @gekok.
+# Combined with the branch ruleset on main, only @gekok can approve merges.
+* @gekok
