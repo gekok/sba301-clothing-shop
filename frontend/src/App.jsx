@@ -4,6 +4,7 @@ import { Container, Nav, Navbar } from 'react-bootstrap';
 import Home from './pages/customer/Home.jsx';
 import Dashboard from './pages/admin/Dashboard.jsx';
 import POS from './pages/staff/POS.jsx';
+import Cart from './components/cart/Cart';
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/admin" element={<Dashboard />} />
           <Route path="/staff/pos" element={<POS />} />
+          <Route path="/cart" element={<Cart />} />
         </Routes>
       </Container>
     </>
