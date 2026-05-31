@@ -6,6 +6,7 @@ import Dashboard from './pages/admin/Dashboard.jsx';
 import OrderManagement from './pages/admin/OrderManagement.jsx';
 import AuditLogs from './pages/admin/AuditLogs.jsx';
 import POS from './pages/staff/POS.jsx';
+import Cart from './components/cart/Cart';
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
           <Route path="/admin/orders" element={<OrderManagement />} />
           <Route path="/admin/audit-logs" element={<AuditLogs />} />
           <Route path="/staff/pos" element={<POS />} />
+          <Route path="/cart" element={<Cart />} />
         </Routes>
       </Container>
     </>

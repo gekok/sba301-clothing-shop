@@ -38,25 +38,137 @@ GO
    2. USERS — khách + nhân viên + admin chung 1 bảng, phân biệt qua cột role
 ============================================================================ */
 CREATE TABLE dbo.users (
-    id              BIGINT IDENTITY(1,1) PRIMARY KEY,
-    email           NVARCHAR(190)   NULL,   -- nullable cho khách vãng lai (walk-in)
-    password_hash   NVARCHAR(255)   NULL,
-    full_name       NVARCHAR(150)   NOT NULL,
-    phone           NVARCHAR(20)    NULL,
-    role            NVARCHAR(20)    NOT NULL CONSTRAINT df_users_role DEFAULT 'CUSTOMER',
-    is_active       BIT             NOT NULL CONSTRAINT df_users_active DEFAULT 1,
-    created_at      DATETIME2       NOT NULL CONSTRAINT df_users_created DEFAULT SYSUTCDATETIME(),
-    updated_at      DATETIME2       NOT NULL CONSTRAINT df_users_updated DEFAULT SYSUTCDATETIME(),
-    deleted_at      DATETIME2       NULL,
-    CONSTRAINT uk_users_email UNIQUE (email),
-    CONSTRAINT ck_users_role  CHECK (role IN ('ADMIN','STAFF','CUSTOMER'))
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
+
+    -- Thông tin đăng nhập
+    email NVARCHAR(190) NOT NULL,
+    password_hash NVARCHAR(255)  NULL,
+
+    -- Thông tin cá nhân
+    full_name NVARCHAR(150) NOT NULL,
+    phone NVARCHAR(20) NULL,
+
+    -- Phân quyền
+    role NVARCHAR(20) NOT NULL
+        CONSTRAINT df_users_role DEFAULT 'CUSTOMER',
+
+    -- Trạng thái account
+    is_active BIT NOT NULL
+        CONSTRAINT df_users_active DEFAULT 1,
+
+    -- Xác thực email
+    email_verified BIT NOT NULL
+        CONSTRAINT df_users_email_verified DEFAULT 0,
+
+    email_verified_at DATETIME2 NULL,
+
+    -- Theo dõi đăng nhập
+    last_login_at DATETIME2 NULL,
+
+    failed_login_attempts INT NOT NULL
+        CONSTRAINT df_users_failed_login DEFAULT 0,
+
+    locked_until DATETIME2 NULL,
+
+    -- Audit fields
+    created_at DATETIME2 NOT NULL
+        CONSTRAINT df_users_created DEFAULT SYSUTCDATETIME(),
+
+    updated_at DATETIME2 NOT NULL
+        CONSTRAINT df_users_updated DEFAULT SYSUTCDATETIME(),
+
+    deleted_at DATETIME2 NULL,
+
+    -- Constraints
+    CONSTRAINT uk_users_email UNIQUE(email),
+
+    CONSTRAINT ck_users_role
+        CHECK (role IN ('ADMIN', 'STAFF', 'CUSTOMER')),
+
+    CONSTRAINT ck_users_failed_login
+        CHECK (failed_login_attempts >= 0)
 );
-CREATE INDEX ix_users_role  ON dbo.users(role);
-CREATE INDEX ix_users_phone ON dbo.users(phone);
+GO
+
+CREATE INDEX ix_users_role
+ON dbo.users(role);
+
+CREATE INDEX ix_users_phone
+ON dbo.users(phone);
+
+CREATE INDEX ix_users_active
+ON dbo.users(is_active);
+GO
 GO
 
 /* ============================================================================
-   3. ADDRESSES — sổ địa chỉ giao hàng của mỗi user
+   3. USER_REFRESH_TOKENS — Người dùng ko cần đăng nhập lại sau khi token hết hạn
+============================================================================ */
+CREATE TABLE dbo.user_refresh_tokens (
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
+
+    user_id BIGINT NOT NULL,
+
+    refresh_token NVARCHAR(500) NOT NULL,
+
+    expires_at DATETIME2 NOT NULL,
+
+    revoked_at DATETIME2 NULL,
+
+    created_at DATETIME2 NOT NULL
+        CONSTRAINT df_refresh_created
+        DEFAULT SYSUTCDATETIME(),
+
+    CONSTRAINT fk_refresh_user
+        FOREIGN KEY (user_id)
+        REFERENCES dbo.users(id)
+        ON DELETE CASCADE
+);
+GO
+
+CREATE INDEX ix_refresh_user
+ON dbo.user_refresh_tokens(user_id);
+
+CREATE INDEX ix_refresh_expires
+ON dbo.user_refresh_tokens(expires_at);
+GO
+
+/* ============================================================================
+   4. PASSWORD_RESET_TOKENS — Dùng cho trường hợp người dùng quên mật khẩu
+============================================================================ */
+CREATE TABLE dbo.password_reset_tokens (
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
+
+    user_id BIGINT NOT NULL,
+
+    token NVARCHAR(255) NOT NULL,
+
+    expires_at DATETIME2 NOT NULL,
+
+    used_at DATETIME2 NULL,
+
+    created_at DATETIME2 NOT NULL
+        CONSTRAINT df_reset_created
+        DEFAULT SYSUTCDATETIME(),
+
+    CONSTRAINT uk_reset_token UNIQUE(token),
+
+    CONSTRAINT fk_reset_user
+        FOREIGN KEY (user_id)
+        REFERENCES dbo.users(id)
+        ON DELETE CASCADE
+);
+GO
+
+CREATE INDEX ix_reset_user
+ON dbo.password_reset_tokens(user_id);
+
+CREATE INDEX ix_reset_expires
+ON dbo.password_reset_tokens(expires_at);
+GO
+
+/* ============================================================================
+   5. ADDRESSES — sổ địa chỉ giao hàng của mỗi user
 ============================================================================ */
 CREATE TABLE dbo.addresses (
     id              BIGINT IDENTITY(1,1) PRIMARY KEY,
@@ -74,7 +186,7 @@ CREATE TABLE dbo.addresses (
 GO
 
 /* ============================================================================
-   4. CATEGORIES — cây danh mục (parent_id tự tham chiếu)
+   6. CATEGORIES — cây danh mục (parent_id tự tham chiếu)
 ============================================================================ */
 CREATE TABLE dbo.categories (
     id              BIGINT IDENTITY(1,1) PRIMARY KEY,
@@ -89,14 +201,14 @@ CREATE TABLE dbo.categories (
 GO
 
 /* ============================================================================
-   5. PRODUCTS — thông tin chung của sản phẩm, giá theo variant
+   7. PRODUCTS — thông tin chung của sản phẩm, giá theo variant
 ============================================================================ */
 CREATE TABLE dbo.products (
     id              BIGINT IDENTITY(1,1) PRIMARY KEY,
     category_id     BIGINT          NOT NULL,
     name            NVARCHAR(255)   NOT NULL,
     slug            NVARCHAR(280)   NOT NULL,
-    description     NVARCHAR(4000)  NULL,
+    description     NVARCHAR(MAX)   NULL,
     brand           NVARCHAR(100)   NULL,
     base_price      DECIMAL(18,2)   NOT NULL,
     status          NVARCHAR(20)    NOT NULL CONSTRAINT df_prod_status DEFAULT 'DRAFT',
@@ -112,7 +224,7 @@ CREATE INDEX ix_products_status   ON dbo.products(status);
 GO
 
 /* ============================================================================
-   6. PRODUCT_VARIANTS — mỗi biến thể size + màu là 1 SKU riêng, có tồn kho riêng
+   8. PRODUCT_VARIANTS — mỗi biến thể size + màu là 1 SKU riêng, có tồn kho riêng
 ============================================================================ */
 CREATE TABLE dbo.product_variants (
     id              BIGINT IDENTITY(1,1) PRIMARY KEY,
@@ -131,7 +243,7 @@ CREATE TABLE dbo.product_variants (
 GO
 
 /* ============================================================================
-   7. PRODUCT_IMAGES
+   9. PRODUCT_IMAGES
 ============================================================================ */
 CREATE TABLE dbo.product_images (
     id              BIGINT IDENTITY(1,1) PRIMARY KEY,
@@ -144,7 +256,7 @@ CREATE TABLE dbo.product_images (
 GO
 
 /* ============================================================================
-   8. CARTS — mỗi customer 1 giỏ active
+   10. CARTS — mỗi customer 1 giỏ active
 ============================================================================ */
 CREATE TABLE dbo.carts (
     id              BIGINT IDENTITY(1,1) PRIMARY KEY,
@@ -157,7 +269,7 @@ CREATE TABLE dbo.carts (
 GO
 
 /* ============================================================================
-   9. CART_ITEMS — 1 giỏ + 1 variant chỉ có 1 row (add lần 2 thì cộng dồn quantity)
+   11. CART_ITEMS — 1 giỏ + 1 variant chỉ có 1 row (add lần 2 thì cộng dồn quantity)
 ============================================================================ */
 CREATE TABLE dbo.cart_items (
     id              BIGINT IDENTITY(1,1) PRIMARY KEY,
@@ -172,7 +284,7 @@ CREATE TABLE dbo.cart_items (
 GO
 
 /* ============================================================================
-   10. ORDERS — cả đơn online (channel=ONLINE) lẫn đơn POS (channel=IN_STORE)
+   12. ORDERS — cả đơn online (channel=ONLINE) lẫn đơn POS (channel=IN_STORE)
 ============================================================================ */
 CREATE TABLE dbo.orders (
     id                   BIGINT IDENTITY(1,1) PRIMARY KEY,
@@ -204,7 +316,7 @@ CREATE INDEX ix_orders_created_at ON dbo.orders(created_at);
 GO
 
 /* ============================================================================
-   11. ORDER_ITEMS — snapshot tên/giá/size+màu lúc đặt (đơn cũ bất biến)
+   13. ORDER_ITEMS — snapshot tên/giá/size+màu lúc đặt (đơn cũ bất biến)
 ============================================================================ */
 CREATE TABLE dbo.order_items (
     id              BIGINT IDENTITY(1,1) PRIMARY KEY,
@@ -221,7 +333,7 @@ CREATE TABLE dbo.order_items (
 GO
 
 /* ============================================================================
-   12. PAYMENTS — 1 đơn có thể có nhiều lần payment (vd refund 1 phần)
+   14. PAYMENTS — 1 đơn có thể có nhiều lần payment (vd refund 1 phần)
 ============================================================================ */
 CREATE TABLE dbo.payments (
     id              BIGINT IDENTITY(1,1) PRIMARY KEY,
@@ -241,14 +353,14 @@ CREATE INDEX ix_payments_status ON dbo.payments(status);
 GO
 
 /* ============================================================================
-   13. REVIEWS — chỉ review item đã mua (FK tới order_item_id)
+   15. REVIEWS — chỉ review item đã mua (FK tới order_item_id)
 ============================================================================ */
 CREATE TABLE dbo.reviews (
     id              BIGINT IDENTITY(1,1) PRIMARY KEY,
     user_id         BIGINT          NOT NULL,
     product_id      BIGINT          NOT NULL,
     order_item_id   BIGINT          NOT NULL,
-    rating          INT             NOT NULL,
+    rating          TINYINT         NOT NULL,
     comment         NVARCHAR(1000)  NULL,
     created_at      DATETIME2       NOT NULL CONSTRAINT df_review_created DEFAULT SYSUTCDATETIME(),
     CONSTRAINT uk_reviews_user_order_item UNIQUE (user_id, order_item_id),
@@ -261,7 +373,7 @@ CREATE INDEX ix_reviews_product ON dbo.reviews(product_id);
 GO
 
 /* ============================================================================
-   14. AUDIT_LOGS — append-only log mọi thao tác của admin/staff
+   16. AUDIT_LOGS — append-only log mọi thao tác của admin/staff
 ============================================================================ */
 CREATE TABLE dbo.audit_logs (
     id              BIGINT IDENTITY(1,1) PRIMARY KEY,
@@ -269,7 +381,7 @@ CREATE TABLE dbo.audit_logs (
     action          NVARCHAR(80)    NOT NULL,
     target_type     NVARCHAR(50)    NOT NULL,
     target_id       BIGINT          NOT NULL,
-    changes         NVARCHAR(4000)  NULL,    -- JSON dump
+    changes         NVARCHAR(MAX)   NULL,    -- JSON dump
     created_at      DATETIME2       NOT NULL CONSTRAINT df_audit_created DEFAULT SYSUTCDATETIME(),
     CONSTRAINT fk_audit_actor FOREIGN KEY (actor_user_id) REFERENCES dbo.users(id)
 );
@@ -279,16 +391,85 @@ CREATE INDEX ix_audit_created_at ON dbo.audit_logs(created_at);
 GO
 
 /* ============================================================================
-   15. SEED DATA — vài row mẫu để test ngay
+   17. SEED DATA — vài row mẫu để test ngay
    (password_hash dưới đây là bcrypt của "123456" — KHÔNG dùng cho production)
 ============================================================================ */
 
 -- Users: 1 admin, 1 staff, 1 customer, 1 walk-in (POS dùng chung)
-INSERT INTO dbo.users (email, password_hash, full_name, phone, role) VALUES
-  (N'admin@sba301.local',    N'$2a$10$abcdefghijklmnopqrstuv', N'Admin Demo',     N'0900000001', 'ADMIN'),
-  (N'staff@sba301.local',    N'$2a$10$abcdefghijklmnopqrstuv', N'Nhân viên A',    N'0900000002', 'STAFF'),
-  (N'customer@sba301.local', N'$2a$10$abcdefghijklmnopqrstuv', N'Khách Demo',     N'0900000003', 'CUSTOMER'),
-  (N'walkin@sba301.local',   NULL,                              N'Khách vãng lai', NULL,         'CUSTOMER');
+INSERT INTO dbo.users (
+    email,
+    password_hash,
+    full_name,
+    phone,
+    role,
+    is_active,
+    email_verified,
+    email_verified_at,
+    last_login_at,
+    failed_login_attempts,
+    locked_until
+)
+VALUES
+
+-- ADMIN
+(
+    N'admin@sba301.local',
+    N'$2a$10$abcdefghijklmnopqrstuv',
+    N'Admin Demo',
+    N'0900000001',
+    'ADMIN',
+    1,
+    1,
+    SYSUTCDATETIME(),
+    SYSUTCDATETIME(),
+    0,
+    NULL
+),
+
+-- STAFF
+(
+    N'staff@sba301.local',
+    N'$2a$10$abcdefghijklmnopqrstuv',
+    N'Nhân viên A',
+    N'0900000002',
+    'STAFF',
+    1,
+    1,
+    SYSUTCDATETIME(),
+    SYSUTCDATETIME(),
+    0,
+    NULL
+),
+
+-- CUSTOMER
+(
+    N'customer@sba301.local',
+    N'$2a$10$abcdefghijklmnopqrstuv',
+    N'Khách Demo',
+    N'0900000003',
+    'CUSTOMER',
+    1,
+    1,
+    SYSUTCDATETIME(),
+    NULL,
+    0,
+    NULL
+),
+
+-- WALK-IN CUSTOMER
+(
+    N'walkin@sba301.local',
+    NULL,
+    N'Khách vãng lai',
+    NULL,
+    'CUSTOMER',
+    1,
+    0,
+    NULL,
+    NULL,
+    0,
+    NULL
+);
 GO
 
 -- Categories: Nam, Nữ + 2 sub
