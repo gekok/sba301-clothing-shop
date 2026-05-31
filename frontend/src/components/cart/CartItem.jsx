@@ -1,10 +1,11 @@
 import React from 'react';
 import styles from './Cart.module.css';
-import { Row, Col, Image, Button, InputGroup, FormControl } from 'react-bootstrap';
+import { Row, Col, Image, Button, FormControl } from 'react-bootstrap';
 
-export default function CartItem({ item, onChangeQty, onRemove, index = 0 }) {
+export default function CartItem({ item, onChangeQty, onRequestRemove, index = 0 }) {
     const increment = () => onChangeQty(item.id, item.quantity + 1);
     const decrement = () => onChangeQty(item.id, Math.max(1, item.quantity - 1));
+    const truncatedSku = item.sku ? (item.sku.length > 14 ? item.sku.slice(0,14) + '…' : item.sku) : null;
 
     return (
         <div className={`${styles['cart-item']} ${styles['reveal']}`} style={{ ['--delay']: `${index * 80}ms` }}>
@@ -16,10 +17,10 @@ export default function CartItem({ item, onChangeQty, onRemove, index = 0 }) {
                     <div className="d-flex justify-content-between align-items-start">
                         <div>
                             <div className={styles['ci-title']}>{item.productName}</div>
-                            <div className={styles['ci-variant']}>{item.variantInfo}</div>
+                            <div className={`${styles['ci-variant']} ${styles['variantInfo']}`} title={item.variantInfo}>{item.variantInfo}</div>
                             <div className="mt-2 d-flex align-items-center gap-2">
                                 {item.discount > 0 && <span className={`${styles['discount-badge']}`}>-{Math.round((item.discount / item.unitPrice) * 100)}%</span>}
-                                {item.sku && <span className={`${styles['product-badge']} me-2`}>SKU: {item.sku}</span>}
+                                {item.sku && <span className={`${styles['product-badge']} me-2 ${styles['skuText']}`} title={item.sku}>SKU: {truncatedSku}</span>}
                                 {item.vendor && <span className="text-muted small">{item.vendor}</span>}
                             </div>
                         </div>
@@ -37,17 +38,17 @@ export default function CartItem({ item, onChangeQty, onRemove, index = 0 }) {
                             </Button>
                         </div>
                         {typeof item.stockQuantity === 'number' && (
-                            <div className="ms-3">
-                                <div className="text-muted small">Tồn: {item.stockQuantity}</div>
-                                {item.stockQuantity <= 5 && <div className="text-danger small">Còn ít hàng</div>}
+                            <div className={`${styles['stockInfo']} ms-3 text-muted small`} title={`Tồn: ${item.stockQuantity}${item.stockQuantity <=5 ? ' • Còn ít hàng':''}`}>
+                                Tồn: {item.stockQuantity}
+                                {item.stockQuantity <= 5 && <span className="text-danger small ms-2">• Còn ít hàng</span>}
                             </div>
                         )}
-                        <div className="ms-3 text-muted small">Dự kiến giao hàng: {item.estimatedDeliveryDays} ngày</div>
+                        <div className={`${styles['estimatedDelivery']} ms-3 text-muted small`}>Dự kiến giao hàng: {item.estimatedDeliveryDays} ngày</div>
                     </div>
                 </Col>
-                <Col xs={3} className={`${styles['ci-actions']} text-end`}>
-                    <div className={styles['ci-sub']}>{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.subtotal)}</div>
-                    <Button variant="link" className={`${styles['ci-remove']} text-decoration-none`} onClick={() => onRemove(item.id)}>Xóa</Button>
+                <Col xs={3} className={`${styles['ci-actions']} text-end`}> 
+                    <div className={styles['ci-sub']} aria-label={`Tổng của ${item.productName}`}>{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.subtotal)}</div>
+                    <Button size="sm" variant="outline-danger" className={`${styles['ci-remove-btn']} text-decoration-none`} onClick={() => onRequestRemove(item.id)} aria-label={`Xóa ${item.productName}`} title={`Xóa ${item.productName}`}>Xóa</Button>
                 </Col>
             </Row>
         </div>

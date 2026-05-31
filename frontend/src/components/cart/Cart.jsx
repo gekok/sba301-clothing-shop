@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import api from '../../api/axios';
 import CartItem from './CartItem';
 import styles from './Cart.module.css';
-import { Container, Row, Col, Card, ListGroup, Button, Spinner, Toast, ToastContainer } from 'react-bootstrap';
+import { Container, Row, Col, Card, ListGroup, Button, Spinner, Toast, ToastContainer, Modal } from 'react-bootstrap';
 import Pagination from 'react-bootstrap/Pagination';
 
 // Cart component — tries to fetch real cart, falls back to mock if API not available
@@ -21,6 +21,7 @@ export default function Cart() {
     };
     const originalStateRef = React.useRef({});
     const requestSeqRef = React.useRef({});
+    const [deleteModal, setDeleteModal] = useState({ show: false, id: null, name: '' });
 
     useEffect(() => {
         let mounted = true;
@@ -118,6 +119,17 @@ export default function Cart() {
         }
     };
 
+    const openDeleteModal = (id) => {
+        const it = items.find(i => i.id === id);
+        setDeleteModal({ show: true, id, name: it ? it.productName : '' });
+    };
+
+    const confirmDelete = async () => {
+        const id = deleteModal.id;
+        setDeleteModal({ show: false, id: null, name: '' });
+        await handleRemove(id);
+    };
+
     const subtotal = items.reduce((s, i) => s + ((i.unitPrice * i.quantity) - ((i.discount || 0) * i.quantity)), 0);
     const total = subtotal + (items.length ? shipping : 0);
 
@@ -141,6 +153,16 @@ export default function Cart() {
                     </Toast>
                 ))}
             </ToastContainer>
+            <Modal show={deleteModal.show} onHide={() => setDeleteModal({ show:false, id:null, name:'' })} centered>
+                <Modal.Header closeButton>
+                    <Modal.Title>Xác nhận xóa</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>Bạn có chắc muốn xóa "{deleteModal.name}" khỏi giỏ hàng không?</Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setDeleteModal({ show:false, id:null, name:'' })}>Hủy</Button>
+                    <Button variant="danger" onClick={confirmDelete}>Xóa</Button>
+                </Modal.Footer>
+            </Modal>
             <Container>
                 <Row className="justify-content-center">
                     <Col lg={10}>
@@ -161,7 +183,7 @@ export default function Cart() {
                                             {items.length === 0 && <div className={styles['cart-empty']}>Giỏ hàng trống</div>}
                                                 {visibleItems.map((item, idx) => (
                                                     <ListGroup.Item key={item.id} className="p-0 border-0">
-                                                        <CartItem index={(currentPage - 1) * pageSize + idx} item={item} onChangeQty={handleChangeQty} onRemove={handleRemove} />
+                                                        <CartItem index={(currentPage - 1) * pageSize + idx} item={item} onChangeQty={handleChangeQty} onRequestRemove={openDeleteModal} />
                                                     </ListGroup.Item>
                                                 ))}
                                         </ListGroup>
