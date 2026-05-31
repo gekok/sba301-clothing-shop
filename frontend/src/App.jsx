@@ -51,6 +51,7 @@ function App() {
           <Route path="/demo-order/:orderCode" element={<OrderDetailDemo />} />
           <Route path="/demo-order/:orderCode/success" element={<ReviewSuccessDemo />} />
           <Route path="/demo-product/:productId" element={<ProductDetailDemo />} />
+          <Route path="/cart" element={<Cart />} />
         </Routes>
       </Container>
     </>
