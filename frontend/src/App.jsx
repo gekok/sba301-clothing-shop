@@ -2,6 +2,7 @@ import { Routes, Route, Link } from 'react-router-dom';
 import { Container, Nav, Navbar } from 'react-bootstrap';
 
 import Home from './pages/customer/Home.jsx';
+import ProductList from './pages/customer/ProductList.jsx';
 import Dashboard from './pages/admin/Dashboard.jsx';
 import OrderManagement from './pages/admin/OrderManagement.jsx';
 import AuditLogs from './pages/admin/AuditLogs.jsx';
@@ -18,6 +19,8 @@ function App() {
           <Navbar.Collapse id="main-nav">
             <Nav className="me-auto">
               <Nav.Link as={Link} to="/">Trang chủ</Nav.Link>
+              <Nav.Link as={Link} to="/products">Sản phẩm</Nav.Link>
+              <Nav.Link as={Link} to="/cart">Giỏ hàng</Nav.Link>
               <Nav.Link as={Link} to="/admin">Admin</Nav.Link>
               <Nav.Link as={Link} to="/admin/orders">Quản lý đơn</Nav.Link>
               <Nav.Link as={Link} to="/admin/audit-logs">Nhật ký</Nav.Link>
@@ -30,6 +33,7 @@ function App() {
       <Container className="py-4">
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/products" element={<ProductList />} />
           <Route path="/admin" element={<Dashboard />} />
           <Route path="/admin/orders" element={<OrderManagement />} />
           <Route path="/admin/audit-logs" element={<AuditLogs />} />
