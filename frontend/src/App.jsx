@@ -9,6 +9,11 @@ import AuditLogs from './pages/admin/AuditLogs.jsx';
 import POS from './pages/staff/POS.jsx';
 import Cart from './components/cart/Cart';
 
+import OrderListDemo from './review-demo/OrderListDemo.jsx';
+import OrderDetailDemo from './review-demo/OrderDetailDemo.jsx';
+import ReviewSuccessDemo from './review-demo/ReviewSuccessDemo.jsx';
+import ProductDetailDemo from './review-demo/ProductDetailDemo.jsx';
+
 function App() {
   return (
     <>
@@ -25,6 +30,7 @@ function App() {
               <Nav.Link as={Link} to="/admin/orders">Quản lý đơn</Nav.Link>
               <Nav.Link as={Link} to="/admin/audit-logs">Nhật ký</Nav.Link>
               <Nav.Link as={Link} to="/staff/pos">Staff POS</Nav.Link>
+              <Nav.Link as={Link} to="/demo" className="text-warning fw-medium">Đánh giá (Demo)</Nav.Link>
             </Nav>
           </Navbar.Collapse>
         </Container>
@@ -32,12 +38,19 @@ function App() {
 
       <Container className="py-4">
         <Routes>
+          {/* Các trang gốc của dự án */}
           <Route path="/" element={<Home />} />
           <Route path="/products" element={<ProductList />} />
           <Route path="/admin" element={<Dashboard />} />
           <Route path="/admin/orders" element={<OrderManagement />} />
           <Route path="/admin/audit-logs" element={<AuditLogs />} />
           <Route path="/staff/pos" element={<POS />} />
+          <Route path="/cart" element={<Cart />} />
+
+          <Route path="/demo" element={<OrderListDemo />} />
+          <Route path="/demo-order/:orderCode" element={<OrderDetailDemo />} />
+          <Route path="/demo-order/:orderCode/success" element={<ReviewSuccessDemo />} />
+          <Route path="/demo-product/:productId" element={<ProductDetailDemo />} />
           <Route path="/cart" element={<Cart />} />
         </Routes>
       </Container>
