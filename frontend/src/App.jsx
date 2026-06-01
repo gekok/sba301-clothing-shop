@@ -8,6 +8,8 @@ import OrderManagement from './pages/admin/OrderManagement.jsx';
 import AuditLogs from './pages/admin/AuditLogs.jsx';
 import POS from './pages/staff/POS.jsx';
 import Cart from './components/cart/Cart';
+import Login from './pages/auth/Login.jsx';
+import Register from './pages/auth/Register.jsx';
 
 import OrderListDemo from './review-demo/OrderListDemo.jsx';
 import OrderDetailDemo from './review-demo/OrderDetailDemo.jsx';
@@ -30,6 +32,8 @@ function App() {
               <Nav.Link as={Link} to="/admin/orders">Quản lý đơn</Nav.Link>
               <Nav.Link as={Link} to="/admin/audit-logs">Nhật ký</Nav.Link>
               <Nav.Link as={Link} to="/staff/pos">Staff POS</Nav.Link>
+              <Nav.Link as={Link} to="/login">Đăng nhập</Nav.Link>
+              <Nav.Link as={Link} to="/register">Đăng ký</Nav.Link>
               <Nav.Link as={Link} to="/demo" className="text-warning fw-medium">Đánh giá (Demo)</Nav.Link>
             </Nav>
           </Navbar.Collapse>
@@ -46,6 +50,8 @@ function App() {
           <Route path="/admin/audit-logs" element={<AuditLogs />} />
           <Route path="/staff/pos" element={<POS />} />
           <Route path="/cart" element={<Cart />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
 
           <Route path="/demo" element={<OrderListDemo />} />
           <Route path="/demo-order/:orderCode" element={<OrderDetailDemo />} />
