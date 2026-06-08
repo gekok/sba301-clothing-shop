@@ -37,7 +37,7 @@ function OrderManagement() {
 
   // Đổi trạng thái 1 đơn -> tạo MẢNG MỚI (cập nhật bất biến, không sửa trực tiếp).
   function handleChangeStatus(orderId, toStatus) {
-    const ok = window.confirm(`Đổi trạng thái sang "${ORDER_STATUS_LABEL[toStatus]}"?`);
+    const ok = globalThis.confirm(`Đổi trạng thái sang "${ORDER_STATUS_LABEL[toStatus]}"?`);
     if (!ok) return;
     setOrders((prev) =>
       prev.map((o) => (o.id === orderId ? { ...o, status: toStatus } : o)),

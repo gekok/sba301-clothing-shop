@@ -2,7 +2,9 @@ import axios from "axios";
 import React, { useState, useEffect } from 'react';
 
 function ProductList(){
-    const [products, setProducts] = useState([]);
+    const [products, setProducts] = useState([
+
+    ]);
     const [loading, setLoading] = useState(true);
 
     // gọi api

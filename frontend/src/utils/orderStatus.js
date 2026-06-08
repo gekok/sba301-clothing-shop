@@ -39,7 +39,7 @@ export const ORDER_TRANSITIONS={
         {to: 'CANCELLED', label: 'Hủy', variant: 'danger'},
     ],
     SHIPPING: [
-        {to: 'DELIVERED', label: 'Đã giao', variant: 'success'},
+        {to: 'DELIVERED', label: 'Đang giao', variant: 'success'},
         {to: 'CANCELLED', label: 'Hủy', variant: 'danger'},
     ],
     DELIVERED: [
