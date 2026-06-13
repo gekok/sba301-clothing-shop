@@ -33,24 +33,25 @@ frontend/
 ├── .env.example
 └── src/
     ├── main.jsx                 # Entry point, mount React + BrowserRouter
-    ├── App.jsx                  # Routes + layout (Navbar)
     ├── index.css                # CSS override
-    ├── api/
-    │   └── axios.js             # Axios instance + JWT interceptor
-    ├── pages/
-    │   ├── customer/Home.jsx
-    │   ├── admin/Dashboard.jsx
-    │   └── staff/POS.jsx
-    ├── components/              # Shared UI components (team tự thêm)
-    ├── hooks/                   # useAuth, useCart, ...
-    ├── context/                 # AuthContext, CartContext
-    └── utils/                   # Format currency, date, ...
+    ├── app/
+    │   ├── App.jsx              # Routes (bọc trong MainLayout)
+    │   └── layout/MainLayout.jsx  # AppNavbar + <Outlet/> dùng chung
+    ├── shared/                  # Dùng chung mọi feature
+    │   ├── components/          # AppNavbar, StatusBadge, ...
+    │   ├── services/axios.js    # Axios instance + JWT interceptor
+    │   ├── utils/               # format, orderStatus
+    │   └── mock/                # mock data tạm
+    └── features/                # Mỗi feature: pages/ (+ components/, services/, hooks/)
+        ├── auth/   home/   products/
+        ├── cart/   orders/   pos/   dashboard/   audit-logs/
+        └── reviews/             # + demo/
 ```
 
 ## Convention
 
 - **Component** dùng functional + hooks (không class).
 - **Naming**: PascalCase cho component file (`ProductCard.jsx`), camelCase cho hook (`useAuth.js`), camelCase cho util (`formatCurrency.js`).
-- **API call**: luôn qua `src/api/axios.js`, không tạo axios instance riêng từng nơi.
+- **API call**: luôn qua `src/shared/services/axios.js`, không tạo axios instance riêng từng nơi. Call API theo feature đặt trong `features/<x>/services/` (vd `cart.service.js`).
 - **State**: dùng `useState` / `useReducer` + Context cho global. Không thêm Redux/Zustand cho dự án nhỏ này.
 - **CSS**: ưu tiên class util của Bootstrap. Style riêng đặt trong `index.css` hoặc CSS module.
