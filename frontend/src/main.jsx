@@ -6,8 +6,8 @@ import { BrowserRouter } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './index.css';
 
-import App from './App.jsx';
-import { ReviewProviderDemo } from './review-demo/ReviewContextDemo.jsx'
+import App from './app/App.jsx';
+import { ReviewProviderDemo } from './features/reviews/demo/ReviewContextDemo.jsx'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

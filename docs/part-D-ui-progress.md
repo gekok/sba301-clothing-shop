@@ -1,6 +1,8 @@
 # Tiến độ — Phần D: 3 UI (Admin Order + Staff POS + Audit Logs)
 
 > File ghi trạng thái để tiếp tục đúng mạch khi quay lại. Cập nhật mới nhất: phiên đang code tay (anh gõ chay), Tầng 1 xong, Tầng 2 đang gõ.
+>
+> ⚠️ 2026-06-08: đã reorg toàn bộ FE+BE sang feature-based (mirror repo ATS). Đường dẫn file part-D đã đổi — xem block "Cấu trúc file" bên dưới (utils/mock/components → `shared/`, các page → `features/<x>/pages/`). Import dùng đường dẫn tương đối, KHÔNG dùng alias `@/`.
 
 ## Bối cảnh & quyết định đã chốt
 
@@ -17,16 +19,16 @@
 ## Cấu trúc file (frontend/src/)
 
 ```
-utils/format.js          ✅ Tầng 1 — formatVND, formatDateTime
-utils/orderStatus.js     ✅ Tầng 1 — map nhãn/màu + ORDER_TRANSITIONS + getValidTransitions
-mock/orders.js           🔶 Tầng 2 — 6 đơn (đủ 6 status + 2 channel)
-mock/products.js         🔶 Tầng 2 — 3 sản phẩm, có 1 variant tồn=0 để test chặn
-mock/auditLogs.js        🔶 Tầng 2 — 6 log, changes là chuỗi JSON
-components/StatusBadge.jsx    ⬜ Tầng 3
-App.jsx (sửa)                ⬜ Tầng 4 — thêm 3 route + link navbar
-pages/admin/OrderManagement.jsx  ⬜ Tầng 5 — UI 1
-pages/staff/POS.jsx (thay placeholder) ⬜ Tầng 6 — UI 2
-pages/admin/AuditLogs.jsx        ⬜ Tầng 7 — UI 3
+shared/utils/format.js          ✅ Tầng 1 — formatVND, formatDateTime
+shared/utils/orderStatus.js     ✅ Tầng 1 — map nhãn/màu + ORDER_TRANSITIONS + getValidTransitions
+shared/mock/orders.js           🔶 Tầng 2 — 6 đơn (đủ 6 status + 2 channel)
+shared/mock/products.js         🔶 Tầng 2 — 3 sản phẩm, có 1 variant tồn=0 để test chặn
+shared/mock/auditLogs.js        🔶 Tầng 2 — 6 log, changes là chuỗi JSON
+shared/components/StatusBadge.jsx    ⬜ Tầng 3
+app/App.jsx (sửa)                ⬜ Tầng 4 — thêm 3 route + link navbar
+features/orders/pages/OrderManagement.jsx  ⬜ Tầng 5 — UI 1
+features/pos/pages/POS.jsx (thay placeholder) ⬜ Tầng 6 — UI 2
+features/audit-logs/pages/AuditLogs.jsx        ⬜ Tầng 7 — UI 3
 ```
 
 Chú thích: ✅ xong & đã check | 🔶 đã đưa code + anh đang gõ, CHƯA check | ⬜ chưa làm
