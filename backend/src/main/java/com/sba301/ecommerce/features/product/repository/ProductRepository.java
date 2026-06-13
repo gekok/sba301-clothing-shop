@@ -1,6 +1,6 @@
-package com.sba301.ecommerce.repository;
+package com.sba301.ecommerce.features.product.repository;
 
-import com.sba301.ecommerce.entity.Product;
+import com.sba301.ecommerce.features.entities.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

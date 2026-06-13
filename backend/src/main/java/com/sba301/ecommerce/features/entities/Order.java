@@ -1,8 +1,8 @@
-package com.sba301.ecommerce.entity;
+package com.sba301.ecommerce.features.entities;
 
-import com.sba301.ecommerce.entity.enums.OrderChannel;
-import com.sba301.ecommerce.entity.enums.OrderPaymentStatus;
-import com.sba301.ecommerce.entity.enums.OrderStatus;
+import com.sba301.ecommerce.features.entities.enums.OrderChannel;
+import com.sba301.ecommerce.features.entities.enums.OrderPaymentStatus;
+import com.sba301.ecommerce.features.entities.enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

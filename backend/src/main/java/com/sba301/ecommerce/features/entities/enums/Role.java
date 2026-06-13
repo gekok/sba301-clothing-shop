@@ -1,4 +1,4 @@
-package com.sba301.ecommerce.entity.enums;
+package com.sba301.ecommerce.features.entities.enums;
 
 public enum Role {
     ADMIN,

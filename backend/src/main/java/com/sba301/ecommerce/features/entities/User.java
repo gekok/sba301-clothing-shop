@@ -1,6 +1,6 @@
-package com.sba301.ecommerce.entity;
+package com.sba301.ecommerce.features.entities;
 
-import com.sba301.ecommerce.entity.enums.Role;
+import com.sba301.ecommerce.features.entities.enums.Role;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

@@ -1,4 +1,4 @@
-package com.sba301.ecommerce.entity;
+package com.sba301.ecommerce.features.entities;
 
 import jakarta.persistence.*;
 import lombok.Getter;

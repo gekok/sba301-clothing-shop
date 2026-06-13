@@ -1,7 +1,7 @@
-package com.sba301.ecommerce.entity;
+package com.sba301.ecommerce.features.entities;
 
-import com.sba301.ecommerce.entity.enums.PaymentMethod;
-import com.sba301.ecommerce.entity.enums.PaymentTxnStatus;
+import com.sba301.ecommerce.features.entities.enums.PaymentMethod;
+import com.sba301.ecommerce.features.entities.enums.PaymentTxnStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

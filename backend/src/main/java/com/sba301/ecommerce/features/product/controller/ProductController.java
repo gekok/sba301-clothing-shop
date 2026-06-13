@@ -1,7 +1,7 @@
-package com.sba301.ecommerce.controller;
+package com.sba301.ecommerce.features.product.controller;
 
-import com.sba301.ecommerce.entity.Product;
-import com.sba301.ecommerce.repository.ProductRepository;
+import com.sba301.ecommerce.features.entities.Product;
+import com.sba301.ecommerce.features.product.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.CrossOrigin;
