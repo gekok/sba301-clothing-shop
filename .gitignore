@@ -45,3 +45,6 @@ yarn-debug.log*
 .DS_Store
 Thumbs.db
 .skills
+
+# ===== Local-only docs (ghi chú cá nhân, KHÔNG đẩy lên remote — tài liệu chung để ở docs/) =====
+doc/

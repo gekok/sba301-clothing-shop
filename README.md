@@ -64,7 +64,7 @@ Dự án luyện code tay cho nhóm 5 người — web bán quần áo nhỏ g�
 Trước khi cài, máy phải có:
 
 - **JDK 21 LTS** — `java -version` phải trả `21.x.x` (vd `21.0.5`)
-- **Maven 3.9.x** hoặc dùng `mvnw` đi kèm — `mvn -version`
+- **Maven 3.9.x** — `mvn -version` (repo không kèm `mvnw` wrapper, cài Maven hệ thống)
 - **Node.js 20 LTS + npm 10+** — `node -v` trả `v20.x.x`, `npm -v` trả `10.x.x`
 - **SQL Server 2019** (Developer / Express edition đều OK) — đã chạy service `MSSQLSERVER`, port `1433`
 - **SSMS 20.x** — quản lý DB qua GUI
@@ -153,12 +153,10 @@ app.jwt.secret=<random-256-bit-base64-string>
 app.jwt.expiration-ms=86400000
 ```
 
-**Chạy BE**:
+**Chạy BE** (dùng Maven hệ thống — repo không kèm `mvnw` wrapper):
 
 ```bash
-./mvnw spring-boot:run
-# Windows
-mvnw.cmd spring-boot:run
+mvn spring-boot:run
 ```
 
 Server lên ở http://localhost:8080/api. Swagger UI: http://localhost:8080/api/swagger-ui.html
@@ -172,7 +170,7 @@ cd frontend
 npm install
 ```
 
-**Cấu hình `.env`** (file `frontend/.env`):
+**Cấu hình `.env`** — copy `frontend/.env.example` thành `frontend/.env` (file `.env` đã được gitignore, mỗi dev tự tạo):
 
 ```
 VITE_API_BASE_URL=http://localhost:8080/api
@@ -253,12 +251,15 @@ GET  /api/audit-logs                 (planned — ADMIN)
 ```
 ecommerce/
 ├── README.md
-├── docs/
+├── docs/                              # Tài liệu chung — đẩy lên remote, cả team đọc
+│   ├── be-architecture.md             # Thiết kế chi tiết BE (tầng + hợp đồng API + bẫy runtime)
 │   ├── erd.dbml                       # paste vào https://dbdiagram.io/d
+│   ├── db.sql                         # tạo 14 bảng + seed data
+│   ├── Giải thích ý nghĩa từng thuộc tính Auth.docx   # giải thích thuộc tính entity Auth
 │   └── postman/                       # API collection (tạo sau)
+│   # (doc/ — folder ghi chú cá nhân, đã gitignore, không lên remote)
 ├── backend/
-│   ├── pom.xml                        # Maven build
-│   ├── mvnw, mvnw.cmd                 # Maven wrapper
+│   ├── pom.xml                        # Maven build (dùng Maven hệ thống 3.9.x — repo không có mvnw wrapper)
 │   └── src/main/
 │       ├── java/com/sba301/ecommerce/
 │       │   ├── EcommerceApplication.java       # @SpringBootApplication entry point
@@ -277,12 +278,10 @@ ecommerce/
 │       │       └── order/                        # controller / dto / repository / service(+Impl)
 │       └── resources/
 │           └── application.properties          # Config chính (sửa creds DB theo máy mình, đừng commit creds)
-
-> Thiết kế chi tiết từng tầng + hợp đồng API + bẫy runtime: xem **`doc/be-architecture.md`**.
 └── frontend/
     ├── package.json
     ├── vite.config.js
-    ├── .env
+    ├── .env.example                  # copy thành .env (mỗi dev tự tạo; .env bị gitignore)
     └── src/
         ├── main.jsx                   # Entry: mount React + BrowserRouter
         ├── index.css
@@ -298,7 +297,9 @@ ecommerce/
             └── reviews/
 ```
 
-> **Lưu ý về skeleton**: backend đã được scaffold sẵn theo feature-based — mỗi package có **file stub rỗng + `// TODO`** mô tả việc cần làm (vd `features/cart/service/CartServiceImpl.java`). Mỗi người mở stub trong feature mình phụ trách rồi điền logic theo `doc/be-architecture.md`. Stub hiện **compile được** nhưng chưa có logic. (Các `package-info.java` đặt chỗ cũ đã được xoá.)
+> Thiết kế chi tiết từng tầng + hợp đồng API + bẫy runtime BE: xem **`docs/be-architecture.md`**.
+
+> **Lưu ý về skeleton**: backend đã được scaffold sẵn theo feature-based — mỗi package có **file stub rỗng + `// TODO`** mô tả việc cần làm (vd `features/cart/service/CartServiceImpl.java`). Mỗi người mở stub trong feature mình phụ trách rồi điền logic theo `docs/be-architecture.md`. Stub hiện **compile được** nhưng chưa có logic. (Các `package-info.java` đặt chỗ cũ đã được xoá.)
 
 ---
 
