@@ -1,0 +1,458 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+/* ==========================================================================
+   High-Fashion Minimalist Styling cho Giỏ Hàng
+   Màu sắc: Đen, Trắng, Xám - Tập trung vào Typography và Khoảng trắng
+   ========================================================================== */
+
+.cartx-shell, .cartx-modal {
+  --cartx-bg: #ffffff;
+  --cartx-ink: #000000;
+  --cartx-soft: #666666;
+  --cartx-border: #e5e5e5;
+  --cartx-accent: #000000;
+  --cartx-hover-bg: #f9f9f9;
+
+  --cartx-font-sans: 'Inter', sans-serif;
+  --cartx-font-display: 'Space Grotesk', sans-serif;
+}
+
+.cartx-shell {
+  background-color: var(--cartx-bg);
+  color: var(--cartx-ink);
+  font-family: var(--cartx-font-sans);
+  min-height: 100vh;
+  padding: 3rem 0 5rem;
+}
+
+/* ==========================================================================
+   Typography & Headers
+   ========================================================================== */
+.cartx-hero {
+  margin-bottom: 3rem;
+  border-bottom: 2px solid var(--cartx-ink);
+  padding-bottom: 1.5rem;
+}
+
+.cartx-overline {
+  font-family: var(--cartx-font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--cartx-soft);
+  margin-bottom: 0.5rem;
+}
+
+.cartx-title {
+  font-family: var(--cartx-font-display);
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: var(--cartx-ink);
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.cartx-subtitle {
+  font-size: 1rem;
+  color: var(--cartx-soft);
+}
+
+.cartx-section-title {
+  font-family: var(--cartx-font-display);
+  font-size: 1.25rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  border-bottom: 1px solid var(--cartx-ink);
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+/* ==========================================================================
+   Layout Blocks (No Cards, Just clean divs)
+   ========================================================================== */
+.cartx-panel {
+  margin-bottom: 2rem;
+}
+
+.cartx-sidebar-block {
+  background: var(--cartx-hover-bg);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-radius: 0;
+  /* Sharp edges */
+}
+
+/* ==========================================================================
+   Cart Items (Danh sách sản phẩm)
+   ========================================================================== */
+.cartx-item {
+  border-bottom: 1px solid var(--cartx-border);
+  padding: 1.5rem 0;
+  transition: background-color 0.2s ease;
+}
+
+.cartx-item:hover {
+  background-color: var(--cartx-hover-bg);
+}
+
+.cartx-item-disabled {
+  opacity: 0.5;
+  filter: grayscale(100%);
+}
+
+.cartx-item-title {
+  font-family: var(--cartx-font-display);
+  font-weight: 600;
+  font-size: 1.2rem;
+  color: var(--cartx-ink);
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+}
+
+.cartx-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+/* Hình ảnh sắc nét */
+.cartx-thumb {
+  aspect-ratio: 3 / 4;
+  /* Tỷ lệ ảnh thời trang điển hình */
+  object-fit: cover;
+  width: 100%;
+  border-radius: 0;
+  /* Ảnh vuông vức không bo góc */
+}
+
+/* Các tag (Size, Màu) */
+.cartx-tag {
+  background: transparent !important;
+  border: 1px solid var(--cartx-border);
+  border-radius: 0;
+  font-weight: 500;
+  padding: 0.25em 0.7em;
+  color: var(--cartx-soft) !important;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.cartx-inline-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.cartx-price-cluster {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.cartx-subtotal-inline {
+  font-family: var(--cartx-font-display);
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+
+/* ==========================================================================
+   Controls (Buttons & Inputs)
+   ========================================================================== */
+/* Nút tăng giảm số lượng cực kỳ tối giản */
+.cartx-qty-wrap {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--cartx-border);
+  width: fit-content;
+}
+
+.cartx-qty-wrap .btn {
+  border-radius: 0;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--cartx-ink);
+}
+
+.cartx-qty-wrap .btn:hover:not(:disabled) {
+  background: var(--cartx-border);
+}
+
+.cartx-shell .cartx-qty-wrap .form-control {
+  background: transparent;
+  border: none;
+  border-left: 1px solid var(--cartx-border);
+  border-right: 1px solid var(--cartx-border);
+  font-family: var(--cartx-font-display);
+  font-weight: 500;
+  padding: 0;
+  text-align: center;
+  width: 40px;
+  height: 32px;
+  border-radius: 0;
+}
+
+.cartx-shell .cartx-qty-wrap .form-control:focus {
+  box-shadow: none;
+  background: transparent;
+}
+
+/* Nút Xoá dạng chữ X sắc nét */
+.cartx-remove-btn {
+  background: transparent;
+  border: none;
+  color: var(--cartx-soft);
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  padding: 0;
+  text-decoration: underline;
+  transition: color 0.2s;
+}
+
+.cartx-remove-btn:hover {
+  color: #ff0000;
+}
+
+/* Forms (Select, Input textarea) */
+.cartx-shell .form-select,
+.cartx-shell .form-control {
+  background: transparent;
+  border: 1px solid var(--cartx-border);
+  border-radius: 0;
+  padding: 0.75rem;
+  font-size: 0.95rem;
+  color: var(--cartx-ink);
+}
+
+.cartx-shell .form-select:focus,
+.cartx-shell .form-control:focus {
+  border-color: var(--cartx-ink);
+  box-shadow: none;
+}
+
+/* Custom Checkbox/Radio (Hình vuông đen/trắng) */
+.cartx-shell .form-check-input {
+  border-radius: 0;
+  border: 1px solid var(--cartx-ink);
+}
+
+.cartx-shell .form-check-input:checked {
+  background-color: var(--cartx-ink);
+  border-color: var(--cartx-ink);
+}
+
+.cartx-shell .form-check-input:focus {
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+}
+
+/* ==========================================================================
+   Primary Actions (Solid Black Buttons)
+   ========================================================================== */
+.cartx-shell .btn-dark {
+  background: var(--cartx-ink);
+  color: #fff;
+  border: 1px solid var(--cartx-ink);
+  border-radius: 0;
+  font-family: var(--cartx-font-display);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 1rem 2rem;
+  transition: all 0.2s ease;
+}
+
+.cartx-shell .btn-dark:hover:not(:disabled) {
+  background: transparent;
+  color: var(--cartx-ink);
+}
+
+/* Secondary Actions */
+.cartx-icon-btn {
+  background: transparent;
+  border: none;
+  color: var(--cartx-soft);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0;
+}
+
+.cartx-icon-btn:hover {
+  color: var(--cartx-ink);
+}
+
+/* ==========================================================================
+   Order Summary Box
+   ========================================================================== */
+.cartx-summary {
+  background: #000000;
+  color: #ffffff;
+  padding: 2rem;
+  border-radius: 0;
+}
+
+.cartx-summary .cartx-section-title {
+  color: #ffffff;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.cartx-summary-total {
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  font-family: var(--cartx-font-display);
+}
+
+.cartx-summary-total strong {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.cartx-summary .btn-dark {
+  background: #ffffff;
+  color: #000000;
+  border: 1px solid #ffffff;
+}
+
+.cartx-summary .btn-dark:hover:not(:disabled) {
+  background: transparent;
+  color: #ffffff;
+}
+
+.cartx-summary .text-success {
+  color: #4ade80 !important;
+  /* Lighter green for dark bg */
+}
+
+.cartx-summary .text-muted {
+  color: #a1a1aa !important;
+}
+
+/* ==========================================================================
+   Misc & Layout Utilities
+   ========================================================================== */
+.cartx-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  font-family: var(--cartx-font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.cartx-sticky {
+  position: sticky;
+  top: 2rem;
+}
+
+.cartx-address p {
+  font-size: 0.95rem;
+}
+
+.alert {
+  border-radius: 0;
+  border: none;
+}
+
+.alert-warning {
+  background-color: #fffbeb;
+  border-left: 4px solid #f59e0b;
+  color: #92400e;
+}
+
+.alert-info {
+  background-color: #f8fafc;
+  border-left: 4px solid #000;
+  color: #000;
+}
+
+@media (max-width: 991.98px) {
+  .cartx-sticky {
+    position: static;
+  }
+}
+
+/* Custom Minimalist Modal */
+.cartx-modal .modal-content {
+  border-radius: 0;
+  border: 4px solid var(--cartx-ink);
+  background-color: var(--cartx-bg);
+  color: var(--cartx-ink);
+  font-family: var(--cartx-font-sans);
+  box-shadow: 8px 8px 0px 0px rgba(0,0,0,1);
+}
+
+.cartx-modal .modal-header {
+  border-bottom: 1px solid var(--cartx-border);
+  border-radius: 0;
+  padding: 1.25rem 1.5rem;
+}
+
+.cartx-modal-header-danger {
+  border-bottom: 2px solid #dc3545 !important;
+}
+
+.cartx-modal-header-warning {
+  border-bottom: 2px solid #ffc107 !important;
+}
+
+.cartx-modal .modal-title {
+  font-family: var(--cartx-font-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 1.1rem;
+  letter-spacing: 0.02em;
+  display: flex;
+  align-items: center;
+}
+
+.cartx-modal .modal-body {
+  padding: 1.5rem;
+  font-size: 1.05rem;
+  line-height: 1.5;
+}
+
+.cartx-modal .modal-footer {
+  border-top: 1px solid var(--cartx-border);
+  padding: 1rem 1.5rem;
+  border-radius: 0;
+}
+
+.cartx-modal .btn-close {
+  border-radius: 0;
+  opacity: 1;
+}
+
+.cartx-modal .btn-close:focus {
+  box-shadow: none;
+}
+
+.cartx-modal-backdrop {
+  background-color: rgba(0, 0, 0, 0.6) !important;
+  backdrop-filter: blur(5px) !important;
+  opacity: 1 !important;
+}
