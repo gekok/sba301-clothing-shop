@@ -1,6 +1,6 @@
-import { Link } from 'react-router-dom';
-import { Button, Card, Form, Nav } from 'react-bootstrap';
-import './AuthPages.css';
+import { Link } from "react-router-dom";
+import { Button, Card, Form, Nav } from "react-bootstrap";
+import "./AuthPages.css";
 
 export default function Login() {
   return (
@@ -8,10 +8,14 @@ export default function Login() {
       <Card className="auth-card">
         <Nav className="auth-tabs">
           <Nav.Item>
-            <Nav.Link as={Link} to="/login" className="auth-tab active">ĐĂNG NHẬP</Nav.Link>
+            <Nav.Link as={Link} to="/login" className="auth-tab active">
+              ĐĂNG NHẬP
+            </Nav.Link>
           </Nav.Item>
           <Nav.Item>
-            <Nav.Link as={Link} to="/register" className="auth-tab">ĐĂNG KÝ</Nav.Link>
+            <Nav.Link as={Link} to="/register" className="auth-tab">
+              ĐĂNG KÝ
+            </Nav.Link>
           </Nav.Item>
         </Nav>
 
@@ -32,7 +36,9 @@ export default function Login() {
             />
 
             <div className="auth-actions">
-              <Button type="button" className="auth-primary-btn login">ĐĂNG NHẬP</Button>
+              <Button type="button" className="auth-primary-btn login">
+                ĐĂNG NHẬP
+              </Button>
             </div>
 
             <div className="auth-center-link">
