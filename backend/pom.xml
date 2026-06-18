@@ -52,10 +52,16 @@
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
 
+        <!--
+            Spring Security temporarily disabled so the team can build and test
+            feature endpoints without the default Basic-Auth login blocking every
+            request. Re-enable (uncomment) when implementing the security/ package
+            (JWT auth, SecurityFilterChain).
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
+        -->
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -147,11 +153,13 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- Disabled together with spring-boot-starter-security above; re-enable when adding security tests.
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
+        -->
 
     </dependencies>
 
