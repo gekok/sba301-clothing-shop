@@ -30,7 +30,7 @@ function App() {
               <Nav.Link as={Link} to="/admin/orders">Quản lý đơn</Nav.Link>
               <Nav.Link as={Link} to="/admin/audit-logs">Nhật ký</Nav.Link>
               <Nav.Link as={Link} to="/staff/pos">Staff POS</Nav.Link>
-              <Nav.Link as={Link} to="/demo" className="text-warning fw-medium">Đánh giá (Demo)</Nav.Link>
+              <Nav.Link as={Link} to="/demo">Đánh giá (Demo)</Nav.Link>
             </Nav>
           </Navbar.Collapse>
         </Container>
