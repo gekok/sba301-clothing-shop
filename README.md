@@ -64,7 +64,7 @@ Dự án luyện code tay cho nhóm 5 người — web bán quần áo nhỏ g�
 Trước khi cài, máy phải có:
 
 - **JDK 21 LTS** — `java -version` phải trả `21.x.x` (vd `21.0.5`)
-- **Maven 3.9.x** hoặc dùng `mvnw` đi kèm — `mvn -version`
+- **Maven 3.9.x** — `mvn -version` (repo không kèm `mvnw` wrapper, cài Maven hệ thống)
 - **Node.js 20 LTS + npm 10+** — `node -v` trả `v20.x.x`, `npm -v` trả `10.x.x`
 - **SQL Server 2019** (Developer / Express edition đều OK) — đã chạy service `MSSQLSERVER`, port `1433`
 - **SSMS 20.x** — quản lý DB qua GUI
@@ -123,7 +123,7 @@ cd backend
 - Java: **21**
 - Dependencies: Spring Web, Spring Data JPA, Spring Security, Lombok, Validation, SQL Server Driver, Spring Boot DevTools
 
-Bấm **Generate**, giải nén, copy thư mục `src/main/java/com/sba301/ecommerce/entity/` hiện tại vào.
+Bấm **Generate** chỉ khi cần dựng lại từ đầu. Thực tế repo **đã có sẵn** `backend/` (pom.xml + cấu trúc feature-based: `features/entities/`, `features/<x>/`, `security/`, `exception/`) — không cần tạo lại; phần này để tham khảo dependencies.
 
 **Cấu hình `src/main/resources/application.properties`**:
 
@@ -153,12 +153,10 @@ app.jwt.secret=<random-256-bit-base64-string>
 app.jwt.expiration-ms=86400000
 ```
 
-**Chạy BE**:
+**Chạy BE** (dùng Maven hệ thống — repo không kèm `mvnw` wrapper):
 
 ```bash
-./mvnw spring-boot:run
-# Windows
-mvnw.cmd spring-boot:run
+mvn spring-boot:run
 ```
 
 Server lên ở http://localhost:8080/api. Swagger UI: http://localhost:8080/api/swagger-ui.html
@@ -172,7 +170,7 @@ cd frontend
 npm install
 ```
 
-**Cấu hình `.env`** (file `frontend/.env`):
+**Cấu hình `.env`** — copy `frontend/.env.example` thành `frontend/.env` (file `.env` đã được gitignore, mỗi dev tự tạo):
 
 ```
 VITE_API_BASE_URL=http://localhost:8080/api
@@ -223,31 +221,27 @@ Tài khoản mẫu đề xuất:
 
 ### 4.4. Workflow chính
 
+> **Quy ước path**: dùng **resource phẳng** (không prefix `/admin`,`/staff`). Phân quyền bằng **role qua Spring Security** (`SecurityConfig` + role CUSTOMER/STAFF/ADMIN), KHÔNG bằng path. Endpoint Payment / Review / Address / AuditLog là **planned** (chưa scaffold — defer).
+
 **Customer online**:
 ```
 POST /api/auth/register
 POST /api/auth/login
-GET  /api/products?categoryId=1&size=M
-POST /api/cart/items                 (add to cart)
-POST /api/orders/checkout            (tạo order từ cart hiện tại)
-POST /api/payments                   (chọn method, trả tiền)
+GET  /api/products?categoryId=1
+POST /api/carts/items                (add to cart)
+POST /api/orders                     (checkout — tạo order từ cart hiện tại)
 GET  /api/orders/me                  (xem đơn của mình)
-POST /api/reviews                    (review sau khi DELIVERED)
+POST /api/payments                   (planned — chọn method, trả tiền)
+POST /api/reviews                    (planned — review sau khi DELIVERED)
 ```
 
-**Admin**:
+**Admin / Staff** (role enforce qua SecurityConfig, không qua path):
 ```
-POST /api/admin/categories
-POST /api/admin/products
-POST /api/admin/products/{id}/variants
-PUT  /api/admin/orders/{id}/status   (confirm / ship / cancel)
-GET  /api/admin/audit-logs
-```
-
-**Staff (POS tại shop)**:
-```
-POST /api/staff/orders/pos           (tạo order kèm items, channel=IN_STORE)
-PUT  /api/staff/orders/{id}/deliver  (đánh dấu giao hàng)
+POST /api/categories                 (ADMIN/STAFF — tạo danh mục)
+POST /api/products                   (ADMIN/STAFF — tạo sản phẩm + variant)
+PUT  /api/orders/{id}/status         (ADMIN/STAFF — confirm / ship / cancel / deliver)
+POST /api/orders                     (STAFF tạo đơn POS, channel=IN_STORE)
+GET  /api/audit-logs                 (planned — ADMIN)
 ```
 
 ---
@@ -257,55 +251,55 @@ PUT  /api/staff/orders/{id}/deliver  (đánh dấu giao hàng)
 ```
 ecommerce/
 ├── README.md
-├── docs/
+├── docs/                              # Tài liệu chung — đẩy lên remote, cả team đọc
+│   ├── be-architecture.md             # Thiết kế chi tiết BE (tầng + hợp đồng API + bẫy runtime)
 │   ├── erd.dbml                       # paste vào https://dbdiagram.io/d
+│   ├── db.sql                         # tạo 14 bảng + seed data
+│   ├── Giải thích ý nghĩa từng thuộc tính Auth.docx   # giải thích thuộc tính entity Auth
 │   └── postman/                       # API collection (tạo sau)
+│   # (doc/ — folder ghi chú cá nhân, đã gitignore, không lên remote)
 ├── backend/
-│   ├── pom.xml                        # Maven build
-│   ├── mvnw, mvnw.cmd                 # Maven wrapper
+│   ├── pom.xml                        # Maven build (dùng Maven hệ thống 3.9.x — repo không có mvnw wrapper)
 │   └── src/main/
 │       ├── java/com/sba301/ecommerce/
 │       │   ├── EcommerceApplication.java       # @SpringBootApplication entry point
-│       │   ├── config/                         # SecurityConfig, OpenApiConfig, CorsConfig
-│       │   ├── security/                       # JwtAuthenticationFilter, JwtTokenProvider, CustomUserDetailsService
-│       │   ├── entity/                         # JPA entities (đã có)
-│       │   │   ├── BaseEntity.java
-│       │   │   ├── User.java, Address.java
-│       │   │   ├── Category.java, Product.java, ProductVariant.java, ProductImage.java
-│       │   │   ├── Cart.java, CartItem.java
-│       │   │   ├── Order.java, OrderItem.java, Payment.java
-│       │   │   ├── Review.java, AuditLog.java
-│       │   │   └── enums/                      # Role, ProductStatus, OrderChannel, ...
-│       │   ├── repository/                     # *Repository extends JpaRepository<Entity, Long>
-│       │   ├── service/                        # Interface XxxService
-│       │   │   └── impl/                       # XxxServiceImpl @Service
-│       │   ├── controller/                     # REST endpoints @RestController
-│       │   ├── dto/
-│       │   │   ├── request/                    # Request DTO (record + Bean Validation)
-│       │   │   └── response/                   # Response DTO (record)
-│       │   ├── mapper/                         # MapStruct @Mapper(componentModel = "spring")
-│       │   └── exception/                      # Custom exceptions + @RestControllerAdvice
+│       │   ├── exception/                      # Custom exceptions + GlobalExceptionHandler (@RestControllerAdvice)
+│       │   ├── security/                       # JwtService, JwtAuthenticationFilter, CustomUserDetails(Service), SecurityConfig
+│       │   └── features/                       # FEATURE-BASED: mỗi feature gói đủ tầng controller/dto/repository/service(+Impl)
+│       │       ├── entities/                   # JPA entities dùng chung (đã có)
+│       │       │   ├── BaseEntity, User, Address
+│       │       │   ├── Category, Product, ProductVariant, ProductImage
+│       │       │   ├── Cart, CartItem, Order, OrderItem, Payment, Review, AuditLog
+│       │       │   └── enums/                  # Role, ProductStatus, OrderChannel, ...
+│       │       ├── auth/                        # controller / dto / repository (UserRepository) / service(+Impl)
+│       │       ├── product/                     # controller / dto / repository / service(+Impl)
+│       │       ├── category/                    # controller / dto / repository / service(+Impl)
+│       │       ├── cart/                         # controller / dto / repository / service(+Impl)
+│       │       └── order/                        # controller / dto / repository / service(+Impl)
 │       └── resources/
 │           └── application.properties          # Config chính (sửa creds DB theo máy mình, đừng commit creds)
 └── frontend/
     ├── package.json
     ├── vite.config.js
-    ├── .env
+    ├── .env.example                  # copy thành .env (mỗi dev tự tạo; .env bị gitignore)
     └── src/
-        ├── main.jsx
-        ├── App.jsx
-        ├── api/                       # axios instances + endpoint wrappers
-        ├── pages/
-        │   ├── customer/              # Home, ProductDetail, Cart, Checkout, OrderHistory
-        │   ├── admin/                 # Dashboard, ProductMgmt, OrderMgmt
-        │   └── staff/                 # POS
-        ├── components/                # Shared UI (Button, Modal, ...)
-        ├── hooks/                     # Custom hooks (useAuth, useCart)
-        ├── context/                   # AuthContext, CartContext
-        └── utils/                     # Helpers (format currency, date)
+        ├── main.jsx                   # Entry: mount React + BrowserRouter
+        ├── index.css
+        ├── app/                       # App.jsx (routes) + layout/MainLayout.jsx (Navbar + Outlet dùng chung)
+        ├── shared/                    # Dùng chung mọi feature
+        │   ├── components/            # AppNavbar, StatusBadge, ...
+        │   ├── services/              # axios.js (instance + JWT interceptor)
+        │   ├── utils/                 # format, orderStatus
+        │   └── mock/                  # mock data tạm (thay bằng API khi BE xong)
+        └── features/                  # Mỗi feature: pages/ (+ components/, services/)
+            ├── auth/   home/   products/
+            ├── cart/   orders/   pos/   dashboard/   audit-logs/
+            └── reviews/
 ```
 
-> **Lưu ý về `package-info.java`**: trong các package backend hiện đang có sẵn file `package-info.java` đặt chỗ (scaffolding) để giữ folder + giúp IDE nhận diện package từ đầu. Khi mỗi người **bắt đầu thêm file thật vào package mình phụ trách** (vd Người 2 thêm `ProductController.java` vào `controller/`), thì **xoá luôn `package-info.java`** trong package đó. Maven vẫn detect package OK khi folder có file Java khác. Không cần giữ scaffolding sau khi triển khai code thật.
+> Thiết kế chi tiết từng tầng + hợp đồng API + bẫy runtime BE: xem **`docs/be-architecture.md`**.
+
+> **Lưu ý về skeleton**: backend đã được scaffold sẵn theo feature-based — mỗi package có **file stub rỗng + `// TODO`** mô tả việc cần làm (vd `features/cart/service/CartServiceImpl.java`). Mỗi người mở stub trong feature mình phụ trách rồi điền logic theo `docs/be-architecture.md`. Stub hiện **compile được** nhưng chưa có logic. (Các `package-info.java` đặt chỗ cũ đã được xoá.)
 
 ---
 
