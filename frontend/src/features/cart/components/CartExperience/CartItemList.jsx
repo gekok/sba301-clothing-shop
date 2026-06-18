@@ -1,7 +1,5 @@
 import { Alert, Button, Col, Form, Stack } from 'react-bootstrap';
 import CartItemCard from './CartItemCard.jsx';
-import { isPurchasable } from '../../hooks/useCartExperience.js';
-
 function CartItemList({
   items,
   selectedItemIds,
