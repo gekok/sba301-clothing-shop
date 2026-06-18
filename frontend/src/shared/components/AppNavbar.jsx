@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Container, Nav, Navbar } from 'react-bootstrap';
 
-// Thanh điều hướng dùng chung cho toàn app — render trong MainLayout nên hiện trên mọi trang.
+// Thanh điều hướng dùng chung cho toàn app — render trong PublicLayout nên hiện trên mọi trang.
 const AppNavbar = () => {
   return (
     <Navbar bg="dark" variant="dark" expand="md">
