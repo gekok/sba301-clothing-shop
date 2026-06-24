@@ -41,7 +41,7 @@ Feature-based. Mỗi feature `com.sba301.ecommerce.features.<x>/`:
   - Beans: `BCryptPasswordEncoder`, `AuthenticationManager` (từ `AuthenticationConfiguration`), `CorsConfigurationSource` (origin 5173).
   - Filter chain: `.cors(withDefaults()).csrf(disable).sessionManagement(STATELESS).addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)`.
   - **Authorize matchers** (path SAU context-path, KHÔNG `/api`):
-    - `permitAll`: `OPTIONS /**`, `/auth/**`, `GET /products`,`/products/**`,`/categories`,`/categories/**`, `/swagger-ui/**`,`/swagger-ui.html`,`/v3/api-docs/**`, `/actuator/health`,`/actuator/info`
+    - `permitAll` (**= actor Guest**, khách chưa đăng nhập — KHÔNG phải role trong DB, chỉ là request chưa có JWT): `OPTIONS /**`, `/auth/**`, `GET /products`,`/products/**`,`/categories`,`/categories/**`, `/swagger-ui/**`,`/swagger-ui.html`,`/v3/api-docs/**`, `/actuator/health`,`/actuator/info`
     - `hasRole("CUSTOMER")`: `/carts/**`
     - `hasAnyRole("ADMIN","STAFF")`: POST/PUT/DELETE product+category, PUT order status
     - `anyRequest().authenticated()`

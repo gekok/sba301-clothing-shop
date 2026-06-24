@@ -1,8 +1,10 @@
 # SBA301 — Small Clothing E-commerce
 
 Dự án luyện code tay cho nhóm 5 người — web bán quần áo nhỏ gồm 2 luồng chính:
-1. **Khách hàng online**: đăng ký → duyệt sản phẩm → bỏ giỏ → đặt hàng → thanh toán → review
+1. **Guest → Khách hàng (Customer)**: khách chưa đăng nhập (**Guest**) duyệt sản phẩm / danh mục tự do; muốn mua phải **đăng ký / đăng nhập** thành Customer → bỏ giỏ → đặt hàng → thanh toán → review
 2. **Nhân viên / quản trị**: Admin CRUD catalog + duyệt đơn online; Staff tạo đơn POS tại shop
+
+> **4 actor**: **Guest** (chưa đăng nhập, chỉ xem) · **Customer** · **Staff** · **Admin**. Guest **không phải** role trong DB — chỉ là trạng thái chưa có JWT; `Role` enum vẫn chỉ `ADMIN / STAFF / CUSTOMER`.
 
 ---
 
@@ -223,11 +225,18 @@ Tài khoản mẫu đề xuất:
 
 > **Quy ước path**: dùng **resource phẳng** (không prefix `/admin`,`/staff`). Phân quyền bằng **role qua Spring Security** (`SecurityConfig` + role CUSTOMER/STAFF/ADMIN), KHÔNG bằng path. Endpoint Payment / Review / Address / AuditLog là **planned** (chưa scaffold — defer).
 
-**Customer online**:
+**Guest (chưa đăng nhập)** — `permitAll`, không cần token:
 ```
-POST /api/auth/register
-POST /api/auth/login
-GET  /api/products?categoryId=1
+GET  /api/products?categoryId=1      (duyệt sản phẩm)
+GET  /api/products/{id}              (chi tiết sản phẩm)
+GET  /api/categories                 (danh mục)
+POST /api/auth/register              (đăng ký → trở thành Customer)
+POST /api/auth/login                 (đăng nhập)
+```
+> Guest **chỉ xem** — thêm giỏ / đặt hàng / xem đơn phải đăng nhập (role CUSTOMER).
+
+**Customer online** (đã đăng nhập, role CUSTOMER):
+```
 POST /api/carts/items                (add to cart)
 POST /api/orders                     (checkout — tạo order từ cart hiện tại)
 GET  /api/orders/me                  (xem đơn của mình)
