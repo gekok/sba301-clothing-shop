@@ -1,4 +1,4 @@
-package com.sba301.ecommerce.security;
+package com.sba301.ecommerce.security.user;
 
 // TODO: implements org.springframework.security.core.userdetails.UserDetails — bọc User entity.
 //   getUsername()=email, getPassword()=passwordHash,

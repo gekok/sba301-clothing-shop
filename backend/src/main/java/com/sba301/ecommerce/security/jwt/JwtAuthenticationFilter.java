@@ -1,4 +1,4 @@
-package com.sba301.ecommerce.security;
+package com.sba301.ecommerce.security.jwt;
 
 import org.springframework.stereotype.Component;
 
