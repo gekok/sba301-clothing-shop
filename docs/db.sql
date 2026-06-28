@@ -53,8 +53,8 @@ CREATE TABLE dbo.users (
         CONSTRAINT df_users_role DEFAULT 'CUSTOMER',
 
     -- Trạng thái account
-    is_active BIT NOT NULL
-        CONSTRAINT df_users_active DEFAULT 1,
+    status VARCHAR(20) NOT NULL
+    CONSTRAINT df_users_status DEFAULT 'PENDING',
 
     -- Xác thực email
     email_verified BIT NOT NULL
@@ -391,6 +391,32 @@ CREATE INDEX ix_audit_created_at ON dbo.audit_logs(created_at);
 GO
 
 /* ============================================================================
+   16. email_verification 
+============================================================================ */
+CREATE TABLE dbo.email_verification (
+    id UNIQUEIDENTIFIER PRIMARY KEY DEFAULT NEWID(),
+
+    user_id BIGINT NOT NULL,
+
+    otp NVARCHAR(255) NOT NULL,
+
+    type VARCHAR(30) NOT NULL,
+
+    is_verified BIT NOT NULL DEFAULT 0,
+
+    expired_at DATETIME2 NOT NULL,
+
+    verified_at DATETIME2 NULL,
+
+    created_at DATETIME2 NOT NULL DEFAULT GETDATE(),
+
+    CONSTRAINT FK_email_verification_user
+        FOREIGN KEY (user_id)
+        REFERENCES users(id)
+        ON DELETE CASCADE
+);
+
+/* ============================================================================
    17. SEED DATA — vài row mẫu để test ngay
    (password_hash dưới đây là bcrypt của "123456" — KHÔNG dùng cho production)
 ============================================================================ */
@@ -402,7 +428,7 @@ INSERT INTO dbo.users (
     full_name,
     phone,
     role,
-    is_active,
+	status,
     email_verified,
     email_verified_at,
     last_login_at,
@@ -418,7 +444,7 @@ VALUES
     N'Admin Demo',
     N'0900000001',
     'ADMIN',
-    1,
+    'ACTIVE',
     1,
     SYSUTCDATETIME(),
     SYSUTCDATETIME(),
@@ -433,7 +459,7 @@ VALUES
     N'Nhân viên A',
     N'0900000002',
     'STAFF',
-    1,
+    'ACTIVE',
     1,
     SYSUTCDATETIME(),
     SYSUTCDATETIME(),
@@ -448,7 +474,7 @@ VALUES
     N'Khách Demo',
     N'0900000003',
     'CUSTOMER',
-    1,
+    'ACTIVE',
     1,
     SYSUTCDATETIME(),
     NULL,
@@ -463,7 +489,7 @@ VALUES
     N'Khách vãng lai',
     NULL,
     'CUSTOMER',
-    1,
+    'ACTIVE',
     0,
     NULL,
     NULL,
