@@ -404,6 +404,31 @@ export function useCartExperience() {
     }
   };
 
+  /**
+   * Thêm địa chỉ giao hàng mới (Mock)
+   * @param {Object} newAddress - Thông tin địa chỉ mới
+   */
+  const addAddress = (newAddress) => {
+    setAddresses((prevAddresses) => {
+      const newId = prevAddresses.length > 0 ? Math.max(...prevAddresses.map((a) => a.id)) + 1 : 301;
+      const addressToAdd = { ...newAddress, id: newId };
+      
+      let nextAddresses = [...prevAddresses];
+      
+      if (addressToAdd.isDefault) {
+        // Nếu chọn làm mặc định, bỏ mặc định các địa chỉ cũ
+        nextAddresses = nextAddresses.map(addr => ({ ...addr, isDefault: false }));
+      }
+      
+      nextAddresses.push(addressToAdd);
+      
+      // Tự động chọn địa chỉ vừa thêm
+      setSelectedAddressId(newId);
+      
+      return nextAddresses;
+    });
+  };
+
   return {
     // State
     loading,
@@ -446,5 +471,6 @@ export function useCartExperience() {
     reloadCart,
     handleCheckout,
     setCartAlert,
+    addAddress,
   };
 }

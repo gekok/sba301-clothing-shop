@@ -47,6 +47,7 @@ function CartExperience() {
     handleCheckout,
     cartAlert,
     setCartAlert,
+    addAddress,
   } = useCartExperience();
 
   if (loading) {
@@ -216,6 +217,7 @@ function CartExperience() {
                 selectedAddressId={selectedAddressId}
                 selectedAddress={selectedAddress}
                 onChange={setSelectedAddressId}
+                onAddAddress={addAddress}
               />
 
               <ShippingSelection
