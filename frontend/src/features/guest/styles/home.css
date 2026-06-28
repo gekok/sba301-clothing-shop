@@ -1,0 +1,139 @@
+/* ══════════════════════════════════════════
+   Homepage — chỉ load khi vào trang chủ
+   ══════════════════════════════════════════ */
+
+.home-hero {
+  position: relative;
+  min-height: clamp(420px, 62vh, 640px);
+  display: flex;
+  align-items: center;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.62) 0%, rgba(0, 0, 0, 0.28) 55%, rgba(0, 0, 0, 0.15) 100%),
+    url('https://images.unsplash.com/photo-1483985988355-763728fb1773?auto=format&fit=crop&w=1600&q=80') center / cover no-repeat;
+  color: #fff;
+}
+
+.home-hero-kicker {
+  font-size: 0.78rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.home-hero-title {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 700;
+  line-height: 1.08;
+  max-width: 12ch;
+}
+
+.home-hero-desc {
+  font-size: clamp(1rem, 2vw, 1.15rem);
+  max-width: 34ch;
+  opacity: 0.9;
+}
+
+.home-section-title {
+  font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.home-section-subtitle {
+  color: #666;
+  font-size: 0.95rem;
+}
+
+.home-category-card {
+  position: relative;
+  overflow: hidden;
+  border: none;
+  border-radius: 0;
+  min-height: 320px;
+}
+
+.home-category-card img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  transition: transform 0.45s ease;
+}
+
+.home-category-card:hover img {
+  transform: scale(1.05);
+}
+
+.home-category-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0.08) 55%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 1.5rem;
+  color: #fff;
+}
+
+.home-product-card {
+  border: none;
+  border-radius: 0;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.home-product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1);
+}
+
+.home-product-image {
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  width: 100%;
+  background: #f3f3f3;
+}
+
+.home-product-badge {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  background: #111;
+  color: #fff;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.25rem 0.5rem;
+}
+
+.home-trust-badge {
+  border: 1px solid #ececec;
+  padding: 1.25rem 1rem;
+  height: 100%;
+  text-align: center;
+}
+
+.home-trust-badge-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.home-trust-badge-subtitle {
+  font-size: 0.8rem;
+  color: #777;
+  margin: 0;
+}
+
+.home-promo-banner {
+  background:
+    linear-gradient(135deg, rgba(17, 17, 17, 0.92), rgba(45, 45, 45, 0.88)),
+    url('https://images.unsplash.com/photo-1445205170230-053b83016050?auto=format&fit=crop&w=1400&q=80') center / cover no-repeat;
+  color: #fff;
+  padding: clamp(2.5rem, 5vw, 4rem) 0;
+}
+
+@media (max-width: 1199.98px) {
+  .home-category-card {
+    min-height: 240px;
+  }
+}
