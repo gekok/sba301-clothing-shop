@@ -1,4 +1,5 @@
 import { Alert, Button, Col, Form, Modal, Row, Spinner, Stack } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 import { formatDateTime } from '../../../../shared/utils/format';
 import { useCartExperience } from '../../hooks/useCartExperience.js';
 
@@ -20,6 +21,7 @@ function CartExperience() {
     selectedShippingId,
     selectedItemIds,
     voucherInput,
+    voucherApplied,
     voucherNotice,
     orderNote,
     stockSyncNotice,
@@ -44,11 +46,31 @@ function CartExperience() {
     clearUnavailableItems,
     applyVoucher,
     reloadCart,
-    handleCheckout,
+    prepareCheckout,
     cartAlert,
     setCartAlert,
     addAddress,
   } = useCartExperience();
+
+  const navigate = useNavigate();
+
+  const handleCheckout = async () => {
+    const isReady = await prepareCheckout();
+    if (isReady) {
+      const checkoutItems = items.filter(item => selectedItemIds.includes(item.id));
+      const shippingMethod = shippingMethods.find(m => m.id === selectedShippingId);
+      
+      const checkoutSessionPayload = {
+        checkoutItems,
+        selectedAddress,
+        shippingMethod,
+        totals,
+        voucherApplied,
+        orderNote,
+      };
+      navigate('/checkout', { state: checkoutSessionPayload });
+    }
+  };
 
   if (loading) {
     return (

@@ -61,7 +61,7 @@ export function useCartCheckout({
     }
   };
 
-  const handleCheckout = async () => {
+  const prepareCheckout = async () => {
     setCheckingOut(true);
     setCheckoutNotice('');
 
@@ -73,30 +73,20 @@ export function useCartCheckout({
       const { removedCount, nextSelectedIds } = await refreshCartSnapshot({ forCheckout: true });
 
       if (!previousAddressSelected || !previousShippingSelected || nextSelectedIds.length === 0) {
-        setCheckoutNotice('Chưa đủ điều kiện để đặt hàng. Vui lòng chọn sản phẩm hợp lệ và địa chỉ giao hàng.');
-        return;
+        setCheckoutNotice('Chưa đủ điều kiện để thanh toán. Vui lòng chọn sản phẩm hợp lệ và địa chỉ giao hàng.');
+        return false;
       }
 
       if (removedCount > 0 || nextSelectedIds.length !== previousSelectedCount) {
         setCheckoutNotice('Một số sản phẩm đã thay đổi tồn kho trong lúc thao tác. Vui lòng kiểm tra lại giỏ hàng.');
-        return;
+        return false;
       }
 
-      // Payload giả lập gửi lên Backend
-      const payload = {
-        itemIds: nextSelectedIds,
-        addressId: selectedAddress?.id,
-        shippingMethod: selectedShippingMethod?.id,
-        voucherCode: voucherApplied?.code || null,
-        note: orderNote
-      };
-
-      await checkoutAPI(payload);
-
-      setCheckoutNotice('Tồn kho đã được kiểm tra lại. Dữ liệu giỏ hàng hiện đã sẵn sàng để tạo đơn.');
+      return true;
       
     } catch (_error) {
       setCheckoutNotice('Không thể xác thực tồn kho lúc này. Vui lòng thử lại.');
+      return false;
     } finally {
       setCheckingOut(false);
     }
@@ -137,7 +127,7 @@ export function useCartCheckout({
     totals,
     canCheckout,
     applyVoucher,
-    handleCheckout,
+    prepareCheckout,
     reloadCart,
   };
 }

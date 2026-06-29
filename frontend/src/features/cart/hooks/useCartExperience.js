@@ -123,6 +123,7 @@ export function useCartExperience() {
     selectedShippingId: cartAddresses.selectedShippingId,
     selectedItemIds: cartItems.selectedItemIds,
     voucherInput: cartCheckout.voucherInput,
+    voucherApplied: cartCheckout.voucherApplied,
     voucherNotice: cartCheckout.voucherNotice,
     orderNote: cartCheckout.orderNote,
     checkoutNotice: cartCheckout.checkoutNotice,
@@ -147,7 +148,7 @@ export function useCartExperience() {
     clearUnavailableItems: cartItems.clearUnavailableItems,
     applyVoucher: cartCheckout.applyVoucher,
     reloadCart: () => cartCheckout.reloadCart(setLoading, setErrorMessage),
-    handleCheckout: cartCheckout.handleCheckout,
+    prepareCheckout: cartCheckout.prepareCheckout,
     addAddress: cartAddresses.addAddress,
   };
 }
