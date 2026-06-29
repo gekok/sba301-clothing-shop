@@ -2,6 +2,7 @@ package com.sba301.ecommerce.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -33,7 +34,7 @@ public class GlobalExceptionHandler {
                 .body(response);
     }
 
-    @ExceptionHandler(Exception.class)
+    @ExceptionHandler(InternalServerException.class)
     public ResponseEntity<ErrorResponse> handleException(Exception e) {
         ErrorResponse response =ErrorResponse.builder()
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
@@ -68,6 +69,20 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity
                 .badRequest()
+                .body(response);
+    }
+
+    // Bắt Exception authentication
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErrorResponse> handleException(BadCredentialsException e) {
+        ErrorResponse response = ErrorResponse.builder()
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .code("AUTH_001")
+                .message(e.getMessage())
+                .build();
+
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
                 .body(response);
     }
 }

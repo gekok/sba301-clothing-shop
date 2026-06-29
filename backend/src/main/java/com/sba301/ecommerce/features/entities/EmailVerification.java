@@ -1,5 +1,6 @@
 package com.sba301.ecommerce.features.entities;
 
+import com.sba301.ecommerce.features.entities.enums.EmailVerificationType;
 import jakarta.persistence.*;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
@@ -35,8 +36,9 @@ public class EmailVerification {
 
     @Size(max = 30)
     @NotNull
+    @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false, length = 30)
-    private String type;
+    private EmailVerificationType type;
 
     @NotNull
     @ColumnDefault("0")

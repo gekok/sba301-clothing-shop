@@ -1,6 +1,7 @@
 package com.sba301.ecommerce.features.entities;
 
 import com.sba301.ecommerce.features.entities.enums.Role;
+import com.sba301.ecommerce.features.entities.enums.UserStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -70,8 +71,8 @@ public class User extends BaseEntity {
 
     @Size(max = 20)
     @NotNull
-    @ColumnDefault("'PENDING'")
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
-    private String status;
+    private UserStatus status;
 
 }

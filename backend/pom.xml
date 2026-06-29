@@ -34,6 +34,7 @@
         <springdoc.version>2.6.0</springdoc.version>
         <mapstruct.version>1.6.0</mapstruct.version>
         <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
+        <dotenv.version>4.0.0</dotenv.version>
         <!-- Lombok version is inherited from spring-boot-starter-parent (1.18.36+) -->
     </properties>
 
@@ -56,12 +57,12 @@
             Spring Security temporarily disabled so the team can build and test
             feature endpoints without the default Basic-Auth login blocking every
             request. Re-enable (uncomment) when implementing the security/ package
-            (JWT auth, SecurityFilterChain).
+            (JWT auth, SecurityFilterChain). -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
-        -->
+
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -153,7 +154,7 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-        <!-- Disabled together with spring-boot-starter-security above; re-enable when adding security tests.
+        <!-- Disabled together with spring-boot-starter-security above; re-enable when adding security tests. -->
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-test</artifactId>
@@ -162,6 +163,15 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+
+        <!-- ============================================================
+             file.env
+             ============================================================ -->
+        <dependency>
+            <groupId>me.paulschwarz</groupId>
+            <artifactId>spring-dotenv</artifactId>
+            <version>${dotenv.version}</version>
         </dependency>
 
     </dependencies>

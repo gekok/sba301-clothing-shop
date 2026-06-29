@@ -1,6 +1,7 @@
 package com.sba301.ecommerce.features.auth.dto;
 
 import com.sba301.ecommerce.features.entities.enums.Role;
+import com.sba301.ecommerce.features.entities.enums.UserStatus;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.Email;
@@ -27,5 +28,8 @@ public class RegisterRequest {
 
     @Enumerated(EnumType.STRING)
     private Role roles = Role.CUSTOMER;
+
+    @Enumerated(EnumType.STRING)
+    private UserStatus status = UserStatus.PENDING;
 
 }
