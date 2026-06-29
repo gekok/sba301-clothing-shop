@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import PaymentMethodSelector from './PaymentMethodSelector';
 import CheckoutSummary from './CheckoutSummary';
 import '../styles/checkout.css';
+import api from '../../../shared/services/axios.js';
 
 function CheckoutLayout() {
   const navigate = useNavigate();
@@ -13,6 +14,7 @@ function CheckoutLayout() {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('COD');
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [orderCode, setOrderCode] = useState('');
 
   useEffect(() => {
     if (!payload || !payload.checkoutItems || payload.checkoutItems.length === 0) {
@@ -20,22 +22,43 @@ function CheckoutLayout() {
     }
   }, [payload, navigate]);
 
-  // Nếu không có payload, ta trả về null trong lúc chờ redirect
   if (!payload) return null;
 
-  const { checkoutItems, selectedAddress, shippingMethod, totals } = payload;
+  const { checkoutItems, selectedAddress, shippingMethod, totals, orderNote } = payload;
 
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
     setIsPlacingOrder(true);
-    setTimeout(() => {
+    
+    try {
+      const requestBody = {
+        items: checkoutItems.map(item => ({ variantId: item.variantId, quantity: item.quantity })),
+        shippingAddressId: selectedAddress?.id,
+        paymentMethod: selectedPaymentMethod,
+        note: orderNote,
+      };
+      
+      const response = await api.post('/orders', requestBody);
+      const { orderCode, paymentUrl } = response.data;
+      
+      setOrderCode(orderCode);
+
+      if (paymentUrl) {
+         window.location.href = paymentUrl; 
+      } else {
+        setShowSuccessModal(true);
+      }
+
+    } catch (error) {
+      console.error("Lỗi khi đặt hàng:", error);
+      alert("Đã xảy ra lỗi khi đặt hàng. Vui lòng thử lại!");
+    } finally {
       setIsPlacingOrder(false);
-      setShowSuccessModal(true);
-    }, 1500);
+    }
   };
 
-  const handleReturnHome = () => {
+  const handleViewOrder = () => {
     setShowSuccessModal(false);
-    navigate('/');
+    navigate(`/order/${orderCode}`);
   };
 
   return (
@@ -71,7 +94,7 @@ function CheckoutLayout() {
 
       <Modal
         show={showSuccessModal}
-        onHide={handleReturnHome}
+        onHide={handleViewOrder}
         centered
         backdrop="static"
         keyboard={false}
@@ -85,11 +108,11 @@ function CheckoutLayout() {
           </div>
           <h3 className="fw-bold mb-3">Đặt hàng thành công!</h3>
           <p className="text-muted mb-4">
-            Cảm ơn bạn đã mua sắm. Mã đơn hàng của bạn là <strong>#ORD-{Math.floor(10000 + Math.random() * 90000)}</strong>.<br />
+            Cảm ơn bạn đã mua sắm. Mã đơn hàng của bạn là <strong>{orderCode}</strong>.<br />
             Chúng tôi sẽ sớm liên hệ để giao hàng.
           </p>
-          <Button variant="dark" className="rounded-0 text-uppercase px-4" onClick={handleReturnHome}>
-            Tiếp tục mua sắm
+          <Button variant="dark" className="rounded-0 text-uppercase px-4" onClick={handleViewOrder}>
+            Xem chi tiết đơn hàng
           </Button>
         </Modal.Body>
       </Modal>

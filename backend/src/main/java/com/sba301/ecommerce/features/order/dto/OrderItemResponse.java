@@ -1,5 +1,16 @@
 package com.sba301.ecommerce.features.order.dto;
 
-// TODO: productName, variantInfo, unitPrice, quantity, subtotal.
+import lombok.Getter;
+import lombok.Setter;
+
+import java.math.BigDecimal;
+
+@Getter
+@Setter
 public class OrderItemResponse {
+    private String productName;
+    private String variantInfo;
+    private BigDecimal unitPrice;
+    private Integer quantity;
+    private BigDecimal subtotal;
 }
