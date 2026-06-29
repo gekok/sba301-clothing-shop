@@ -1,24 +1,23 @@
-import { Card, Row, Col } from 'react-bootstrap';
+import { CATEGORY_NAV, PRODUCT_IMAGES, TRUST_BADGES } from '../data/home.data.js';
+import { useFeaturedProducts } from '../hooks/useFeaturedProducts.js';
+import HeroSection from '../components/HeroSection.jsx';
+import TrustBadges from '../components/TrustBadges.jsx';
+import CategoryShowcase from '../components/CategoryShowcase.jsx';
+import PromoBanner from '../components/PromoBanner.jsx';
+import FeaturedProducts from '../components/FeaturedProducts.jsx';
+import '../styles/home.css';
 
-function Home() {
+const Home = () => {
+  const { products: featuredProducts } = useFeaturedProducts(3);
+
   return (
-    <>
-      <h1 className="mb-4">Trang chủ — SBA301 Clothing Shop</h1>
-      <p className="text-muted">Placeholder. Sau này hiển thị danh sách sản phẩm theo category.</p>
-
-      <Row className="g-3 mt-2">
-        {[1, 2, 3].map((i) => (
-          <Col key={i} md={4}>
-            <Card>
-              <Card.Body>
-                <Card.Title>Sản phẩm mẫu #{i}</Card.Title>
-                <Card.Text className="text-muted">Mô tả ngắn.</Card.Text>
-              </Card.Body>
-            </Card>
-          </Col>
-        ))}
-      </Row>
-    </>
+    <div className="bg-white">
+      <HeroSection />
+      <TrustBadges badges={TRUST_BADGES} />
+      <CategoryShowcase categories={CATEGORY_NAV} />
+      <PromoBanner />
+      <FeaturedProducts products={featuredProducts} productImages={PRODUCT_IMAGES} />
+    </div>
   );
 }
 
