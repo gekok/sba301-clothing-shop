@@ -10,10 +10,11 @@
 //     }
 // ]);
 
+import { lazy, Suspense } from 'react';
 import { createBrowserRouter } from 'react-router-dom';
 import MainLayout from '../layout/MainLayout.jsx';
 import { authRoutes } from '../../features/auth/routes';
-import { homeRoute } from '../../features/guest/routes';
+import { homeRoute, guestRoutes } from '../../features/guest/routes';
 
 import ProductList from '../../features/products/pages/ProductList.jsx';
 import CartExperience from '../../features/cart/components/CartExperience/CartExperience.jsx';
@@ -38,6 +39,7 @@ export const router = createBrowserRouter([
     element: <MainLayout />,
     children: [
       homeRoute,
+      ...guestRoutes,
       ...authRoutes,
       ...teamFeatureRoutes,
     ],

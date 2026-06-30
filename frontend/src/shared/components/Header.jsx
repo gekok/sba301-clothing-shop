@@ -95,13 +95,23 @@ const getAccountMenu = (isAuthenticated, role) => {
   return { account, portal };
 };
 
+// Đọc số lượng item trong giỏ từ localStorage
+// Format cart: [{ variantId, quantity, ... }] — tương thích CartExperience
+const getCartCount = () => {
+  try {
+    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    return cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+  } catch {
+    return 0;
+  }
+};
+
 const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const cartCount = 0;
-
-  const [authState, setAuthState] = useState(getAuthState());
+  const [cartCount, setCartCount] = useState(getCartCount);
+  const [authState, setAuthStateLocal] = useState(getAuthState());
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -113,22 +123,49 @@ const Header = () => {
     authState.role,
   );
 
+  // Sync auth khi navigate (đăng nhập/đăng xuất ở trang khác)
   useEffect(() => {
-    setAuthState(getAuthState());
+    setAuthStateLocal(getAuthState());
   }, [location.pathname]);
 
+  // Đóng tất cả panel khi chuyển trang
   useEffect(() => {
     setSearchOpen(false);
     setMobileMenuOpen(false);
     setAccountOpen(false);
   }, [location.pathname]);
 
+  // Scroll shadow
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  // Sync cart badge khi localStorage thay đổi (từ tab khác hoặc CartExperience)
+  useEffect(() => {
+    const onStorage = () => setCartCount(getCartCount());
+    window.addEventListener('storage', onStorage);
+    // Custom event cho cùng tab (CartExperience dispatch 'cart:updated')
+    window.addEventListener('cart:updated', onStorage);
+    return () => {
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('cart:updated', onStorage);
+    };
+  }, []);
+
+  // Bắt 401 từ axios interceptor → force logout
+  useEffect(() => {
+    const onForceLogout = () => {
+      clearAuthState();
+      setAuthStateLocal(getAuthState());
+      setCartCount(0);
+      navigate('/login');
+    };
+    window.addEventListener('auth:logout', onForceLogout);
+    return () => window.removeEventListener('auth:logout', onForceLogout);
+  }, [navigate]);
 
   const closeMenus = () => {
     setMobileMenuOpen(false);
@@ -138,7 +175,7 @@ const Header = () => {
 
   const handleLogout = () => {
     clearAuthState();
-    setAuthState(getAuthState());
+    setAuthStateLocal(getAuthState());
     closeMenus();
     navigate('/');
   };
@@ -341,7 +378,6 @@ const Header = () => {
                 )}
               </button>
 
-              {/* Đã đăng nhập: dropdown chỉ mở khi click (giữ hành vi cũ) */}
               {authState.isAuthenticated && accountOpen && (
                 <>
                   <button
@@ -356,7 +392,6 @@ const Header = () => {
                 </>
               )}
 
-              {/* Guest: dropdown chỉ mở khi click, có backdrop để click ra ngoài là đóng */}
               {!authState.isAuthenticated && accountOpen && (
                 <>
                   <button
@@ -375,7 +410,7 @@ const Header = () => {
             <Link to="/cart" className="store-header__cart" aria-label="Giỏ hàng" onClick={handleCartClick}>
               <Bag size={20} />
               <span className="store-header__cart-label d-none d-lg-inline">Giỏ hàng</span>
-              {authState.isAuthenticated && cartCount > 0 && (
+              {cartCount > 0 && (
                 <span className="store-header__cart-count">{cartCount}</span>
               )}
             </Link>
@@ -448,7 +483,7 @@ const Header = () => {
               </Link>
             ))}
             <Link to="/cart" className="store-mobile-nav__link" onClick={handleCartClick}>
-              Giỏ hàng {authState.isAuthenticated && cartCount > 0 ? `(${cartCount})` : ''}
+              Giỏ hàng {cartCount > 0 ? `(${cartCount})` : ''}
             </Link>
           </nav>
 

@@ -26,6 +26,9 @@ api.interceptors.response.use(
     if (err.response?.status === 401) {
       localStorage.removeItem('accessToken');
       // window.location.href = '/login';
+      localStorage.removeItem('role');
+      localStorage.removeItem('email');
+      window.dispatchEvent(new Event('auth:logout'));
     }
     return Promise.reject(err);
   },
