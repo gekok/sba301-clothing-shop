@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getCartSnapshot } from '../services/cartService.js';
 import { useCartItems, isPurchasable } from './useCartItems.js';
-import { useCartAddresses } from './useCartAddresses.js';
-import { useCartCheckout } from './useCartCheckout.js';
+import { useNavigate } from 'react-router-dom';
 
 export { isPurchasable };
 
@@ -12,56 +11,38 @@ export function useCartExperience() {
   const [cartAlert, setCartAlert] = useState(null);
   const [stockSyncNotice, setStockSyncNotice] = useState('');
   const [lastSyncedAt, setLastSyncedAt] = useState(null);
+  const navigate = useNavigate();
 
   const cartItems = useCartItems({ setCartAlert });
-  const cartAddresses = useCartAddresses({ setCartAlert });
+  const isUpdating = cartItems.isUpdatingItems;
 
-  const isUpdating = cartItems.isUpdatingItems || cartAddresses.isUpdatingAddresses;
-  const shippingFee = cartItems.selectedItems.length > 0 ? cartAddresses.selectedShippingMethod?.fee ?? 0 : 0;
-
-  const refreshCartSnapshot = async ({ forCheckout = false } = {}) => {
+  const refreshCartSnapshot = async () => {
     const snapshot = await getCartSnapshot();
-    const availableItemIds = new Set(snapshot.items.filter(isPurchasable).map((item) => item.id));
+
+    let adjustedCount = 0;
+    const adjustedItems = snapshot.items.map((item) => {
+      if (item.quantity > item.stockQuantity && item.stockQuantity > 0) {
+        adjustedCount++;
+        return { ...item, quantity: item.stockQuantity };
+      }
+      return item;
+    });
+
+    const availableItemIds = new Set(adjustedItems.filter(isPurchasable).map((item) => item.id));
     const nextSelectedIds = cartItems.selectedItemIds.filter((id) => availableItemIds.has(id));
     const removedCount = cartItems.selectedItemIds.length - nextSelectedIds.length;
 
-    cartItems.setItems(snapshot.items);
-    cartAddresses.setAddresses(snapshot.addresses);
-    cartAddresses.setShippingMethods(snapshot.shippingMethods);
-
-    cartAddresses.setSelectedAddressId((currentId) =>
-      snapshot.addresses.some((address) => address.id === currentId)
-        ? currentId
-        : snapshot.addresses.find((address) => address.isDefault)?.id ?? snapshot.addresses[0]?.id ?? null,
-    );
-
-    cartAddresses.setSelectedShippingId((currentId) =>
-      snapshot.shippingMethods.some((method) => method.id === currentId)
-        ? currentId
-        : snapshot.shippingMethods.find((method) => method.id === 'standard')?.id ?? snapshot.shippingMethods[0]?.id ?? '',
-    );
-
+    cartItems.setItems(adjustedItems);
     cartItems.setSelectedItemIds(nextSelectedIds);
     setLastSyncedAt(new Date());
     setStockSyncNotice(
-      removedCount > 0
-        ? `Đã cập nhật tồn kho. ${removedCount} sản phẩm không còn khả dụng và đã bị loại khỏi lựa chọn.`
-        : forCheckout
-          ? 'Tồn kho đã được kiểm tra lại trước khi thanh toán.'
-          : 'Tồn kho đã được đồng bộ lại từ máy chủ.',
+      removedCount > 0 || adjustedCount > 0
+        ? `Đã cập nhật tồn kho. ${removedCount} sản phẩm bị loại, ${adjustedCount} sản phẩm được điều chỉnh số lượng.`
+        : 'Tồn kho đã được đồng bộ lại từ máy chủ.'
     );
 
-    return { removedCount, nextSelectedIds };
+    return { removedCount, adjustedCount, nextSelectedIds };
   };
-
-  const cartCheckout = useCartCheckout({
-    itemsSubtotal: cartItems.itemsSubtotal,
-    shippingFee,
-    selectedItems: cartItems.selectedItems,
-    selectedAddress: cartAddresses.selectedAddress,
-    selectedShippingMethod: cartAddresses.selectedShippingMethod,
-    refreshCartSnapshot,
-  });
 
   useEffect(() => {
     let mounted = true;
@@ -75,17 +56,6 @@ export function useCartExperience() {
         if (!mounted) return;
 
         cartItems.setItems(snapshot.items);
-        cartAddresses.setAddresses(snapshot.addresses);
-        cartAddresses.setShippingMethods(snapshot.shippingMethods);
-
-        const defaultAddress = snapshot.addresses.find((addr) => addr.isDefault);
-        if (defaultAddress) {
-          cartAddresses.setSelectedAddressId(defaultAddress.id);
-        }
-
-        const validShipping = snapshot.shippingMethods.find((method) => method.id === 'standard');
-        cartAddresses.setSelectedShippingId(validShipping ? validShipping.id : snapshot.shippingMethods[0]?.id ?? '');
-
         cartItems.setSelectedItemIds(snapshot.items.filter(isPurchasable).map((item) => item.id));
         setLastSyncedAt(new Date());
         setStockSyncNotice('Tồn kho đã được tải mới từ máy chủ.');
@@ -106,6 +76,42 @@ export function useCartExperience() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const proceedToCheckout = async () => {
+    const { removedCount, adjustedCount, nextSelectedIds } = await refreshCartSnapshot();
+    if (nextSelectedIds.length === 0) {
+      setCartAlert({
+        title: 'Giỏ hàng trống',
+        message: 'Bạn chưa chọn sản phẩm nào để thanh toán.',
+        type: 'warning',
+      });
+      return;
+    }
+    if (removedCount > 0 || adjustedCount > 0) {
+      setCartAlert({
+        title: 'Tồn kho thay đổi',
+        message: 'Một số sản phẩm đã thay đổi số lượng. Vui lòng kiểm tra lại trước khi tiếp tục.',
+        type: 'warning',
+      });
+      return;
+    }
+
+    // Save selected items intent to session storage
+    sessionStorage.setItem('checkout_selected_items', JSON.stringify(nextSelectedIds));
+    navigate('/checkout');
+  };
+
+  const reloadCart = async () => {
+    setLoading(true);
+    setErrorMessage('');
+    try {
+      await refreshCartSnapshot();
+    } catch (_error) {
+      setErrorMessage('Tải lại giỏ hàng thất bại.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     loading,
     isUpdating,
@@ -115,40 +121,20 @@ export function useCartExperience() {
     stockSyncNotice,
     lastSyncedAt,
     
-    // Phơi bày (expose) API giống hệt hook cũ để UI không bị lỗi
     items: cartItems.items,
-    addresses: cartAddresses.addresses,
-    shippingMethods: cartAddresses.shippingMethods,
-    selectedAddressId: cartAddresses.selectedAddressId,
-    selectedShippingId: cartAddresses.selectedShippingId,
     selectedItemIds: cartItems.selectedItemIds,
-    voucherInput: cartCheckout.voucherInput,
-    voucherApplied: cartCheckout.voucherApplied,
-    voucherNotice: cartCheckout.voucherNotice,
-    orderNote: cartCheckout.orderNote,
-    checkoutNotice: cartCheckout.checkoutNotice,
-    checkingOut: cartCheckout.checkingOut,
-
     purchasableItems: cartItems.purchasableItems,
     unavailableCount: cartItems.unavailableCount,
-    totals: cartCheckout.totals,
-    canCheckout: cartCheckout.canCheckout,
     allPurchasableSelected: cartItems.allPurchasableSelected,
-    selectedAddress: cartAddresses.selectedAddress,
+    itemsSubtotal: cartItems.itemsSubtotal,
 
-    setSelectedAddressId: cartAddresses.setSelectedAddressId,
-    setSelectedShippingId: cartAddresses.setSelectedShippingId,
-    setVoucherInput: cartCheckout.setVoucherInput,
-    setOrderNote: cartCheckout.setOrderNote,
     toggleSelectAll: cartItems.toggleSelectAll,
     toggleItem: cartItems.toggleItem,
     changeItemQuantity: cartItems.changeItemQuantity,
     addToCart: cartItems.addToCart,
     removeItem: cartItems.removeItem,
     clearUnavailableItems: cartItems.clearUnavailableItems,
-    applyVoucher: cartCheckout.applyVoucher,
-    reloadCart: () => cartCheckout.reloadCart(setLoading, setErrorMessage),
-    prepareCheckout: cartCheckout.prepareCheckout,
-    addAddress: cartAddresses.addAddress,
+    reloadCart,
+    proceedToCheckout,
   };
 }

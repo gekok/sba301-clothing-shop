@@ -70,14 +70,14 @@ export function useCartCheckout({
       const previousAddressSelected = Boolean(selectedAddress);
       const previousShippingSelected = Boolean(selectedShippingMethod);
 
-      const { removedCount, nextSelectedIds } = await refreshCartSnapshot({ forCheckout: true });
+      const { removedCount, adjustedCount, nextSelectedIds } = await refreshCartSnapshot({ forCheckout: true });
 
       if (!previousAddressSelected || !previousShippingSelected || nextSelectedIds.length === 0) {
         setCheckoutNotice('Chưa đủ điều kiện để thanh toán. Vui lòng chọn sản phẩm hợp lệ và địa chỉ giao hàng.');
         return false;
       }
 
-      if (removedCount > 0 || nextSelectedIds.length !== previousSelectedCount) {
+      if (removedCount > 0 || adjustedCount > 0 || nextSelectedIds.length !== previousSelectedCount) {
         setCheckoutNotice('Một số sản phẩm đã thay đổi tồn kho trong lúc thao tác. Vui lòng kiểm tra lại giỏ hàng.');
         return false;
       }
