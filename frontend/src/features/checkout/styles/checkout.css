@@ -1,0 +1,238 @@
+/* src/features/checkout/styles/checkout.css */
+
+.checkoutx-shell, .checkoutx-modal {
+  --checkoutx-bg: #ffffff;
+  --checkoutx-ink: #000000;
+  --checkoutx-soft: #666666;
+  --checkoutx-border: #e5e5e5;
+  --checkoutx-accent: #000000;
+  --checkoutx-hover-bg: #f9f9f9;
+
+  --checkoutx-font-sans: 'Inter', sans-serif;
+  --checkoutx-font-display: 'Space Grotesk', sans-serif;
+}
+
+.checkoutx-shell {
+  background-color: var(--checkoutx-bg);
+  min-height: 100vh;
+  padding: 4rem 0 6rem;
+}
+
+.checkoutx-hero {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.checkoutx-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+}
+
+.checkoutx-panel {
+  background: #ffffff;
+  padding: 2rem;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  border-radius: 4px;
+}
+
+.checkoutx-section-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #000;
+}
+
+/* Payment Method Styles */
+.payment-method-card {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 1rem 1.25rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.payment-method-card:hover {
+  border-color: rgba(0, 0, 0, 0.3);
+  background-color: rgba(0, 0, 0, 0.01);
+}
+
+.payment-method-card.selected {
+  border-color: #000;
+  border-width: 2px;
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.payment-method-icon {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.payment-method-info {
+  flex-grow: 1;
+}
+
+.payment-method-name {
+  font-weight: 600;
+  margin-bottom: 0;
+}
+
+.payment-method-desc {
+  font-size: 0.85rem;
+  color: #6c757d;
+  margin-bottom: 0;
+}
+
+/* Summary Items */
+.checkoutx-summary-item {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.checkoutx-summary-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.checkoutx-summary-thumb {
+  width: 60px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.checkoutx-summary-details {
+  flex-grow: 1;
+}
+
+.checkoutx-summary-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 0.25rem;
+}
+
+.checkoutx-summary-meta {
+  font-size: 0.8rem;
+  color: #6c757d;
+}
+
+.checkoutx-summary-price {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.checkoutx-overline {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #666666;
+  margin-bottom: 0.5rem;
+}
+
+.checkoutx-sidebar-block {
+  background: #f9f9f9;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-radius: 0;
+}
+
+.checkoutx-address p {
+  font-size: 0.95rem;
+}
+
+.checkoutx-sticky {
+  position: sticky;
+  top: 2rem;
+}
+
+@media (max-width: 991.98px) {
+  .checkoutx-sticky {
+    position: static;
+  }
+}
+
+.checkoutx-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  font-family: 'Space Grotesk', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.checkoutx-modal .modal-content {
+  border-radius: 0;
+  border: 4px solid #000000;
+  background-color: #ffffff;
+  color: #000000;
+  font-family: 'Inter', sans-serif;
+  box-shadow: 8px 8px 0px 0px rgba(0,0,0,1);
+}
+
+.checkoutx-modal .modal-header {
+  border-bottom: 1px solid #e5e5e5;
+  border-radius: 0;
+  padding: 1.25rem 1.5rem;
+}
+
+.checkoutx-modal-header-danger {
+  border-bottom: 2px solid #dc3545 !important;
+}
+
+.checkoutx-modal-header-warning {
+  border-bottom: 2px solid #ffc107 !important;
+}
+
+.checkoutx-modal .modal-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 1.1rem;
+  letter-spacing: 0.02em;
+  display: flex;
+  align-items: center;
+}
+
+.checkoutx-modal .modal-body {
+  padding: 1.5rem;
+  font-size: 1.05rem;
+  line-height: 1.5;
+}
+
+.checkoutx-modal .modal-footer {
+  border-top: 1px solid #e5e5e5;
+  padding: 1rem 1.5rem;
+  border-radius: 0;
+}
+
+.checkoutx-modal .btn-close {
+  border-radius: 0;
+  opacity: 1;
+}
+
+.checkoutx-modal-backdrop {
+  background-color: rgba(0, 0, 0, 0.6) !important;
+  backdrop-filter: blur(5px) !important;
+  opacity: 1 !important;
+}

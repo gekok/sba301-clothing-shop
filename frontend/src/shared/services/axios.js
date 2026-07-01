@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Base URL đọc từ Vite env (file .env / .env.local). Fallback localhost cho dev.
-const baseURL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080/api';
+const baseURL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080/api/v1';
 
 const api = axios.create({
   baseURL,
