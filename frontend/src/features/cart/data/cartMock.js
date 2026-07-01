@@ -2,44 +2,6 @@ export const cartMock = {
   cartId: 12,
   userId: 3,
   channel: 'ONLINE',
-  addresses: [
-    {
-      id: 301,
-      recipientName: 'Khach Demo',
-      phone: '0900000003',
-      province: 'TP. Ho Chi Minh',
-      district: 'Quan 3',
-      ward: 'Vo Thi Sau',
-      street: '12 Nguyen Thuong Hien',
-      isDefault: true,
-    },
-    {
-      id: 302,
-      recipientName: 'Khach Demo',
-      phone: '0900000003',
-      province: 'TP. Ho Chi Minh',
-      district: 'Quan 1',
-      ward: 'Da Kao',
-      street: '83 Dinh Tien Hoang',
-      isDefault: false,
-    },
-  ],
-  shippingMethods: [
-    {
-      id: 'standard',
-      name: 'Giao tiêu chuẩn',
-      eta: '2-4 ngày',
-      fee: 25000,
-      description: 'Phù hợp đơn hàng thông thường trong nội thành.',
-    },
-    {
-      id: 'express',
-      name: 'Giao nhanh',
-      eta: 'Trong ngày (nội thành)',
-      fee: 45000,
-      description: 'Ưu tiên kho và đối tác vận chuyển nhanh.',
-    },
-  ],
   items: [
     {
       id: 1001,
@@ -90,26 +52,4 @@ export const cartMock = {
         'https://images.unsplash.com/photo-1527719327859-c6ce80353573?auto=format&fit=crop&w=640&q=80',
     },
   ],
-};
-
-export const voucherCatalog = {
-  FREESHIP30: {
-    code: 'FREESHIP30',
-    type: 'shipping',
-    amount: 30000,
-    description: 'Giảm tối đa 30.000VND phí vận chuyển.',
-  },
-  SALE40K: {
-    code: 'SALE40K',
-    type: 'fixed',
-    amount: 40000,
-    description: 'Giảm trực tiếp 40.000VND vào tổng tiền hàng.',
-  },
-  SAVE10: {
-    code: 'SAVE10',
-    type: 'percent',
-    amount: 10,
-    maxDiscount: 120000,
-    description: 'Giảm 10% tối đa 120.000VND.',
-  },
 };
