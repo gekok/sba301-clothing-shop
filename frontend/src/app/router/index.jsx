@@ -15,6 +15,7 @@ import { createBrowserRouter } from 'react-router-dom';
 import MainLayout from '../layout/MainLayout.jsx';
 import { authRoutes } from '../../features/auth/routes';
 import { homeRoute, guestRoutes } from '../../features/guest/routes';
+import { reviewRoutes } from '../../features/reviews/routes.jsx';
 
 import ProductList from '../../features/products/pages/ProductList.jsx';
 import CartExperience from '../../features/cart/components/CartExperience/CartExperience.jsx';
@@ -32,6 +33,7 @@ const teamFeatureRoutes = [
   { path: 'admin/orders', element: <OrderManagement /> },
   { path: 'admin/audit-logs', element: <AuditLogs /> },
   { path: 'staff/pos', element: <POS /> },
+  ...reviewRoutes,
 ];
 
 export const router = createBrowserRouter([
