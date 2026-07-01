@@ -42,22 +42,6 @@ function ProductList() {
         return <h3>Loading...</h3>;
 
     }
-    const loadProducts = async () => {
-
-        try {
-
-            const response = await getProducts();
-
-            setProducts(response.data.content);
-            console.log(response.data);
-        } catch (error) {
-
-            console.log(error);
-
-        }
-
-    };
-
     return (
         <div className="container mt-4">
 
