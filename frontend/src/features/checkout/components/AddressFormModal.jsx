@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Modal, Button, Form, Row, Col } from 'react-bootstrap';
-import provincesTree from '../../../../shared/data/vn_provinces_tree.json';
+import provincesTree from '../../../shared/data/vn_provinces_tree.json';
 
 function AddressFormModal({ show, onHide, onSave }) {
   const [validated, setValidated] = useState(false);

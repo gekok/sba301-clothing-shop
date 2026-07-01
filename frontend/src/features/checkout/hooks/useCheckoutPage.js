@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
-import { getCartSnapshot, applyVoucherAPI, addAddressAPI } from '../../cart/services/cartService.js';
-import { getItemsSubtotal, getDiscountAmount, getCartTotals } from '../../cart/utils/cartMath.js';
+import { getCartSnapshot } from '../../cart/services/cartService.js';
+import { applyVoucherAPI, addAddressAPI, getAddressesAPI, getShippingMethodsAPI } from '../services/checkoutService.js';
+import { getItemsSubtotal } from '../../cart/utils/cartMath.js';
+import { getDiscountAmount, getCartTotals } from '../utils/checkoutMath.js';
 import { isPurchasable } from '../../cart/hooks/useCartItems.js';
 
 export function useCheckoutPage() {
@@ -33,36 +35,32 @@ export function useCheckoutPage() {
         }
         const intentIds = JSON.parse(storedIdsRaw);
         
-        const snapshot = await getCartSnapshot();
+        const [cartRes, addressRes, shippingRes] = await Promise.all([
+          getCartSnapshot(),
+          getAddressesAPI(),
+          getShippingMethodsAPI()
+        ]);
         if (!mounted) return;
 
-        const availableItems = snapshot.items.filter(isPurchasable);
-        
-        // Capping items quantity just like in Cart to be safe
-        const cappedItems = availableItems.map(item => {
-          if (item.quantity > item.stockQuantity && item.stockQuantity > 0) {
-            return { ...item, quantity: item.stockQuantity };
-          }
-          return item;
-        });
+        const cartData = cartRes;
+        const addressesData = addressRes.data;
+        const shippingData = shippingRes.data;
 
-        const itemsToCheckout = cappedItems.filter(i => intentIds.includes(i.id));
+        // Chỉ lấy những item nào được chọn và còn hàng
+        const validItems = cartData.items.filter(item => isPurchasable(item) && intentIds.includes(item.id));
+        setCheckoutItems(validItems);
 
-        if (itemsToCheckout.length === 0) {
-          setErrorMessage('Các sản phẩm bạn chọn không còn khả dụng hoặc đã hết hàng.');
-          setLoading(false);
-          return;
+        setAddresses(addressesData || []);
+        setShippingMethods(shippingData || []);
+
+        if (addressesData?.length > 0) {
+          const defaultAddr = addressesData.find(a => a.isDefault);
+          setSelectedAddressId(defaultAddr ? defaultAddr.id : addressesData[0].id);
         }
 
-        setCheckoutItems(itemsToCheckout);
-        setAddresses(snapshot.addresses);
-        setShippingMethods(snapshot.shippingMethods);
-
-        const defaultAddr = snapshot.addresses.find(a => a.isDefault);
-        if (defaultAddr) setSelectedAddressId(defaultAddr.id);
-
-        const standardShip = snapshot.shippingMethods.find(m => m.id === 'standard');
-        if (standardShip) setSelectedShippingId(standardShip.id);
+        if (shippingData?.length > 0) {
+          setSelectedShippingId(shippingData[0].id);
+        }
 
       } catch (err) {
         setErrorMessage('Lỗi khi tải thông tin thanh toán.');

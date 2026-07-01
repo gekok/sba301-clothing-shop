@@ -82,7 +82,7 @@ function CheckoutLayout() {
 
   if (loading) {
     return (
-      <div className="cartx-loading">
+      <div className="checkoutx-loading">
         <Spinner animation="border" role="status" variant="dark" />
         <p className="mt-3 text-muted">Đang tải thông tin thanh toán...</p>
       </div>
@@ -106,7 +106,7 @@ function CheckoutLayout() {
     <section className="checkoutx-shell">
       <Container>
         <header className="checkoutx-hero">
-          <p className="cartx-overline">Secure Checkout</p>
+          <p className="checkoutx-overline">Secure Checkout</p>
           <h1 className="checkoutx-title">Thanh toán</h1>
         </header>
 
@@ -116,8 +116,8 @@ function CheckoutLayout() {
 
         <Row className="g-5">
           <Col lg={7}>
-            <div className="cartx-panel mb-4">
-              <h2 className="cartx-section-title">1. Thông tin Giao hàng</h2>
+            <div className="checkoutx-panel mb-4">
+              <h2 className="checkoutx-section-title">1. Thông tin Giao hàng</h2>
               <AddressSelection
                 addresses={addresses}
                 selectedAddressId={selectedAddressId}
@@ -127,8 +127,8 @@ function CheckoutLayout() {
               />
             </div>
 
-            <div className="cartx-panel mb-4">
-              <h2 className="cartx-section-title">2. Phương thức Vận chuyển</h2>
+            <div className="checkoutx-panel mb-4">
+              <h2 className="checkoutx-section-title">2. Phương thức Vận chuyển</h2>
               <ShippingSelection
                 shippingMethods={shippingMethods}
                 selectedShippingId={selectedShippingId}
@@ -136,8 +136,8 @@ function CheckoutLayout() {
               />
             </div>
 
-            <div className="cartx-panel mb-4">
-              <h2 className="cartx-section-title">3. Khuyến mãi</h2>
+            <div className="checkoutx-panel mb-4">
+              <h2 className="checkoutx-section-title">3. Khuyến mãi</h2>
               <VoucherSelection
                 voucherInput={voucherInput}
                 voucherNotice={voucherNotice}
@@ -146,16 +146,16 @@ function CheckoutLayout() {
               />
             </div>
 
-            <div className="cartx-panel mb-4">
-              <h2 className="cartx-section-title">4. Phương thức Thanh toán</h2>
+            <div className="checkoutx-panel mb-4">
+              <h2 className="checkoutx-section-title">4. Phương thức Thanh toán</h2>
               <PaymentMethodSelector
                 selectedMethod={selectedPaymentMethod}
                 onChange={setSelectedPaymentMethod}
               />
             </div>
 
-            <div className="cartx-panel mb-4">
-              <h2 className="cartx-section-title">5. Ghi chú Đơn hàng</h2>
+            <div className="checkoutx-panel mb-4">
+              <h2 className="checkoutx-section-title">5. Ghi chú Đơn hàng</h2>
               <Form.Control
                 as="textarea"
                 rows={3}
@@ -167,7 +167,7 @@ function CheckoutLayout() {
           </Col>
 
           <Col lg={5}>
-            <div className="cartx-sticky">
+            <div className="checkoutx-sticky">
               <CheckoutSummary
                 items={checkoutItems}
                 totals={totals}
@@ -188,7 +188,7 @@ function CheckoutLayout() {
         centered
         backdrop="static"
         keyboard={false}
-        className="cartx-modal"
+        className="checkoutx-modal"
       >
         <Modal.Body className="text-center py-5">
           <div className="mb-4 text-success">

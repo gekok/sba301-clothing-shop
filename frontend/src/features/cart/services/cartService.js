@@ -1,5 +1,5 @@
 import api from '../../../shared/services/axios.js';
-import { cartMock, voucherCatalog } from '../data/cartMock.js';
+import { cartMock } from '../data/cartMock.js';
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
@@ -23,8 +23,6 @@ export async function getCartSnapshot() {
       cartId: res.data.id,
       userId: 1, // mock
       channel: 'ONLINE',
-      addresses: res.data.addresses && res.data.addresses.length > 0 ? res.data.addresses : clone(cartMock.addresses),
-      shippingMethods: clone(cartMock.shippingMethods),
       items: backendItems
     };
   } catch (error) {
@@ -66,20 +64,12 @@ export async function removeItemAPI(itemId) {
   }
 }
 
-export async function addAddressAPI(addressData) {
-  await delay(300);
-  return Promise.resolve({ success: true, data: { ...addressData, id: Date.now() } });
-}
+
 
 export async function clearUnavailableItemsAPI(itemIds) {
   await delay(300);
   return Promise.resolve({ success: true });
 }
 
-export async function applyVoucherAPI(code) {
-  await delay(300);
-  const matched = voucherCatalog?.[code] || null;
-  if (!matched) throw new Error('Mã giảm giá không hợp lệ.');
-  return Promise.resolve({ success: true, data: matched });
-}
+
 

@@ -12,10 +12,10 @@ function AddressSelection({ addresses, selectedAddressId, selectedAddress, onCha
   };
 
   return (
-    <div className="cartx-sidebar-block">
+    <div className="checkoutx-sidebar-block">
       <Row className="align-items-center mb-3">
         <Col>
-          <h2 className="cartx-section-title mb-0">Địa chỉ giao hàng</h2>
+          <h2 className="checkoutx-section-title mb-0">Địa chỉ giao hàng</h2>
         </Col>
         <Col xs="auto">
           <Button variant="outline-dark" size="sm" onClick={() => setShowModal(true)}>
@@ -37,7 +37,7 @@ function AddressSelection({ addresses, selectedAddressId, selectedAddress, onCha
       </Form.Select>
 
       {selectedAddress ? (
-        <div className="cartx-address mt-2">
+        <div className="checkoutx-address mt-2">
           <p className="mb-1 fw-bold">{selectedAddress.recipientName} / {selectedAddress.phone}</p>
           <p className="mb-0 text-muted">
             {selectedAddress.street}, {selectedAddress.ward && `${selectedAddress.ward}, `}

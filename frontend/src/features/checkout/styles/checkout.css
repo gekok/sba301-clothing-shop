@@ -1,7 +1,19 @@
 /* src/features/checkout/styles/checkout.css */
 
+.checkoutx-shell, .checkoutx-modal {
+  --checkoutx-bg: #ffffff;
+  --checkoutx-ink: #000000;
+  --checkoutx-soft: #666666;
+  --checkoutx-border: #e5e5e5;
+  --checkoutx-accent: #000000;
+  --checkoutx-hover-bg: #f9f9f9;
+
+  --checkoutx-font-sans: 'Inter', sans-serif;
+  --checkoutx-font-display: 'Space Grotesk', sans-serif;
+}
+
 .checkoutx-shell {
-  background-color: var(--cartx-bg);
+  background-color: var(--checkoutx-bg);
   min-height: 100vh;
   padding: 4rem 0 6rem;
 }
@@ -124,4 +136,103 @@
 .checkoutx-summary-price {
   font-weight: 600;
   font-size: 0.95rem;
+}
+
+.checkoutx-overline {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #666666;
+  margin-bottom: 0.5rem;
+}
+
+.checkoutx-sidebar-block {
+  background: #f9f9f9;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-radius: 0;
+}
+
+.checkoutx-address p {
+  font-size: 0.95rem;
+}
+
+.checkoutx-sticky {
+  position: sticky;
+  top: 2rem;
+}
+
+@media (max-width: 991.98px) {
+  .checkoutx-sticky {
+    position: static;
+  }
+}
+
+.checkoutx-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  font-family: 'Space Grotesk', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.checkoutx-modal .modal-content {
+  border-radius: 0;
+  border: 4px solid #000000;
+  background-color: #ffffff;
+  color: #000000;
+  font-family: 'Inter', sans-serif;
+  box-shadow: 8px 8px 0px 0px rgba(0,0,0,1);
+}
+
+.checkoutx-modal .modal-header {
+  border-bottom: 1px solid #e5e5e5;
+  border-radius: 0;
+  padding: 1.25rem 1.5rem;
+}
+
+.checkoutx-modal-header-danger {
+  border-bottom: 2px solid #dc3545 !important;
+}
+
+.checkoutx-modal-header-warning {
+  border-bottom: 2px solid #ffc107 !important;
+}
+
+.checkoutx-modal .modal-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 1.1rem;
+  letter-spacing: 0.02em;
+  display: flex;
+  align-items: center;
+}
+
+.checkoutx-modal .modal-body {
+  padding: 1.5rem;
+  font-size: 1.05rem;
+  line-height: 1.5;
+}
+
+.checkoutx-modal .modal-footer {
+  border-top: 1px solid #e5e5e5;
+  padding: 1rem 1.5rem;
+  border-radius: 0;
+}
+
+.checkoutx-modal .btn-close {
+  border-radius: 0;
+  opacity: 1;
+}
+
+.checkoutx-modal-backdrop {
+  background-color: rgba(0, 0, 0, 0.6) !important;
+  backdrop-filter: blur(5px) !important;
+  opacity: 1 !important;
 }
