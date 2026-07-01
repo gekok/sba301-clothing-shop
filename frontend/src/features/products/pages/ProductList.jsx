@@ -1,74 +1,160 @@
-import axios from "axios";
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from "react";
+import { getProducts } from "../service/productService";
+import Table from "react-bootstrap/Table";
+import Button from "react-bootstrap/Button";
+import Badge from "react-bootstrap/Badge";
 
-function ProductList(){
-    const [products, setProducts] = useState([
+function ProductList() {
 
-    ]);
+    const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
-
-    // gọi api
+    // Load dữ liệu khi component được render lần đầu
     useEffect(() => {
-        axios.get('http://localhost:8080/api/products')
-        .then((response) => {
-            setProducts(response.data);
-            setLoading(false);
-            console.log(response.data);
-        }).catch((error) => {
-            console.error("lỗi kết nối API: ", error);
-            setLoading(false);
-        });
+        loadProducts();
     }, []);
-    const DeleteProduct = (id) => {};
-    const EditProduct = (id) => {};
-    if (loading) {
-        return <div>Loading...</div>;
+
+    // Hàm gọi API lấy danh sách sản phẩm
+    const loadProducts = async () => {
+
+        try {
+
+            setLoading(true);
+
+            const response = await getProducts();
+
+            setProducts(response.data.content);
+
+            console.log(response.data);
+
+        } catch (error) {
+
+            console.error(error);
+
+        } finally {
+
+            setLoading(false);
+
+        }
+
+    };
+    if(loading){
+
+        return <h3>Loading...</h3>;
+
     }
+    const loadProducts = async () => {
+
+        try {
+
+            const response = await getProducts();
+
+            setProducts(response.data.content);
+            console.log(response.data);
+        } catch (error) {
+
+            console.log(error);
+
+        }
+
+    };
+
     return (
-        <div className="container">
-            <h2 className="text-center">Danh Sách Sản Phẩm</h2>
-            {products.length === 0 ? (
-                <div className="text-center">Hiện của hàng chưa có sản phẩm nào!</div>
-            ):(
-                <div className="table-responsive">
-                    <table className="table table-striped">
-                        <thead className="table-dark">
-                        <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Brand</th>
-                            <th>Base Price</th>
-                            <th>Slug</th>
-                            <th>Description</th>
-                            <th>Status</th>
-                            <th className="text-center">Action</th>
+        <div className="container mt-4">
+
+            <div className="d-flex justify-content-between align-items-center mb-3">
+
+                <h2>Product Management</h2>
+
+                <Button variant="primary">
+                    Add Product
+                </Button>
+
+            </div>
+
+            <Table striped bordered hover responsive>
+
+                <thead>
+
+                <tr>
+
+                    <th>ID</th>
+
+                    <th>Name</th>
+
+                    <th>Brand</th>
+
+                    <th>Category</th>
+
+                    <th>Price</th>
+
+                    <th>Status</th>
+
+                    <th>Action</th>
+
+                </tr>
+
+                </thead>
+
+                <tbody>
+
+                {
+                    products.map(product => (
+
+                        <tr key={product.id}>
+
+                            <td>{product.id}</td>
+
+                            <td>{product.name}</td>
+
+                            <td>{product.brand}</td>
+
+                            <td>{product.categoryName}</td>
+
+                            <td>{product.basePrice}</td>
+
+                            <td>
+
+                                <Badge bg="success">
+
+                                    {product.status}
+
+                                </Badge>
+
+                            </td>
+
+                            <td>
+
+                                <Button
+                                    size="sm"
+                                    variant="warning"
+                                    className="me-2">
+
+                                    Edit
+
+                                </Button>
+
+                                <Button
+                                    size="sm"
+                                    variant="danger">
+
+                                    Delete
+
+                                </Button>
+
+                            </td>
+
                         </tr>
-                        </thead>
-                        <tbody>
-                        {products.map((product) => (
-                            <tr key={product.id}>
-                                <td>{product.id}</td>
-                                <td>{product.name}</td>
-                                <td>{product.brand}</td>
-                                <td>{product.basePrice}</td>
-                                <td>{product.slug}</td>
-                                <td>{product.description}</td>
-                                <td>
-                                    <span className={`badge ${product.status === 'ACTIVE' ? 'bg-success text-white' : 'bg-secondary text-white'}`}>
-                                        {product.status}
-                                    </span>
-                                </td>
-                                <td>
-                                    <button onClick={()=>EditProduct(product.id)}>Edit</button>
-                                    <button onClick={()=>DeleteProduct(product.id)}>Delete</button>
-                                </td>
-                            </tr>
-                        ))}
-                        </tbody>
-                    </table>
-                </div>
-            )}
+
+                    ))
+                }
+
+                </tbody>
+
+            </Table>
+
         </div>
-    )
+    );
+
 }
+
 export default ProductList;
