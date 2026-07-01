@@ -44,18 +44,18 @@ function CheckoutLayout() {
         voucherCode: voucherApplied?.code || null,
       };
 
-      let orderCode, paymentUrl;
+      let newOrderCode, paymentUrl;
       try {
         const response = await api.post('/orders', requestBody);
-        orderCode = response.data.orderCode;
+        newOrderCode = response.data.orderCode;
         paymentUrl = response.data.paymentUrl;
       } catch (apiError) {
         console.warn("Backend không phản hồi, dùng mock dữ liệu cho Demo:", apiError.message);
-        orderCode = `ORD-MOCK-${Date.now()}`;
+        newOrderCode = `ORD-MOCK-${Date.now()}`;
         paymentUrl = null;
       }
 
-      setOrderCode(orderCode);
+      setOrderCode(newOrderCode);
 
       if (selectedPaymentMethod !== 'COD') {
         // Giả lập thời gian xử lý giao dịch qua cổng thanh toán
