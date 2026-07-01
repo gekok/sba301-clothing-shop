@@ -1,4 +1,4 @@
-package com.sba301.ecommerce.security;
+package com.sba301.ecommerce.security.user;
 
 import org.springframework.stereotype.Service;
 
