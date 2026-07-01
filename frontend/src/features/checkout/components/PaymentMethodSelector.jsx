@@ -30,7 +30,15 @@ function PaymentMethodSelector({ selectedMethod, onChange }) {
           <div
             key={method.id}
             className={`payment-method-card ${selectedMethod === method.id ? 'selected' : ''}`}
+            role="button"
+            tabIndex={0}
             onClick={() => onChange(method.id)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onChange(method.id);
+              }
+            }}
           >
             <Form.Check
               type="radio"
