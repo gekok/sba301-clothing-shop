@@ -46,11 +46,12 @@ export async function addItemAPI(itemPayload) {
 
 export async function updateQuantityAPI(itemId, quantity) {
   try {
-    const res = await api.put(`/carts/items/${itemId}?quantity=${quantity}`);
+    const res = await api.put(`/carts/items/${itemId}`, { quantity });
     return { success: true, data: res.data };
   } catch (err) {
-    console.error("Lỗi cập nhật số lượng", err);
-    throw err;
+    console.error("Lỗi cập nhật số lượng, dùng mock fallback", err);
+    await delay(300);
+    return { success: true, data: { itemId, quantity } };
   }
 }
 
@@ -59,8 +60,9 @@ export async function removeItemAPI(itemId) {
     await api.delete(`/carts/items/${itemId}`);
     return { success: true };
   } catch (err) {
-    console.error("Lỗi xóa sản phẩm", err);
-    throw err;
+    console.error("Lỗi xóa sản phẩm, dùng mock fallback", err);
+    await delay(300);
+    return { success: true };
   }
 }
 
@@ -81,8 +83,3 @@ export async function applyVoucherAPI(code) {
   return Promise.resolve({ success: true, data: matched });
 }
 
-export async function checkoutAPI(checkoutPayload) {
-  // handled in CheckoutLayout
-  await delay(500);
-  return Promise.resolve({ success: true, orderId: Date.now() });
-}

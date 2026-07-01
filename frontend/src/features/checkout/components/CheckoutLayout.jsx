@@ -7,9 +7,9 @@ import { useCheckoutPage } from '../hooks/useCheckoutPage.js';
 import '../styles/checkout.css';
 import api from '../../../shared/services/axios.js';
 
-import AddressSelection from '../../cart/components/CartExperience/AddressSelection.jsx';
-import ShippingSelection from '../../cart/components/CartExperience/ShippingSelection.jsx';
-import VoucherSelection from '../../cart/components/CartExperience/VoucherSelection.jsx';
+import AddressSelection from './AddressSelection.jsx';
+import ShippingSelection from './ShippingSelection.jsx';
+import VoucherSelection from './VoucherSelection.jsx';
 
 function CheckoutLayout() {
   const navigate = useNavigate();
