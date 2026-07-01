@@ -1,4 +1,3 @@
-import api from '../../../shared/services/axios.js';
 import { voucherCatalog, addressesMock, shippingMethodsMock } from '../data/checkoutMock.js';
 
 // Giả lập độ trễ mạng
