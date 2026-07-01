@@ -17,7 +17,7 @@ import com.sba301.ecommerce.features.review.dto.ReviewSummaryResponse;
 import com.sba301.ecommerce.features.review.service.ReviewService;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import org.springframework.web.bind.annotation.RequestBody;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -47,10 +47,9 @@ public class ReviewController {
     @PostMapping
     @Operation(summary = "Tạo review mới — yêu cầu user đã mua (orderItem ở đơn DELIVERED/COMPLETED)")
     public ResponseEntity<ReviewResponse> createReview(
-        @PathVariable Long productId,
-        @Valid @RequestBody ReviewRequest request
-    ) {
-        ReviewResponse response = reviewService.createReview(request);
+            @Valid @RequestBody ReviewRequest request,
+            @PathVariable Long productId) {
+        ReviewResponse response = reviewService.createReview(request, productId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }

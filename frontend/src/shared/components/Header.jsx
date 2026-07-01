@@ -160,11 +160,18 @@ const Header = () => {
     const onForceLogout = () => {
       clearAuthState();
       setAuthStateLocal(getAuthState());
-      setCartCount(0);
+
+      // Đồng bộ badge với dữ liệu thực trong localStorage
+      setCartCount(getCartCount());
+
       navigate('/login');
     };
+
     window.addEventListener('auth:logout', onForceLogout);
-    return () => window.removeEventListener('auth:logout', onForceLogout);
+
+    return () => {
+      window.removeEventListener('auth:logout', onForceLogout);
+    };
   }, [navigate]);
 
   const closeMenus = () => {
@@ -356,9 +363,8 @@ const Header = () => {
             </button>
 
             <div
-              className={`store-header__account-wrap ${
-                !authState.isAuthenticated ? 'store-header__account-wrap--guest' : ''
-              }`}
+              className={`store-header__account-wrap ${!authState.isAuthenticated ? 'store-header__account-wrap--guest' : ''
+                }`}
             >
               <button
                 type="button"

@@ -8,7 +8,7 @@ import com.sba301.ecommerce.features.review.dto.ReviewResponse;
 import com.sba301.ecommerce.features.review.dto.ReviewSummaryResponse;
 
 public interface ReviewService {
-    ReviewResponse createReview(ReviewRequest request);
+    ReviewResponse createReview(ReviewRequest request, Long productId);
     Page<ReviewResponse> getReviewsByProduct(Long productId, Pageable pageable);
     ReviewSummaryResponse getSummaryByProduct(Long productId);
 }

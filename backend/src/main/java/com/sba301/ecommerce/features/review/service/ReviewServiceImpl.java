@@ -40,7 +40,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     @Transactional
-    public ReviewResponse createReview(ReviewRequest request) {
+    public ReviewResponse createReview(ReviewRequest request, Long productId) {
         // TODO Auto-generated method stub
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new EntityNotFoundException(
@@ -49,6 +49,11 @@ public class ReviewServiceImpl implements ReviewService {
         OrderItem orderItem = orderItemRepository.findById(request.getOrderItemId())
                 .orElseThrow(() -> new EntityNotFoundException(
                         "Không tìm thấy order item id=" + request.getOrderItemId()));
+
+        Long actualProductId = orderItem.getVariant().getProduct().getId();
+        if (!actualProductId.equals(productId)) {
+            throw new ReviewNotEligibleException("ProductId trong URL không khớp với product của orderItem");
+        }
 
         Order order = orderItem.getOrder();
 
@@ -94,7 +99,7 @@ public class ReviewServiceImpl implements ReviewService {
         List<Integer> ratings = reviewRepository.findAllRatingsByProductId(productId);
 
         long total = ratings.size();
-        double avarage = ratings.stream()
+        double average = ratings.stream()
                 .mapToInt(Integer::intValue)
                 .average()
                 .orElse(0.0);
@@ -108,7 +113,7 @@ public class ReviewServiceImpl implements ReviewService {
 
         return ReviewSummaryResponse.builder()
                 .productId(productId)
-                .averageRating(Math.round(avarage * 10.0) / 10.0)
+                .averageRating(Math.round(average * 10.0) / 10.0)
                 .totalReviews(total)
                 .breakdown(breakdown)
                 .build();
