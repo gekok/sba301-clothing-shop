@@ -30,6 +30,6 @@ public class ProductRequest {
     @Positive(message = "Base price must be greater than 0")
     private BigDecimal basePrice;
 
-    @NotBlank(message = "Status is required")
+    @NotNull(message = "Status is required")
     private ProductStatus status;
 }
