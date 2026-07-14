@@ -1,42 +1,38 @@
-import { useEffect, useState } from "react";
-import { getProducts } from "../service/productService";
-import Table from "react-bootstrap/Table";
+import { useState } from "react";
+import ProductPagination from "../components/ProductPagination";
 import Button from "react-bootstrap/Button";
-import Badge from "react-bootstrap/Badge";
+import ProductTable from "../components/ProductTable.jsx";
+import useProducts from "../hooks/useProducts.js";
+import ProductDeleteModal from "../components/ProductDeleteModal";
+import { useNavigate } from "react-router-dom";
 
 function ProductList() {
 
-    const [products, setProducts] = useState([]);
-    const [loading, setLoading] = useState(true);
-    // Load dữ liệu khi component được render lần đầu
-    useEffect(() => {
-        loadProducts();
-    }, []);
+    const navigate = useNavigate();
 
-    // Hàm gọi API lấy danh sách sản phẩm
-    const loadProducts = async () => {
+    const [keyword, setKeyword] = useState("");
 
-        try {
+    const [showDelete, setShowDelete] = useState(false);
 
-            setLoading(true);
+    const [selectedProduct, setSelectedProduct] = useState(null);
 
-            const response = await getProducts();
+    const {
 
-            setProducts(response.data.content);
+        products,
 
-            console.log(response.data);
+        loading,
 
-        } catch (error) {
+        page,
 
-            console.error(error);
+        setPage,
 
-        } finally {
+        totalPages,
 
-            setLoading(false);
+        loadProducts,
 
-        }
+        handleDelete
 
-    };
+    } = useProducts();
     if(loading){
 
         return <h3>Loading...</h3>;
@@ -47,94 +43,81 @@ function ProductList() {
 
             <div className="d-flex justify-content-between align-items-center mb-3">
 
-                <h2>Product Management</h2>
+                <div>
+                    <h2 className="mb-3">Product Management</h2>
 
-                <Button variant="primary">
-                    Add Product
-                </Button>
+                    <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Search by product name..."
+                        value={keyword}
+                        onChange={(e) => setKeyword(e.target.value)}
+                        style={{ width: "320px" }}
+                    />
+                </div>
+
+                <div>
+
+                    <Button
+                        variant="secondary"
+                        className="me-2"
+                        onClick={loadProducts}
+                    >
+                        Refresh
+                    </Button>
+
+                    <Button
+                        variant="primary"
+                        onClick={() => navigate("/admin/products/create")}
+                    >
+                        Add Product
+                    </Button>
+
+                </div>
 
             </div>
 
-            <Table striped bordered hover responsive>
+            <ProductTable products={products.filter(p =>
+                p.name.toLowerCase().includes(keyword.toLowerCase())
+            )}
+                          onEdit={(product) =>
+                              navigate(`/admin/products/${product.id}/edit`)
+            }
+                          onDelete={(product)=>{
+                              setSelectedProduct(product);
 
-                <thead>
+                              setShowDelete(true);
 
-                <tr>
+            }}
+            />
 
-                    <th>ID</th>
+            <ProductPagination
 
-                    <th>Name</th>
+                page={page}
 
-                    <th>Brand</th>
+                totalPages={totalPages}
 
-                    <th>Category</th>
+                onPageChange={setPage}
 
-                    <th>Price</th>
+            />
 
-                    <th>Status</th>
+            <ProductDeleteModal
 
-                    <th>Action</th>
+                show={showDelete}
 
-                </tr>
+                product={selectedProduct}
 
-                </thead>
+                onHide={() => setShowDelete(false)}
 
-                <tbody>
+                onConfirm={async () => {
 
-                {
-                    products.map(product => (
+                    await handleDelete(selectedProduct.id);
 
-                        <tr key={product.id}>
+                    setShowDelete(false);
 
-                            <td>{product.id}</td>
+                }}
 
-                            <td>{product.name}</td>
-
-                            <td>{product.brand}</td>
-
-                            <td>{product.categoryName}</td>
-
-                            <td>{product.basePrice}</td>
-
-                            <td>
-
-                                <Badge bg="success">
-
-                                    {product.status}
-
-                                </Badge>
-
-                            </td>
-
-                            <td>
-
-                                <Button
-                                    size="sm"
-                                    variant="warning"
-                                    className="me-2">
-
-                                    Edit
-
-                                </Button>
-
-                                <Button
-                                    size="sm"
-                                    variant="danger">
-
-                                    Delete
-
-                                </Button>
-
-                            </td>
-
-                        </tr>
-
-                    ))
-                }
-
-                </tbody>
-
-            </Table>
+            />
 
         </div>
     );

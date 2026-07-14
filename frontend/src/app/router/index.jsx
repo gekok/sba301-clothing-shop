@@ -22,14 +22,36 @@ import OrderManagement from '../../features/orders/pages/OrderManagement.jsx';
 import Dashboard from '../../features/dashboard/pages/Dashboard.jsx';
 import POS from '../../features/pos/pages/POS.jsx';
 import AuditLogs from '../../features/audit-logs/pages/AuditLogs.jsx';
+import ProductCreate from '../../features/products/pages/ProductCreate.jsx';
+import ProductEdit from '../../features/products/pages/ProductEdit.jsx';
+import ProductDetail from '../../features/products/pages/ProductDetail';
 
 const teamFeatureRoutes = [
   { path: 'products', element: <ProductList /> },
+
+  { path: 'products/create', element: <ProductCreate /> },
+
   { path: 'products/:id', element: <ProductList /> },
   { path: 'cart', element: <CartExperience /> },
   { path: 'checkout', element: <CheckoutLayout /> },
   { path: 'admin/dashboard', element: <Dashboard /> },
   { path: 'admin/products', element: <ProductList /> },
+
+  {
+    path:"admin/products/:id",
+    element:<ProductDetail/>
+  },
+
+  {
+    path: 'admin/products/create',
+    element: <ProductCreate />
+  },
+
+  {
+    path: 'admin/products/:id/edit',
+    element: <ProductEdit />
+  },
+
   { path: 'admin/orders', element: <OrderManagement /> },
   { path: 'admin/audit-logs', element: <AuditLogs /> },
   { path: 'staff/pos', element: <POS /> },
