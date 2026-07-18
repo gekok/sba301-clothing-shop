@@ -10,4 +10,6 @@ import org.springframework.stereotype.Repository;
 public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificationExecutor<User> {
     boolean existsUserByEmail(String email);
     User findUserByEmail(String email);
+    java.util.Optional<User> findByEmail(String email);
+    boolean existsByEmail(String email);
 }

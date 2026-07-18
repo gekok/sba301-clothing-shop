@@ -21,9 +21,18 @@ import java.util.List;
 //     hasRole("CUSTOMER"): /carts/**
 //     hasAnyRole("ADMIN","STAFF"): POST/PUT/DELETE products+categories, PUT /orders/*/status
 //     anyRequest().authenticated()
+import com.sba301.ecommerce.security.jwt.JwtAuthenticationFilter;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
 @Configuration
 @EnableMethodSecurity
 public class SecurityConfig {
+
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -31,9 +40,10 @@ public class SecurityConfig {
                 .csrf((csrf -> csrf.disable())) //Tắt csrf vì web restApi ko cần
                 .cors(cors ->cors.configurationSource(corsConfigurationSource())) //bật customs config cors có thể viết là Customizer.withDefaults()
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) //Vì dùng jwt nên tắt session
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests((auth)->{
                     auth
-                            .requestMatchers("/","/api/auth/**").permitAll()
+                            .requestMatchers("/","/api/v1/auth/**").permitAll()
                             .anyRequest().permitAll(); //đang mở tất cả Api ko cần check
                 });
 

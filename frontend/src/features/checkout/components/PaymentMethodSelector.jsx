@@ -14,12 +14,6 @@ function PaymentMethodSelector({ selectedMethod, onChange }) {
       description: 'Quét mã QR qua ứng dụng ngân hàng hoặc thẻ ATM nội địa.',
       icon: 'https://vnpay.vn/s1/statics.vnpay.vn/2023/9/06ncktiwd6dc1694418196384.png',
     },
-    {
-      id: 'MOMO',
-      name: 'Ví điện tử MoMo',
-      description: 'Thanh toán nhanh chóng, an toàn qua ứng dụng MoMo.',
-      icon: 'https://developers.momo.vn/v3/assets/images/transparent-background-logo-138ebf0ffca865ec0f1a7d9c1e4a9f3c.png',
-    },
   ];
 
   return (

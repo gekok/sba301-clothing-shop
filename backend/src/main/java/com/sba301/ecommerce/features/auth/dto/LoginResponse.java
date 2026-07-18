@@ -1,6 +1,18 @@
 package com.sba301.ecommerce.features.auth.dto;
 
-// TODO: accessToken; tokenType="Bearer"; userId; email; fullName; role.
-//   FE đọc res.data.accessToken -> lưu localStorage 'accessToken'.
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+@Builder
 public class LoginResponse {
+    private String accessToken;
+    @Builder.Default
+    private String tokenType = "Bearer";
+    private Long userId;
+    private String email;
+    private String fullName;
+    private String role;
 }

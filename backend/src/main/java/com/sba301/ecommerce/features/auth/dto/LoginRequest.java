@@ -1,5 +1,17 @@
 package com.sba301.ecommerce.features.auth.dto;
 
-// TODO: fields @Email @NotBlank String email; @NotBlank String password;  (Lombok @Getter @Setter hoặc record)
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class LoginRequest {
+    @Email
+    @NotBlank
+    private String email;
+
+    @NotBlank
+    private String password;
 }

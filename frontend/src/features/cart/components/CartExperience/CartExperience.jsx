@@ -1,4 +1,5 @@
 import { Alert, Button, Col, Modal, Row, Spinner, Stack } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
 import { formatDateTime, formatVND } from '../../../../shared/utils/format';
 import { useCartExperience } from '../../hooks/useCartExperience.js';
 
@@ -33,6 +34,41 @@ function CartExperience() {
       <div className="cartx-loading">
         <Spinner animation="border" role="status" variant="dark" />
         <p className="mt-3 text-muted">Đang tải dữ liệu...</p>
+      </div>
+    );
+  }
+
+  const isAuthenticated = Boolean(localStorage.getItem('accessToken'));
+
+  if (!isAuthenticated) {
+    return (
+      <div className="container text-center py-5 my-5" style={{ maxWidth: '500px' }}>
+        <div className="checkoutx-panel p-5 border border-dark border-3" style={{ boxShadow: '8px 8px 0px 0px #000', backgroundColor: '#fff' }}>
+          <h2 className="fw-bold mb-4 text-uppercase" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
+            Yêu cầu Đăng nhập
+          </h2>
+          <p className="text-muted mb-4">
+            Vui lòng đăng nhập hoặc đăng ký tài khoản của bạn để quản lý giỏ hàng và tiến hành thanh toán.
+          </p>
+          <div className="d-flex flex-column gap-3">
+            <Button
+              as={Link}
+              to="/login"
+              variant="dark"
+              className="w-100 rounded-0 text-uppercase fw-bold py-3"
+            >
+              Đăng nhập ngay
+            </Button>
+            <Button
+              as={Link}
+              to="/register"
+              variant="outline-dark"
+              className="w-100 rounded-0 text-uppercase fw-bold py-3 border-2"
+            >
+              Đăng ký tài khoản mới
+            </Button>
+          </div>
+        </div>
       </div>
     );
   }

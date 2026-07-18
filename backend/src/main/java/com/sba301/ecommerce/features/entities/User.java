@@ -63,15 +63,15 @@ public class User extends BaseEntity {
     @NotNull
     @ColumnDefault("0")
     @Column(name = "failed_login_attempts", nullable = false)
-    private Integer failedLoginAttempts;
+    private Integer failedLoginAttempts = 0;
 
     @Column(name = "locked_until")
     private Instant lockedUntil;
 
     @Size(max = 20)
     @NotNull
-    @ColumnDefault("'PENDING'")
+    @ColumnDefault("'ACTIVE'")
     @Column(name = "status", nullable = false, length = 20)
-    private String status;
+    private String status = "ACTIVE";
 
 }

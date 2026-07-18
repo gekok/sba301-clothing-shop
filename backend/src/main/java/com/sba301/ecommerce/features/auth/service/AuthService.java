@@ -1,8 +1,10 @@
 package com.sba301.ecommerce.features.auth.service;
 
+import com.sba301.ecommerce.features.auth.dto.LoginRequest;
+import com.sba301.ecommerce.features.auth.dto.LoginResponse;
 import com.sba301.ecommerce.features.auth.dto.RegisterRequest;
 
-// TODO: AuthResponse register(RegisterRequest req); AuthResponse login(LoginRequest req);
 public interface AuthService {
-    public void register(RegisterRequest registerRequest);
+    LoginResponse register(RegisterRequest registerRequest);
+    LoginResponse login(LoginRequest loginRequest);
 }

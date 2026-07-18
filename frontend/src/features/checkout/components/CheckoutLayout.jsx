@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Container, Row, Col, Alert, Modal, Button, Form, Spinner } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import PaymentMethodSelector from './PaymentMethodSelector';
 import CheckoutSummary from './CheckoutSummary';
 import { useCheckoutPage } from '../hooks/useCheckoutPage.js';
@@ -13,6 +13,40 @@ import VoucherSelection from './VoucherSelection.jsx';
 
 function CheckoutLayout() {
   const navigate = useNavigate();
+  const isAuthenticated = Boolean(localStorage.getItem('accessToken'));
+
+  if (!isAuthenticated) {
+    return (
+      <div className="container text-center py-5 my-5" style={{ maxWidth: '500px' }}>
+        <div className="checkoutx-panel p-5 border border-dark border-3" style={{ boxShadow: '8px 8px 0px 0px #000', backgroundColor: '#fff' }}>
+          <h2 className="fw-bold mb-4 text-uppercase" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
+            Yêu cầu Đăng nhập
+          </h2>
+          <p className="text-muted mb-4">
+            Vui lòng đăng nhập hoặc đăng ký tài khoản của bạn để quản lý giỏ hàng và tiến hành thanh toán.
+          </p>
+          <div className="d-flex flex-column gap-3">
+            <Button
+              as={Link}
+              to="/login"
+              variant="dark"
+              className="w-100 rounded-0 text-uppercase fw-bold py-3"
+            >
+              Đăng nhập ngay
+            </Button>
+            <Button
+              as={Link}
+              to="/register"
+              variant="outline-dark"
+              className="w-100 rounded-0 text-uppercase fw-bold py-3 border-2"
+            >
+              Đăng ký tài khoản mới
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
   const {
     loading, errorMessage, checkoutItems, addresses, shippingMethods,
     selectedAddressId, setSelectedAddressId, selectedAddress,
@@ -42,26 +76,26 @@ function CheckoutLayout() {
         paymentMethod: selectedPaymentMethod,
         note: orderNote,
         voucherCode: voucherApplied?.code || null,
+        shippingFee: totals.shippingFee,
       };
 
       let newOrderCode, paymentUrl;
-      try {
-        const response = await api.post('/orders', requestBody);
-        newOrderCode = response.data.orderCode;
-        paymentUrl = response.data.paymentUrl;
-      } catch (apiError) {
-        console.warn("Backend không phản hồi, dùng mock dữ liệu cho Demo:", apiError.message);
-        newOrderCode = `ORD-MOCK-${Date.now()}`;
-        paymentUrl = null;
-      }
+      const response = await api.post('/orders', requestBody);
+      newOrderCode = response.data.orderCode;
+      paymentUrl = response.data.paymentUrl;
 
       setOrderCode(newOrderCode);
 
-      if (selectedPaymentMethod !== 'COD') {
-        // Giả lập thời gian xử lý giao dịch qua cổng thanh toán
-        setCheckoutNotice('Đang kết nối cổng thanh toán và xử lý giao dịch...');
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        setCheckoutNotice('');
+      if (selectedPaymentMethod === 'VNPAY') {
+        if (paymentUrl) {
+          sessionStorage.removeItem('checkout_selected_items');
+          window.location.href = paymentUrl;
+          return;
+        } else {
+          setCheckoutNotice('Không thể tạo liên kết thanh toán VNPAY.');
+          setIsPlacingOrder(false);
+          return;
+        }
       }
 
       sessionStorage.removeItem('checkout_selected_items');
