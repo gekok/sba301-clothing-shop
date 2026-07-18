@@ -8,6 +8,7 @@ import com.sba301.ecommerce.features.entities.*;
 import com.sba301.ecommerce.features.entities.enums.ProductStatus;
 import com.sba301.ecommerce.features.entities.enums.Role;
 import com.sba301.ecommerce.features.product.repository.ProductRepository;
+import com.sba301.ecommerce.features.address.repository.AddressRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -24,24 +25,28 @@ public class DatabaseSeeder implements CommandLineRunner {
     private final PasswordEncoder passwordEncoder;
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
+    private final AddressRepository addressRepository;
 
     public DatabaseSeeder(CategoryRepository categoryRepository,
                           ProductRepository productRepository,
                           UserRepository userRepository,
                           PasswordEncoder passwordEncoder,
                           CartRepository cartRepository,
-                          CartItemRepository cartItemRepository) {
+                          CartItemRepository cartItemRepository,
+                          AddressRepository addressRepository) {
         this.categoryRepository = categoryRepository;
         this.productRepository = productRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.cartRepository = cartRepository;
         this.cartItemRepository = cartItemRepository;
+        this.addressRepository = addressRepository;
     }
 
     @Override
     public void run(String... args) throws Exception {
         // 1. Seed Category and Product first
+        Product savedProduct;
         if (productRepository.count() == 0) {
             Category category = new Category();
             category.setName("Áo thun");
@@ -95,43 +100,61 @@ public class DatabaseSeeder implements CommandLineRunner {
             var3.setStockQuantity(20);
             product.getVariants().add(var3);
 
-            Product savedProduct = productRepository.save(product);
+            savedProduct = productRepository.save(product);
             System.out.println(">>> Database seeded successfully with a test product.");
+        } else {
+            savedProduct = productRepository.findAll().get(0);
+        }
 
-            // 2. Seed Test User
-            User user = userRepository.findByEmail("customer@sba301.local").orElse(null);
-            if (user == null) {
-                user = new User();
-                user.setEmail("customer@sba301.local");
-                user.setPasswordHash(passwordEncoder.encode("password123"));
-                user.setFullName("Khách hàng thử nghiệm");
-                user.setRole(Role.CUSTOMER);
-                user.setStatus("ACTIVE");
-                user.setFailedLoginAttempts(0);
-                user.setEmailVerified(false);
-                user = userRepository.save(user);
-                System.out.println(">>> Test User customer@sba301.local seeded.");
-            }
+        // 2. Seed Test User
+        User user = userRepository.findByEmail("customer@sba301.local").orElse(null);
+        if (user == null) {
+            user = new User();
+            user.setEmail("customer@sba301.local");
+            user.setPasswordHash(passwordEncoder.encode("password123"));
+            user.setFullName("Khách hàng thử nghiệm");
+            user.setRole(Role.CUSTOMER);
+            user.setStatus("ACTIVE");
+            user.setFailedLoginAttempts(0);
+            user.setEmailVerified(false);
+            user = userRepository.save(user);
+            System.out.println(">>> Test User customer@sba301.local seeded.");
+        }
 
-            // 3. Seed Cart and CartItem
-            Cart cart = cartRepository.findByUserId(user.getId()).orElse(null);
-            if (cart == null) {
-                cart = new Cart();
-                cart.setUser(user);
-                cart.setItems(new ArrayList<>());
-                cart = cartRepository.save(cart);
-            }
+        // 3. Seed Cart and CartItem
+        Cart cart = cartRepository.findByUserId(user.getId()).orElse(null);
+        if (cart == null) {
+            cart = new Cart();
+            cart.setUser(user);
+            cart.setItems(new ArrayList<>());
+            cart = cartRepository.save(cart);
+        }
 
-            if (cart.getItems().isEmpty()) {
-                ProductVariant variantToSeed = savedProduct.getVariants().get(0); // M / Đen
-                CartItem item = new CartItem();
-                item.setCart(cart);
-                item.setVariant(variantToSeed);
-                item.setQuantity(2);
-                cart.getItems().add(item);
-                cartRepository.save(cart);
-                System.out.println(">>> Pre-added TSHIRT-MIN-BLK-M (x2) to customer@sba301.local cart.");
-            }
+        if (cart.getItems().isEmpty()) {
+            ProductVariant variantToSeed = savedProduct.getVariants().isEmpty() ? 
+                productRepository.findAll().get(0).getVariants().get(0) : savedProduct.getVariants().get(0); // M / Đen
+            CartItem item = new CartItem();
+            item.setCart(cart);
+            item.setVariant(variantToSeed);
+            item.setQuantity(2);
+            cart.getItems().add(item);
+            cartRepository.save(cart);
+            System.out.println(">>> Pre-added TSHIRT-MIN-BLK-M (x2) to customer@sba301.local cart.");
+        }
+
+        // 4. Seed Address
+        if (addressRepository.findByUserId(user.getId()).isEmpty()) {
+            Address address = new Address();
+            address.setUser(user);
+            address.setRecipientName("Khách hàng thử nghiệm");
+            address.setPhone("0987654321");
+            address.setProvince("Thành phố Hà Nội");
+            address.setDistrict("Quận Ba Đình");
+            address.setWard("Phường Cống Vị");
+            address.setStreet("123 Đường Liễu Giai");
+            address.setIsDefault(true);
+            addressRepository.save(address);
+            System.out.println(">>> Default Address seeded for customer@sba301.local.");
         }
     }
 }

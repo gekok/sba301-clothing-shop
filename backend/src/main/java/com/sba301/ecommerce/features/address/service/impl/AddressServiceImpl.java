@@ -58,7 +58,7 @@ public class AddressServiceImpl implements AddressService {
         address.setWard(dto.getWard());
         address.setStreet(dto.getStreet());
 
-        boolean shouldBeDefault = dto.getIsDefault() || existingAddresses.isEmpty();
+        boolean shouldBeDefault = (dto.getIsDefault() != null && dto.getIsDefault()) || existingAddresses.isEmpty();
         address.setIsDefault(shouldBeDefault);
 
         if (shouldBeDefault && !existingAddresses.isEmpty()) {
