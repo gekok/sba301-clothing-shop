@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Nationalized;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -28,12 +29,14 @@ public class Product extends BaseEntity {
             foreignKey = @ForeignKey(name = "fk_products_category"))
     private Category category;
 
+    @Nationalized
     @Column(nullable = false, length = 255)
     private String name;
 
     @Column(nullable = false, length = 280)
     private String slug;
 
+    @Nationalized
     @Column(length = 4000)
     private String description;
 

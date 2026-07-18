@@ -156,5 +156,39 @@ public class DatabaseSeeder implements CommandLineRunner {
             addressRepository.save(address);
             System.out.println(">>> Default Address seeded for customer@sba301.local.");
         }
+        
+        // 5. Seed Admin User and Cart
+        User adminUser = userRepository.findByEmail("admin@sba301.local").orElse(null);
+        if (adminUser == null) {
+            adminUser = new User();
+            adminUser.setEmail("admin@sba301.local");
+            adminUser.setPasswordHash(passwordEncoder.encode("admin123"));
+            adminUser.setFullName("Admin Test");
+            adminUser.setRole(Role.ADMIN);
+            adminUser.setStatus("ACTIVE");
+            adminUser.setFailedLoginAttempts(0);
+            adminUser.setEmailVerified(true);
+            adminUser = userRepository.save(adminUser);
+            System.out.println(">>> Test User admin@sba301.local seeded.");
+        }
+
+        Cart adminCart = cartRepository.findByUserId(adminUser.getId()).orElse(null);
+        if (adminCart == null) {
+            adminCart = new Cart();
+            adminCart.setUser(adminUser);
+            adminCart.setItems(new ArrayList<>());
+            adminCart = cartRepository.save(adminCart);
+        }
+
+        if (adminCart.getItems().isEmpty()) {
+            ProductVariant variantToSeed = savedProduct.getVariants().get(0); // M / Đen
+            CartItem item = new CartItem();
+            item.setCart(adminCart);
+            item.setVariant(variantToSeed);
+            item.setQuantity(50);
+            adminCart.getItems().add(item);
+            cartRepository.save(adminCart);
+            System.out.println(">>> Pre-added TSHIRT-MIN-BLK-M (x50) to admin@sba301.local cart.");
+        }
     }
 }

@@ -28,7 +28,7 @@ function DevLoginWidget() {
       // 2. Perform Login
       const loginRes = await api.post('/auth/login', { email, password });
       const { accessToken } = loginRes.data;
-      
+
       localStorage.setItem('accessToken', accessToken);
       setToken(accessToken);
       setShowModal(false);
@@ -49,7 +49,7 @@ function DevLoginWidget() {
 
   return (
     <>
-      <div 
+      <div
         style={{
           position: 'fixed',
           bottom: '20px',
@@ -63,20 +63,20 @@ function DevLoginWidget() {
             <span className="small text-uppercase fw-bold" style={{ fontSize: '0.75rem', paddingLeft: '5px' }}>
               Test Mode: Active
             </span>
-            <Button 
-              size="sm" 
-              variant="outline-light" 
-              className="rounded-0 text-uppercase fw-bold" 
-              style={{ fontSize: '0.7rem' }} 
+            <Button
+              size="sm"
+              variant="outline-light"
+              className="rounded-0 text-uppercase fw-bold"
+              style={{ fontSize: '0.7rem' }}
               onClick={handleLogout}
             >
               Logout
             </Button>
           </div>
         ) : (
-          <Button 
-            variant="danger" 
-            className="rounded-0 text-uppercase fw-bold p-3 border border-dark border-2" 
+          <Button
+            variant="danger"
+            className="rounded-0 text-uppercase fw-bold p-3 border border-dark border-2"
             style={{ boxShadow: '4px 4px 0px 0px #000', fontSize: '0.85rem' }}
             onClick={() => setShowModal(true)}
           >
@@ -85,8 +85,8 @@ function DevLoginWidget() {
         )}
       </div>
 
-      <Modal 
-        show={showModal} 
+      <Modal
+        show={showModal}
         onHide={() => setShowModal(false)}
         centered
         className="checkoutx-modal"
@@ -103,8 +103,8 @@ function DevLoginWidget() {
           {errorMsg && <Alert variant="danger" className="rounded-0 small">{errorMsg}</Alert>}
 
           <div className="d-grid gap-3">
-            <Button 
-              variant="dark" 
+            <Button
+              variant="dark"
               className="rounded-0 text-uppercase fw-bold py-3 text-start d-flex justify-content-between align-items-center"
               onClick={() => handleQuickLogin('customer@sba301.local', 'password123', 'CUSTOMER', 'Khách hàng thử nghiệm')}
               disabled={loading}
@@ -113,10 +113,10 @@ function DevLoginWidget() {
               <span className="small opacity-50">&rarr;</span>
             </Button>
 
-            <Button 
-              variant="outline-dark" 
+            <Button
+              variant="outline-dark"
               className="rounded-0 text-uppercase fw-bold py-3 text-start d-flex justify-content-between align-items-center border-2"
-              onClick={() => handleQuickLogin('admin@sba301.local', 'password123', 'ADMIN', 'Quản trị viên hệ thống')}
+              onClick={() => handleQuickLogin('admin@sba301.local', 'admin123', 'ADMIN', 'Quản trị viên hệ thống')}
               disabled={loading}
             >
               <span>🔑 Login as ADMIN (Quản lý)</span>

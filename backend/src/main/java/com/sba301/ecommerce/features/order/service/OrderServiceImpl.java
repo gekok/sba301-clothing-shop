@@ -13,11 +13,15 @@ import com.sba301.ecommerce.features.order.dto.CreateOrderRequest;
 import com.sba301.ecommerce.features.order.dto.OrderItemResponse;
 import com.sba301.ecommerce.features.order.dto.OrderResponse;
 import com.sba301.ecommerce.features.order.repository.OrderRepository;
+import com.sba301.ecommerce.features.order.repository.InventoryReservationRepository;
 import com.sba301.ecommerce.features.product.repository.ProductVariantRepository;
 import com.sba301.ecommerce.security.user.CustomUserDetails;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -34,19 +38,22 @@ public class OrderServiceImpl implements OrderService {
     private final ProductVariantRepository productVariantRepository;
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
+    private final InventoryReservationRepository reservationRepository;
 
     public OrderServiceImpl(OrderRepository orderRepository,
                             UserRepository userRepository,
                             AddressRepository addressRepository,
                             ProductVariantRepository productVariantRepository,
                             CartRepository cartRepository,
-                            CartItemRepository cartItemRepository) {
+                            CartItemRepository cartItemRepository,
+                            InventoryReservationRepository reservationRepository) {
         this.orderRepository = orderRepository;
         this.userRepository = userRepository;
         this.addressRepository = addressRepository;
         this.productVariantRepository = productVariantRepository;
         this.cartRepository = cartRepository;
         this.cartItemRepository = cartItemRepository;
+        this.reservationRepository = reservationRepository;
     }
 
     private User getCurrentUser() {
@@ -87,30 +94,59 @@ public class OrderServiceImpl implements OrderService {
         BigDecimal subtotal = BigDecimal.ZERO;
         List<OrderItem> orderItems = new ArrayList<>();
 
-        for (CreateOrderRequest.OrderItemRequest itemReq : request.getItems()) {
-            ProductVariant variant = productVariantRepository.findById(itemReq.getVariantId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Product variant not found: " + itemReq.getVariantId()));
-
-            if (itemReq.getQuantity() > variant.getStockQuantity()) {
-                throw new BadRequestException("Variant " + variant.getSku() + " is out of stock");
+        if (request.getSessionId() != null && !request.getSessionId().isEmpty()) {
+            List<InventoryReservation> reservations = reservationRepository.findBySessionId(request.getSessionId());
+            if (reservations.isEmpty()) {
+                throw new BadRequestException("Phiên thanh toán đã hết hạn hoặc không tồn tại. Vui lòng quay lại giỏ hàng.");
+            }
+            if (!reservations.get(0).getUser().getId().equals(currentUser.getId())) {
+                throw new BadRequestException("Không có quyền truy cập phiên thanh toán này.");
             }
 
-            // Deduct stock
-            variant.setStockQuantity(variant.getStockQuantity() - itemReq.getQuantity());
-            productVariantRepository.save(variant);
+            for (InventoryReservation res : reservations) {
+                ProductVariant variant = res.getVariant();
+                OrderItem orderItem = new OrderItem();
+                orderItem.setOrder(order);
+                orderItem.setVariant(variant);
+                orderItem.setProductName(variant.getProduct().getName());
+                orderItem.setVariantInfo(variant.getSize() + " / " + variant.getColor());
+                orderItem.setUnitPrice(variant.getPrice());
+                orderItem.setQuantity(res.getQuantity());
+                BigDecimal itemSubtotal = variant.getPrice().multiply(new BigDecimal(res.getQuantity()));
+                orderItem.setSubtotal(itemSubtotal);
+                orderItems.add(orderItem);
 
-            OrderItem orderItem = new OrderItem();
-            orderItem.setOrder(order);
-            orderItem.setVariant(variant);
-            orderItem.setProductName(variant.getProduct().getName());
-            orderItem.setVariantInfo(variant.getSize() + " / " + variant.getColor());
-            orderItem.setUnitPrice(variant.getPrice());
-            orderItem.setQuantity(itemReq.getQuantity());
-            BigDecimal itemSubtotal = variant.getPrice().multiply(new BigDecimal(itemReq.getQuantity()));
-            orderItem.setSubtotal(itemSubtotal);
-            orderItems.add(orderItem);
+                subtotal = subtotal.add(itemSubtotal);
+            }
+            // Mark reservations as used (delete them)
+            reservationRepository.deleteAll(reservations);
+        } else {
+            // Fallback for direct checkout (if any) or old API clients
+            for (CreateOrderRequest.OrderItemRequest itemReq : request.getItems()) {
+                ProductVariant variant = productVariantRepository.findById(itemReq.getVariantId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Product variant not found: " + itemReq.getVariantId()));
 
-            subtotal = subtotal.add(itemSubtotal);
+                if (itemReq.getQuantity() > variant.getStockQuantity()) {
+                    throw new BadRequestException("Variant " + variant.getSku() + " is out of stock");
+                }
+
+                // Deduct stock
+                variant.setStockQuantity(variant.getStockQuantity() - itemReq.getQuantity());
+                productVariantRepository.save(variant);
+
+                OrderItem orderItem = new OrderItem();
+                orderItem.setOrder(order);
+                orderItem.setVariant(variant);
+                orderItem.setProductName(variant.getProduct().getName());
+                orderItem.setVariantInfo(variant.getSize() + " / " + variant.getColor());
+                orderItem.setUnitPrice(variant.getPrice());
+                orderItem.setQuantity(itemReq.getQuantity());
+                BigDecimal itemSubtotal = variant.getPrice().multiply(new BigDecimal(itemReq.getQuantity()));
+                orderItem.setSubtotal(itemSubtotal);
+                orderItems.add(orderItem);
+
+                subtotal = subtotal.add(itemSubtotal);
+            }
         }
 
         order.setItems(orderItems);
@@ -258,5 +294,39 @@ public class OrderServiceImpl implements OrderService {
                 })
                 .collect(Collectors.toList()));
         return response;
+    }
+
+    private static final Logger logger = LoggerFactory.getLogger(OrderServiceImpl.class);
+
+    @Scheduled(fixedRate = 60000) // Chạy mỗi 1 phút
+    @Transactional
+    public void cleanupExpiredPendingOrders() {
+        LocalDateTime threshold = LocalDateTime.now().minusMinutes(15);
+        List<Order> expiredOrders = orderRepository.findByStatusAndCreatedAtBeforeWithItems(OrderStatus.PENDING, threshold);
+
+        if (!expiredOrders.isEmpty()) {
+            logger.info("Found {} expired PENDING orders to cancel.", expiredOrders.size());
+            for (Order order : expiredOrders) {
+                // Cancel order and restore stock
+                order.setStatus(OrderStatus.CANCELLED);
+                
+                // Set payment status to failed for the VNPAY payment if exists
+                for (Payment payment : order.getPayments()) {
+                    if (payment.getStatus() == PaymentTxnStatus.PENDING) {
+                        payment.setStatus(PaymentTxnStatus.FAILED);
+                    }
+                }
+
+                // Restore variant stocks
+                for (OrderItem item : order.getItems()) {
+                    ProductVariant variant = item.getVariant();
+                    variant.setStockQuantity(variant.getStockQuantity() + item.getQuantity());
+                    productVariantRepository.save(variant);
+                }
+
+                orderRepository.save(order);
+                logger.info("Cancelled order {} and restored stock.", order.getOrderCode());
+            }
+        }
     }
 }

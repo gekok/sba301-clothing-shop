@@ -19,4 +19,10 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
            "LEFT JOIN FETCH i.variant v " +
            "WHERE o.orderCode = :orderCode")
     Optional<Order> findByOrderCodeWithItems(@Param("orderCode") String orderCode);
+
+    @Query("SELECT o FROM Order o " +
+           "LEFT JOIN FETCH o.items i " +
+           "LEFT JOIN FETCH i.variant v " +
+           "WHERE o.status = :status AND o.createdAt <= :thresholdDate")
+    List<Order> findByStatusAndCreatedAtBeforeWithItems(@Param("status") com.sba301.ecommerce.features.entities.enums.OrderStatus status, @Param("thresholdDate") java.time.LocalDateTime thresholdDate);
 }

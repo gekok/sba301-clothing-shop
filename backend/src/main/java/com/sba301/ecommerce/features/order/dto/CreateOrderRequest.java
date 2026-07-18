@@ -24,7 +24,8 @@ public class CreateOrderRequest {
     @NotNull
     private BigDecimal shippingFee;
 
-    @NotEmpty
+    private String sessionId;
+
     @Valid
     private List<OrderItemRequest> items;
 

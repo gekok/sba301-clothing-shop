@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Container, Row, Col, Alert, Modal, Button, Form, Spinner } from 'react-bootstrap';
 import { useNavigate, Link } from 'react-router-dom';
 import PaymentMethodSelector from './PaymentMethodSelector';
@@ -55,23 +55,59 @@ function CheckoutLayout() {
     orderNote, setOrderNote,
     selectedPaymentMethod, setSelectedPaymentMethod,
     isPlacingOrder, setIsPlacingOrder, checkoutNotice, setCheckoutNotice,
-    totals, canCheckout, addAddress
+    totals, canCheckout, addAddress,
+    sessionId, sessionExpiresAt
   } = useCheckoutPage();
 
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [orderCode, setOrderCode] = useState('');
+  
+  const [timeLeft, setTimeLeft] = useState(null);
+  const [isSessionExpired, setIsSessionExpired] = useState(false);
+
+  useEffect(() => {
+    if (!sessionExpiresAt) return;
+    
+    const intervalId = setInterval(() => {
+      const now = new Date().getTime();
+      const expiresTime = new Date(sessionExpiresAt).getTime();
+      const distance = expiresTime - now;
+
+      if (distance < 0) {
+        clearInterval(intervalId);
+        setTimeLeft(0);
+        setIsSessionExpired(true);
+      } else {
+        setTimeLeft(distance);
+      }
+    }, 1000);
+
+    return () => clearInterval(intervalId);
+  }, [sessionExpiresAt]);
+
+  const formatTimeLeft = (ms) => {
+    if (ms === null || ms <= 0) return "00:00";
+    const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((ms % (1000 * 60)) / 1000);
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  };
 
   const handlePlaceOrder = async () => {
     if (!canCheckout) {
       setCheckoutNotice('Vui lòng điền đủ thông tin giao hàng.');
       return;
     }
+    if (isSessionExpired) {
+      setCheckoutNotice('Phiên thanh toán đã hết hạn, vui lòng quay lại giỏ hàng.');
+      return;
+    }
+    
     setIsPlacingOrder(true);
     setCheckoutNotice('');
 
     try {
       const requestBody = {
-        items: checkoutItems.map(item => ({ variantId: item.variantId, quantity: item.quantity })),
+        sessionId: sessionId,
         shippingAddressId: selectedAddress?.id,
         paymentMethod: selectedPaymentMethod,
         note: orderNote,
@@ -125,14 +161,28 @@ function CheckoutLayout() {
 
   if (errorMessage) {
     return (
-      <Container className="my-5 text-center">
-        <Alert variant="danger">
-          {errorMessage}
-        </Alert>
-        <Button variant="dark" className="rounded-0 mt-3" onClick={() => navigate('/cart')}>
-          Quay lại Giỏ hàng
-        </Button>
-      </Container>
+      <div className="container text-center py-5 my-5" style={{ maxWidth: '500px' }}>
+        <div className="checkoutx-panel p-5 border border-dark border-3" style={{ boxShadow: '8px 8px 0px 0px #000', backgroundColor: '#fff' }}>
+          <div className="text-danger mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5m.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2"/>
+            </svg>
+          </div>
+          <h2 className="fw-bold mb-4 text-uppercase" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>
+            Không có sản phẩm
+          </h2>
+          <p className="text-muted mb-4">
+            {errorMessage}
+          </p>
+          <Button
+            variant="dark"
+            className="w-100 rounded-0 text-uppercase fw-bold py-3"
+            onClick={() => navigate('/cart')}
+          >
+            Quay lại Giỏ hàng
+          </Button>
+        </div>
+      </div>
     );
   }
 
@@ -143,6 +193,12 @@ function CheckoutLayout() {
           <p className="checkoutx-overline">Secure Checkout</p>
           <h1 className="checkoutx-title">Thanh toán</h1>
         </header>
+
+        {timeLeft !== null && (
+          <div className="alert alert-warning text-center fw-bold rounded-0 py-3 mb-4" style={{border: '2px solid #000'}}>
+            🕒 Giỏ hàng đang được giữ chỗ trong: <span className="fs-5 text-danger">{formatTimeLeft(timeLeft)}</span>
+          </div>
+        )}
 
         {checkoutNotice && (
           <Alert variant="danger" className="mb-4 rounded-0">{checkoutNotice}</Alert>
@@ -217,31 +273,57 @@ function CheckoutLayout() {
       </Container>
 
       <Modal
-        show={showSuccessModal}
-        onHide={handleViewOrder}
-        centered
+        show={showSuccessModal || isSessionExpired}
+        onHide={() => {}}
         backdrop="static"
         keyboard={false}
-        className="checkoutx-modal"
+        centered
+        className="checkoutx-success-modal"
       >
-        <Modal.Body className="text-center py-5">
-          <div className="mb-4 text-success">
-            <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" fill="currentColor" className="bi bi-check-circle-fill" viewBox="0 0 16 16">
-              <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z" />
-            </svg>
-          </div>
-          <h3 className="fw-bold mb-3">
-            {selectedPaymentMethod === 'COD' ? 'Đặt hàng thành công!' : 'Thanh toán thành công!'}
-          </h3>
-          <p className="text-muted mb-4">
-            Cảm ơn bạn đã mua sắm. Mã đơn hàng của bạn là <strong>{orderCode}</strong>.<br />
-            {selectedPaymentMethod === 'COD'
-              ? 'Chúng tôi sẽ sớm liên hệ để giao hàng.'
-              : 'Đơn hàng của bạn đã được thanh toán và đang được chuẩn bị giao cho đơn vị vận chuyển.'}
-          </p>
-          <Button variant="dark" className="rounded-0 text-uppercase px-4" onClick={handleViewOrder}>
-            Xem chi tiết đơn hàng
-          </Button>
+        <Modal.Body className="text-center p-5">
+          {isSessionExpired ? (
+            <>
+              <div className="mb-4 text-danger">
+                <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" fill="currentColor" viewBox="0 0 16 16">
+                  <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                  <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0z"/>
+                </svg>
+              </div>
+              <h2 className="mb-3 fw-bold" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Hết thời gian giữ chỗ!</h2>
+              <p className="text-muted mb-4 fs-5">
+                Phiên thanh toán của bạn đã hết hạn. Vui lòng quay lại giỏ hàng để cập nhật và thử lại.
+              </p>
+              <Button 
+                variant="dark" 
+                size="lg"
+                className="w-100 rounded-0 fw-bold text-uppercase" 
+                onClick={() => navigate('/cart')}
+              >
+                Quay lại Giỏ hàng
+              </Button>
+            </>
+          ) : (
+            <>
+              <div className="mb-4 text-success">
+                <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" fill="currentColor" className="bi bi-check-circle" viewBox="0 0 16 16">
+                  <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                  <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/>
+                </svg>
+              </div>
+              <h2 className="mb-3 fw-bold" style={{ fontFamily: 'Space Grotesk, sans-serif' }}>Đặt hàng thành công!</h2>
+              <p className="text-muted mb-4 fs-5">
+                Mã đơn hàng của bạn là <strong className="text-dark">{orderCode}</strong>
+              </p>
+              <Button 
+                variant="dark" 
+                size="lg"
+                className="w-100 rounded-0 fw-bold text-uppercase" 
+                onClick={handleViewOrder}
+              >
+                Xem chi tiết đơn hàng
+              </Button>
+            </>
+          )}
         </Modal.Body>
       </Modal>
 

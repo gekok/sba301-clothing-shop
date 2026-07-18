@@ -24,11 +24,28 @@ function VNPayReturn() {
         setOrderDetails(response.data);
 
         const responseCode = searchParams.get('vnp_ResponseCode');
+        
+        const vnpayErrorMap = {
+          '07': 'Trừ tiền thành công. Giao dịch bị nghi ngờ (liên quan tới lừa đảo, giao dịch bất thường).',
+          '09': 'Thẻ/Tài khoản của bạn chưa đăng ký dịch vụ InternetBanking tại ngân hàng.',
+          '10': 'Bạn đã xác thực thông tin thẻ/tài khoản không đúng quá 3 lần.',
+          '11': 'Đã hết hạn chờ thanh toán. Xin vui lòng thực hiện lại giao dịch.',
+          '12': 'Thẻ/Tài khoản của bạn đã bị khóa.',
+          '13': 'Bạn nhập sai mật khẩu xác thực giao dịch (OTP). Xin vui lòng thực hiện lại giao dịch.',
+          '24': 'Bạn đã hủy giao dịch thanh toán.',
+          '51': 'Tài khoản của bạn không đủ số dư để thực hiện giao dịch.',
+          '65': 'Tài khoản của bạn đã vượt quá hạn mức giao dịch trong ngày.',
+          '75': 'Ngân hàng thanh toán đang bảo trì.',
+          '79': 'Bạn nhập sai mật khẩu thanh toán quá số lần quy định. Xin vui lòng thực hiện lại giao dịch.',
+          '99': 'Đã xảy ra lỗi không xác định từ hệ thống ngân hàng.'
+        };
+
         if (responseCode === '00') {
           setSuccess(true);
         } else {
           setSuccess(false);
-          setErrorMsg(`Giao dịch không thành công. Mã lỗi: ${responseCode}`);
+          const userFriendlyMessage = vnpayErrorMap[responseCode] || `Giao dịch không thành công. Mã lỗi: ${responseCode}`;
+          setErrorMsg(userFriendlyMessage);
         }
       } catch (err) {
         console.error('Lỗi xác thực thanh toán VNPAY:', err);

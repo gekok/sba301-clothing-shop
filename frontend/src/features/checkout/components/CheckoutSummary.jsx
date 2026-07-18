@@ -25,8 +25,8 @@ function CheckoutSummary({ items, totals, shippingMethod, address, checkingOut, 
       <div className="mb-4">
         <h6 className="fw-bold mb-3 text-uppercase small" style={{ letterSpacing: '0.05em' }}>Sản phẩm ({items.length})</h6>
         <div style={{ maxHeight: '300px', overflowY: 'auto', paddingRight: '0.5rem' }}>
-          {items.map(item => (
-            <div key={item.id} className="checkoutx-summary-item">
+          {items.map((item, idx) => (
+            <div key={item.variantId || idx} className="checkoutx-summary-item">
               <img src={item.thumbnail} alt={item.productName} className="checkoutx-summary-thumb" />
               <div className="checkoutx-summary-details">
                 <p className="checkoutx-summary-title">{item.productName}</p>
