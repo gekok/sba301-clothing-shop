@@ -37,10 +37,10 @@ public class CartServiceImpl implements CartService {
     private final InventoryReservationRepository reservationRepository;
 
     public CartServiceImpl(CartRepository cartRepository,
-                           CartItemRepository cartItemRepository,
-                           UserRepository userRepository,
-                           ProductVariantRepository productVariantRepository,
-                           InventoryReservationRepository reservationRepository) {
+            CartItemRepository cartItemRepository,
+            UserRepository userRepository,
+            ProductVariantRepository productVariantRepository,
+            InventoryReservationRepository reservationRepository) {
         this.cartRepository = cartRepository;
         this.cartItemRepository = cartItemRepository;
         this.userRepository = userRepository;
@@ -146,7 +146,7 @@ public class CartServiceImpl implements CartService {
 
         ProductVariant variant = item.getVariant();
         int availableStock = getAvailableStockForUser(variant, currentUser);
-        
+
         if (qty > availableStock) {
             throw new BadRequestException("Requested quantity exceeds available stock");
         }

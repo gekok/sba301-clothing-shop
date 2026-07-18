@@ -160,6 +160,28 @@ public class CheckoutSessionService {
 
         return response;
     }
+
+    @Transactional
+    public void cancelSession(String sessionId) {
+        User user = getCurrentUser();
+        List<InventoryReservation> reservations = reservationRepository.findBySessionId(sessionId);
+        
+        if (reservations.isEmpty()) {
+            return; // Already deleted or expired
+        }
+
+        if (!reservations.get(0).getUser().getId().equals(user.getId())) {
+            throw new BadRequestException("Access denied");
+        }
+
+        logger.info("Cancelling checkout session {} and releasing reservations", sessionId);
+        for (InventoryReservation res : reservations) {
+            ProductVariant variant = res.getVariant();
+            variant.setStockQuantity(variant.getStockQuantity() + res.getQuantity());
+            variantRepository.save(variant);
+            reservationRepository.delete(res);
+        }
+    }
     
     @Scheduled(fixedRate = 60000) // Run every minute
     @Transactional

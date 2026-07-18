@@ -16,19 +16,16 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RegisterRequest {
-    @NotBlank(message = "Email cannot be blank")
+    @NotBlank(message = "Email not blanked")
     @Email
-    @Size(min=5, max = 150)
+    @Size(min=5,max = 50)
     private String email;
 
     @NotBlank
-    @Size(min=6)
+    @Size(min=8)
     private String password;
 
-    @NotBlank
-    private String fullName;
+    @Enumerated(EnumType.STRING)
+    private Role roles = Role.CUSTOMER;
 
-    private String phone;
-
-    private Role role = Role.CUSTOMER;
 }

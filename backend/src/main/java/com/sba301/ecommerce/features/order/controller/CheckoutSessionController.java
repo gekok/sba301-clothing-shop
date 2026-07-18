@@ -27,4 +27,10 @@ public class CheckoutSessionController {
         CheckoutSessionResponse response = checkoutSessionService.getSession(sessionId);
         return ResponseEntity.ok(response);
     }
+
+    @DeleteMapping("/{sessionId}")
+    public ResponseEntity<Void> cancelSession(@PathVariable String sessionId) {
+        checkoutSessionService.cancelSession(sessionId);
+        return ResponseEntity.ok().build();
+    }
 }

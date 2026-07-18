@@ -107,7 +107,7 @@ public class DatabaseSeeder implements CommandLineRunner {
         }
 
         // 2. Seed Test User
-        User user = userRepository.findByEmail("customer@sba301.local").orElse(null);
+        User user = userRepository.findUserByEmail("customer@sba301.local");
         if (user == null) {
             user = new User();
             user.setEmail("customer@sba301.local");
@@ -158,7 +158,7 @@ public class DatabaseSeeder implements CommandLineRunner {
         }
         
         // 5. Seed Admin User and Cart
-        User adminUser = userRepository.findByEmail("admin@sba301.local").orElse(null);
+        User adminUser = userRepository.findUserByEmail("admin@sba301.local");
         if (adminUser == null) {
             adminUser = new User();
             adminUser.setEmail("admin@sba301.local");

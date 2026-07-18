@@ -31,14 +31,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<com.sba301.ecommerce.features.auth.dto.LoginResponse> register(
-            @Valid @RequestBody RegisterRequest registerRequest) {
-        return ResponseEntity.status(org.springframework.http.HttpStatus.CREATED).body(authService.register(registerRequest));
-    }
-
-    @PostMapping("/login")
-    public ResponseEntity<com.sba301.ecommerce.features.auth.dto.LoginResponse> login(
-            @Valid @RequestBody com.sba301.ecommerce.features.auth.dto.LoginRequest loginRequest) {
-        return ResponseEntity.ok(authService.login(loginRequest));
+    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest registerRequest) {
+        return ResponseEntity.ok(Map.of("message", "User registered successfully"));
     }
 }

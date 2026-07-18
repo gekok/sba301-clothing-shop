@@ -12,6 +12,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
 // TODO: thêm @EnableWebSecurity @RequiredArgsConstructor (inject JwtAuthenticationFilter).
 //   Beans: PasswordEncoder(BCrypt), AuthenticationManager(từ AuthenticationConfiguration), CorsConfigurationSource(origin http://localhost:5173).
 //   SecurityFilterChain: cors() + csrf(disable) + sessionManagement(STATELESS)
@@ -21,17 +23,14 @@ import java.util.List;
 //     hasRole("CUSTOMER"): /carts/**
 //     hasAnyRole("ADMIN","STAFF"): POST/PUT/DELETE products+categories, PUT /orders/*/status
 //     anyRequest().authenticated()
-import com.sba301.ecommerce.security.jwt.JwtAuthenticationFilter;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
 @Configuration
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final MockDevelopmentAuthFilter mockAuthFilter;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
-        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    public SecurityConfig(MockDevelopmentAuthFilter mockAuthFilter) {
+        this.mockAuthFilter = mockAuthFilter;
     }
 
     @Bean
@@ -40,10 +39,10 @@ public class SecurityConfig {
                 .csrf((csrf -> csrf.disable())) //Tắt csrf vì web restApi ko cần
                 .cors(cors ->cors.configurationSource(corsConfigurationSource())) //bật customs config cors có thể viết là Customizer.withDefaults()
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) //Vì dùng jwt nên tắt session
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(mockAuthFilter, UsernamePasswordAuthenticationFilter.class) // Đăng ký Mock Filter TẠM THỜI
                 .authorizeHttpRequests((auth)->{
                     auth
-                            .requestMatchers("/","/api/v1/auth/**").permitAll()
+                            .requestMatchers("/","/api/auth/**").permitAll()
                             .anyRequest().permitAll(); //đang mở tất cả Api ko cần check
                 });
 

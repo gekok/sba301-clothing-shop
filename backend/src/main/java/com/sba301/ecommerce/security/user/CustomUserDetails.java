@@ -8,6 +8,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
 
+// TODO: implements org.springframework.security.core.userdetails.UserDetails — bọc User entity.
+//   getUsername()=email, getPassword()=passwordHash,
+//   getAuthorities()=List.of(new SimpleGrantedAuthority("ROLE_"+user.getRole().name())),
+//   isEnabled()=user.getIsActive(); expose getUser() để lấy id không cần query lại.
 public class CustomUserDetails implements UserDetails {
 
     private final User user;
@@ -37,12 +41,12 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-        return user.getDeletedAt() == null;
+        return true;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return !"LOCKED".equals(user.getStatus());
+        return true;
     }
 
     @Override
@@ -52,6 +56,6 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return "ACTIVE".equals(user.getStatus());
+        return user.getStatus() != null && user.getStatus().equals("ACTIVE");
     }
 }

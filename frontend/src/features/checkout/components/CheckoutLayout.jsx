@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Container, Row, Col, Alert, Modal, Button, Form, Spinner } from 'react-bootstrap';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useBlocker } from 'react-router-dom';
 import PaymentMethodSelector from './PaymentMethodSelector';
 import CheckoutSummary from './CheckoutSummary';
 import { useCheckoutPage } from '../hooks/useCheckoutPage.js';
@@ -61,9 +61,21 @@ function CheckoutLayout() {
 
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [orderCode, setOrderCode] = useState('');
+  const [isOrderCompleted, setIsOrderCompleted] = useState(false);
   
   const [timeLeft, setTimeLeft] = useState(null);
   const [isSessionExpired, setIsSessionExpired] = useState(false);
+
+  // Blocker logic to prevent accidental leaving
+  let blocker = useBlocker(
+    ({ currentLocation, nextLocation }) => {
+      if (isOrderCompleted) return false;
+      if (currentLocation.pathname !== nextLocation.pathname && !isSessionExpired && sessionId) {
+        return true;
+      }
+      return false;
+    }
+  );
 
   useEffect(() => {
     if (!sessionExpiresAt) return;
@@ -125,6 +137,7 @@ function CheckoutLayout() {
       if (selectedPaymentMethod === 'VNPAY') {
         if (paymentUrl) {
           sessionStorage.removeItem('checkout_selected_items');
+          setIsOrderCompleted(true);
           window.location.href = paymentUrl;
           return;
         } else {
@@ -135,6 +148,7 @@ function CheckoutLayout() {
       }
 
       sessionStorage.removeItem('checkout_selected_items');
+      setIsOrderCompleted(true);
       setShowSuccessModal(true);
 
     } catch (error) {
@@ -327,6 +341,38 @@ function CheckoutLayout() {
         </Modal.Body>
       </Modal>
 
+      {/* Cancel Confirmation Modal */}
+      <Modal 
+        show={blocker.state === 'blocked'} 
+        onHide={() => blocker.reset?.()} 
+        centered
+        className="checkoutx-modal"
+      >
+        <Modal.Header className="border-0 pb-0" closeButton>
+          <Modal.Title className="fw-bold text-danger">
+            <i className="bi bi-exclamation-triangle-fill me-2"></i> Hủy thanh toán?
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="py-4">
+          <p className="mb-1 text-dark fw-medium">Việc đặt trước của bạn sẽ bị hủy.</p>
+          <p className="mb-0 text-muted small">Sản phẩm trong giỏ hàng sẽ không còn được giữ chỗ và có nguy cơ bị người khác mua mất. Bạn có chắc chắn muốn rời khỏi trang thanh toán không?</p>
+        </Modal.Body>
+        <Modal.Footer className="border-0 pt-0 d-flex gap-2">
+          <Button variant="outline-dark" className="rounded-0 text-uppercase fw-bold flex-grow-1" onClick={() => blocker.reset?.()}>
+            Ở lại
+          </Button>
+          <Button variant="danger" className="rounded-0 text-uppercase fw-bold flex-grow-1" onClick={async () => {
+            try {
+              await api.delete(`/checkout/session/${sessionId}`);
+            } catch (e) {
+              console.error(e);
+            }
+            blocker.proceed?.();
+          }}>
+            Rời đi
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </section>
   );
 }
