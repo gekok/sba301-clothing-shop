@@ -67,7 +67,7 @@ public class CheckoutSessionService {
 
         // 2. Create new session
         String sessionId = UUID.randomUUID().toString();
-        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(10);
+        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(15);
         List<CheckoutSessionItemResponse> itemResponses = new ArrayList<>();
 
         List<CartItem> cartItems = cartItemRepository.findAllById(request.getCartItemIds());

@@ -7,13 +7,22 @@ import java.util.*;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+@Component
 public class VNPayConfig {
     public static final String vnp_PayUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-    public static final String vnp_TmnCode = "OWBZLJR8";
-    public static final String vnp_HashSecret = "OOV71FUQL5VBFDON8N90WFPOEJK5OO0V";
+    
+    @Value("${vnpay.tmn-code}")
+    private String vnp_TmnCode;
+    
+    @Value("${vnpay.hash-secret}")
+    private String vnp_HashSecret;
+    
     public static final String vnp_ReturnUrl = "http://localhost:5173/checkout/vnpay-return";
 
-    public static String getPaymentUrl(String orderCode, String amountStr, String clientIp) {
+    public String getPaymentUrl(String orderCode, String amountStr, String clientIp) {
         Map<String, String> vnp_Params = new HashMap<>();
         vnp_Params.put("vnp_Version", "2.1.0");
         vnp_Params.put("vnp_Command", "pay");
@@ -72,7 +81,7 @@ public class VNPayConfig {
         return vnp_PayUrl + "?" + queryUrl;
     }
 
-    public static boolean verifySignature(Map<String, String> fields, String secureHash) {
+    public boolean verifySignature(Map<String, String> fields, String secureHash) {
         List<String> fieldNames = new ArrayList<>(fields.keySet());
         Collections.sort(fieldNames);
         
@@ -96,7 +105,7 @@ public class VNPayConfig {
         return calculatedHash.equalsIgnoreCase(secureHash);
     }
 
-    public static String hmacSHA512(final String key, final String data) {
+    public String hmacSHA512(final String key, final String data) {
         try {
             if (key == null || data == null) {
                 throw new NullPointerException();

@@ -39,6 +39,7 @@ public class OrderServiceImpl implements OrderService {
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
     private final InventoryReservationRepository reservationRepository;
+    private final VNPayConfig vnPayConfig;
 
     public OrderServiceImpl(OrderRepository orderRepository,
                             UserRepository userRepository,
@@ -46,7 +47,8 @@ public class OrderServiceImpl implements OrderService {
                             ProductVariantRepository productVariantRepository,
                             CartRepository cartRepository,
                             CartItemRepository cartItemRepository,
-                            InventoryReservationRepository reservationRepository) {
+                            InventoryReservationRepository reservationRepository,
+                            VNPayConfig vnPayConfig) {
         this.orderRepository = orderRepository;
         this.userRepository = userRepository;
         this.addressRepository = addressRepository;
@@ -54,6 +56,7 @@ public class OrderServiceImpl implements OrderService {
         this.cartRepository = cartRepository;
         this.cartItemRepository = cartItemRepository;
         this.reservationRepository = reservationRepository;
+        this.vnPayConfig = vnPayConfig;
     }
 
     private User getCurrentUser() {
@@ -171,8 +174,8 @@ public class OrderServiceImpl implements OrderService {
         Optional<Cart> cartOpt = cartRepository.findByUserIdWithItems(currentUser.getId());
         if (cartOpt.isPresent()) {
             Cart cart = cartOpt.get();
-            Set<Long> purchasedVariantIds = request.getItems().stream()
-                    .map(CreateOrderRequest.OrderItemRequest::getVariantId)
+            Set<Long> purchasedVariantIds = orderItems.stream()
+                    .map(item -> item.getVariant().getId())
                     .collect(Collectors.toSet());
 
             List<CartItem> itemsToRemove = cart.getItems().stream()
@@ -192,7 +195,7 @@ public class OrderServiceImpl implements OrderService {
         if ("VNPAY".equalsIgnoreCase(request.getPaymentMethod())) {
             // Amount in VNPAY is multiplied by 100
             String amountCents = savedOrder.getTotalAmount().multiply(new BigDecimal(100)).setScale(0).toString();
-            String paymentUrl = VNPayConfig.getPaymentUrl(orderCode, amountCents, clientIp);
+            String paymentUrl = vnPayConfig.getPaymentUrl(orderCode, amountCents, clientIp);
             response.setPaymentUrl(paymentUrl);
         }
 
@@ -202,7 +205,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderResponse handleVNPayCallback(Map<String, String> vnpParams) {
         String secureHash = vnpParams.get("vnp_SecureHash");
-        if (secureHash == null || !VNPayConfig.verifySignature(vnpParams, secureHash)) {
+        if (secureHash == null || !vnPayConfig.verifySignature(vnpParams, secureHash)) {
             throw new BadRequestException("Invalid payment signature");
         }
 
