@@ -196,7 +196,6 @@ function ProductVariantTable({ productId, variants = [], onVariantChanged }) {
                                 value={currentVariant.size}
                                 onChange={handleChange}
                                 className="rounded-0 border-dark"
-                                readOnly
                                 required
                             />
                         </Form.Group>
@@ -208,7 +207,6 @@ function ProductVariantTable({ productId, variants = [], onVariantChanged }) {
                                 value={currentVariant.color}
                                 onChange={handleChange}
                                 className="rounded-0 border-dark"
-                                readOnly
                                 required
                             />
                         </Form.Group>

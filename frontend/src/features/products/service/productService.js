@@ -31,22 +31,13 @@ export const getProductById = (id) => {
 
 export const uploadProductImage = async (file) => {
     const formData = new FormData();
-    formData.append("image", file);
+    formData.append("file", file);
     
-    // Imgbb API Key provided by user
-    const IMGBB_API_KEY = "32d324ed0bbd9440c225cfbfef2d24c5";
-    
-    const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-        method: "POST",
-        body: formData
+    return api.post("/api/admin/v2/products/upload-image", formData, {
+        headers: {
+            "Content-Type": "multipart/form-data"
+        }
     });
-    
-    const result = await response.json();
-    if (!result.success) {
-        throw new Error("Failed to upload image to imgbb");
-    }
-    
-    return result; // contains { data: { url: "..." } }
 };
 
 export const createProduct = (product) => {
