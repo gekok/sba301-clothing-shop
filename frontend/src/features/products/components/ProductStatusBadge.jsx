@@ -2,45 +2,33 @@ import Badge from "react-bootstrap/Badge";
 
 function ProductStatusBadge({ status }) {
 
-    let bg = "secondary";
-    let text = status;
+    const statusConfig = {
+        ACTIVE: {
+            variant: "success",
+            label: "ACTIVE"
+        },
 
-    switch (status) {
+        DRAFT: {
+            variant: "warning",
+            label: "DRAFT"
+        },
 
-        case "ACTIVE":
-            bg = "success";
-            text = "ACTIVE";
-            break;
+        HIDDEN: {
+            variant: "secondary",
+            label: "HIDDEN"
+        }
+    };
 
-        case "INACTIVE":
-            bg = "danger";
-            text = "INACTIVE";
-            break;
-
-        case "OUT_OF_STOCK":
-            bg = "warning";
-            text = "OUT OF STOCK";
-            break;
-
-        case "DRAFT":
-            bg = "secondary";
-            text = "DRAFT";
-            break;
-
-        default:
-            bg = "dark";
-            text = status;
-
-    }
+    const config = statusConfig[status] || {
+        variant: "dark",
+        label: status || "UNKNOWN"
+    };
 
     return (
-
-        <Badge bg={bg}>
-            {text}
+        <Badge bg={config.variant}>
+            {config.label}
         </Badge>
-
     );
-
 }
 
 export default ProductStatusBadge;

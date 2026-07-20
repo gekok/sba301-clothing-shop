@@ -1,8 +1,7 @@
-import axios from "axios";
+import api from "../../../shared/services/axios";
 
-const CATEGORY_API_URL =
-    "http://localhost:8080/api/v1/categories";
+const CATEGORY_URL = "/categories";
 
 export const getCategories = () => {
-    return axios.get(CATEGORY_API_URL);
+    return api.get(CATEGORY_URL);
 };
