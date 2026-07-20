@@ -1,84 +1,118 @@
 import { useState, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getCartSnapshot } from '../services/cartService.js';
 import { useCartItems, isPurchasable } from './useCartItems.js';
 import { useNavigate } from 'react-router-dom';
+import api from '../../../shared/services/axios.js';
 
 export { isPurchasable };
 
 export function useCartExperience() {
-  const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
   const [cartAlert, setCartAlert] = useState(null);
   const [stockSyncNotice, setStockSyncNotice] = useState('');
   const [lastSyncedAt, setLastSyncedAt] = useState(null);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const cartItems = useCartItems({ setCartAlert });
   const isUpdating = cartItems.isUpdatingItems;
 
-  const refreshCartSnapshot = async () => {
-    const snapshot = await getCartSnapshot();
-
-    let adjustedCount = 0;
-    const adjustedItems = snapshot.items.map((item) => {
-      if (item.quantity > item.stockQuantity && item.stockQuantity > 0) {
-        adjustedCount++;
-        return { ...item, quantity: item.stockQuantity };
-      }
-      return item;
-    });
-
-    const availableItemIds = new Set(adjustedItems.filter(isPurchasable).map((item) => item.id));
-    const nextSelectedIds = cartItems.selectedItemIds.filter((id) => availableItemIds.has(id));
-    const removedCount = cartItems.selectedItemIds.length - nextSelectedIds.length;
-
-    cartItems.setItems(adjustedItems);
-    cartItems.setSelectedItemIds(nextSelectedIds);
-    setLastSyncedAt(new Date());
-    setStockSyncNotice(
-      removedCount > 0 || adjustedCount > 0
-        ? `Đã cập nhật tồn kho. ${removedCount} sản phẩm bị loại, ${adjustedCount} sản phẩm được điều chỉnh số lượng.`
-        : 'Tồn kho đã được đồng bộ lại từ máy chủ.'
-    );
-
-    return { removedCount, adjustedCount, nextSelectedIds };
-  };
+  const { data: snapshot, isLoading: loading, isError, refetch } = useQuery({
+    queryKey: ['cartSnapshot'],
+    queryFn: getCartSnapshot,
+    refetchInterval: 5000,
+  });
 
   useEffect(() => {
-    let mounted = true;
-
-    async function loadData() {
-      setLoading(true);
+    if (isError) {
+      setErrorMessage('Không thể tải giỏ hàng. Vui lòng thử lại.');
+    } else {
       setErrorMessage('');
+    }
+  }, [isError]);
 
-      try {
-        const snapshot = await getCartSnapshot();
-        if (!mounted) return;
+  useEffect(() => {
+    if (snapshot) {
+      // Background check for discrepancies
+      let adjustedItemsList = [];
+      let removedItemsList = [];
+      
+      let needsModal = false;
 
-        cartItems.setItems(snapshot.items);
-        cartItems.setSelectedItemIds(snapshot.items.filter(isPurchasable).map((item) => item.id));
-        setLastSyncedAt(new Date());
-        setStockSyncNotice('Tồn kho đã được tải mới từ máy chủ.');
-      } catch (_error) {
-        setErrorMessage('Không thể tải giỏ hàng. Vui lòng thử lại.');
-      } finally {
-        if (mounted) {
-          setLoading(false);
-        }
+      // We use the local state to know the "old" quantity if available, 
+      // otherwise we use the freshItem.quantity from the backend cart.
+      snapshot.items.forEach(freshItem => {
+         const localItem = cartItems.items.find(i => i.id === freshItem.id);
+         const oldQuantity = localItem ? localItem.quantity : freshItem.quantity;
+
+         if (!isPurchasable(freshItem)) {
+             removedItemsList.push(localItem || freshItem);
+             needsModal = true;
+         } else if (oldQuantity > freshItem.stockQuantity) {
+             adjustedItemsList.push({
+                 ...(localItem || freshItem),
+                 oldQuantity: oldQuantity,
+                 newQuantity: freshItem.stockQuantity
+             });
+             needsModal = true;
+         }
+      });
+
+      if (needsModal && !cartAlert) {
+         setCartAlert({
+           title: 'Tồn kho thay đổi',
+           type: 'warning',
+           isConfirm: true,
+           isFromCheckout: false,
+           removedItems: removedItemsList,
+           adjustedItems: adjustedItemsList
+         });
+      } else if (!needsModal) {
+         cartItems.setItems(snapshot.items);
+         const availableItemIds = new Set(snapshot.items.filter(isPurchasable).map((item) => item.id));
+         cartItems.setSelectedItemIds((prevSelected) => {
+           return prevSelected.filter((id) => availableItemIds.has(id));
+         });
+         setLastSyncedAt(new Date());
       }
     }
-
-    loadData();
-
-    return () => {
-      mounted = false;
-    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [snapshot]);
 
-  const proceedToCheckout = async () => {
-    const { removedCount, adjustedCount, nextSelectedIds } = await refreshCartSnapshot();
-    if (nextSelectedIds.length === 0) {
+  const handleAcknowledgeChanges = async (proceed = false) => {
+    if (!cartAlert || !cartAlert.isConfirm) return;
+    
+    setCartAlert(null); // Close modal immediately for better UX
+    
+    // Apply changes to backend sequentially
+    for (const item of cartAlert.removedItems || []) {
+      await cartItems.removeItem(item.id);
+    }
+    
+    for (const item of cartAlert.adjustedItems || []) {
+      await cartItems.changeItemQuantity(item.id, item.newQuantity);
+    }
+    
+    // Force a refetch to ensure local state and backend are perfectly synced
+    await refetch();
+    
+    if (proceed) {
+      // Re-trigger proceedToCheckout with forceBypass = true
+      proceedToCheckout(true);
+    }
+  };
+
+  const proceedToCheckout = async (forceBypass = false) => {
+    const isBypass = typeof forceBypass === 'boolean' ? forceBypass : false;
+
+    // Force a fresh check before checkout
+    const result = await refetch();
+    const freshSnapshot = result.data;
+
+    if (!freshSnapshot) return;
+
+    if (cartItems.selectedItemIds.length === 0) {
       setCartAlert({
         title: 'Giỏ hàng trống',
         message: 'Bạn chưa chọn sản phẩm nào để thanh toán.',
@@ -86,29 +120,70 @@ export function useCartExperience() {
       });
       return;
     }
-    if (removedCount > 0 || adjustedCount > 0) {
+
+    let adjustedItemsList = [];
+    let removedItemsList = [];
+    const freshItemsMap = new Map(freshSnapshot.items.map(i => [i.id, i]));
+
+    cartItems.selectedItemIds.forEach(id => {
+      const localItem = cartItems.items.find(i => i.id === id);
+      const freshItem = freshItemsMap.get(id);
+
+      if (!freshItem || !isPurchasable(freshItem)) {
+        if (localItem) removedItemsList.push(localItem);
+      } else if (localItem && localItem.quantity > freshItem.stockQuantity) {
+        adjustedItemsList.push({
+          ...localItem,
+          oldQuantity: localItem.quantity,
+          newQuantity: freshItem.stockQuantity
+        });
+      }
+    });
+
+    if (!isBypass && (removedItemsList.length > 0 || adjustedItemsList.length > 0)) {
       setCartAlert({
         title: 'Tồn kho thay đổi',
-        message: 'Một số sản phẩm đã thay đổi số lượng. Vui lòng kiểm tra lại trước khi tiếp tục.',
+        type: 'warning',
+        isConfirm: true,
+        isFromCheckout: true,
+        removedItems: removedItemsList,
+        adjustedItems: adjustedItemsList
+      });
+      return;
+    }
+
+    const availableItemIds = new Set(freshSnapshot.items.filter(isPurchasable).map((item) => item.id));
+    const finalSelectedIds = cartItems.selectedItemIds.filter((id) => availableItemIds.has(id));
+
+    if (finalSelectedIds.length === 0) {
+      setCartAlert({
+        title: 'Giỏ hàng trống',
+        message: 'Tất cả sản phẩm bạn chọn đều đã hết hàng.',
         type: 'warning',
       });
       return;
     }
 
-    // Save selected items intent to session storage
-    sessionStorage.setItem('checkout_selected_items', JSON.stringify(nextSelectedIds));
-    navigate('/checkout');
+    try {
+      const res = await api.post('/checkout/session/init', { cartItemIds: finalSelectedIds });
+      sessionStorage.setItem('checkout_session_id', res.data.sessionId);
+      navigate('/checkout');
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Có lỗi xảy ra khi tạo phiên thanh toán.';
+      setCartAlert({
+        title: 'Lỗi thanh toán',
+        message: msg,
+        type: 'warning'
+      });
+    }
   };
 
   const reloadCart = async () => {
-    setLoading(true);
     setErrorMessage('');
     try {
-      await refreshCartSnapshot();
+      await refetch();
     } catch (_error) {
       setErrorMessage('Tải lại giỏ hàng thất bại.');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -120,7 +195,7 @@ export function useCartExperience() {
     setCartAlert,
     stockSyncNotice,
     lastSyncedAt,
-    
+
     items: cartItems.items,
     selectedItemIds: cartItems.selectedItemIds,
     purchasableItems: cartItems.purchasableItems,
@@ -136,5 +211,6 @@ export function useCartExperience() {
     clearUnavailableItems: cartItems.clearUnavailableItems,
     reloadCart,
     proceedToCheckout,
+    handleAcknowledgeChanges,
   };
 }

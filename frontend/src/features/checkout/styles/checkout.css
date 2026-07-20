@@ -1,4 +1,9 @@
-/* src/features/checkout/styles/checkout.css */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+/* ==========================================================================
+   High-Fashion Minimalist Styling cho Thanh Toán (Checkout)
+   Màu sắc & Phong cách đồng bộ hoàn toàn với Giỏ Hàng (Cart)
+   ========================================================================== */
 
 .checkoutx-shell, .checkoutx-modal {
   --checkoutx-bg: #ffffff;
@@ -14,48 +19,70 @@
 
 .checkoutx-shell {
   background-color: var(--checkoutx-bg);
+  color: var(--checkoutx-ink);
+  font-family: var(--checkoutx-font-sans);
   min-height: 100vh;
-  padding: 4rem 0 6rem;
+  padding: 3rem 0 5rem;
 }
 
+/* ==========================================================================
+   Typography & Headers
+   ========================================================================== */
 .checkoutx-hero {
-  text-align: center;
   margin-bottom: 3rem;
+  border-bottom: 2px solid var(--checkoutx-ink);
+  padding-bottom: 1.5rem;
+  text-align: left;
+}
+
+.checkoutx-overline {
+  font-family: var(--checkoutx-font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--checkoutx-soft);
+  margin-bottom: 0.5rem;
 }
 
 .checkoutx-title {
-  font-family: 'Inter', sans-serif;
-  font-size: 2.5rem;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  margin-bottom: 0.5rem;
+  font-family: var(--checkoutx-font-display);
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: var(--checkoutx-ink);
   text-transform: uppercase;
-}
-
-.checkoutx-panel {
-  background: #ffffff;
-  padding: 2rem;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-  border-radius: 4px;
+  margin-bottom: 0.5rem;
 }
 
 .checkoutx-section-title {
-  font-family: 'Inter', sans-serif;
-  font-size: 1.1rem;
-  font-weight: 700;
+  font-family: var(--checkoutx-font-display);
+  font-size: 1.25rem;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: -0.02em;
+  border-bottom: 1px solid var(--checkoutx-ink);
+  padding-bottom: 0.5rem;
   margin-bottom: 1.5rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 2px solid #000;
+}
+
+/* ==========================================================================
+   Layout Blocks (No Cards, Sharp Panels)
+   ========================================================================== */
+.checkoutx-panel {
+  background: var(--checkoutx-bg);
+  padding: 2rem;
+  margin-bottom: 2rem;
+  border: 1px solid var(--checkoutx-border);
+  border-radius: 0; /* Sharp edges */
 }
 
 /* Payment Method Styles */
 .payment-method-card {
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--checkoutx-border);
   padding: 1rem 1.25rem;
-  border-radius: 8px;
+  border-radius: 0; /* Sharp edges */
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
@@ -65,14 +92,14 @@
 }
 
 .payment-method-card:hover {
-  border-color: rgba(0, 0, 0, 0.3);
-  background-color: rgba(0, 0, 0, 0.01);
+  border-color: var(--checkoutx-ink);
+  background-color: var(--checkoutx-hover-bg);
 }
 
 .payment-method-card.selected {
-  border-color: #000;
+  border-color: var(--checkoutx-ink);
   border-width: 2px;
-  background-color: rgba(0, 0, 0, 0.02);
+  background-color: var(--checkoutx-hover-bg);
 }
 
 .payment-method-icon {
@@ -88,11 +115,12 @@
 .payment-method-name {
   font-weight: 600;
   margin-bottom: 0;
+  font-family: var(--checkoutx-font-display);
 }
 
 .payment-method-desc {
   font-size: 0.85rem;
-  color: #6c757d;
+  color: var(--checkoutx-soft);
   margin-bottom: 0;
 }
 
@@ -102,7 +130,7 @@
   gap: 1rem;
   margin-bottom: 1rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(0,0,0,0.05);
+  border-bottom: 1px solid var(--checkoutx-border);
 }
 
 .checkoutx-summary-item:last-child {
@@ -115,7 +143,7 @@
   width: 60px;
   height: 80px;
   object-fit: cover;
-  border-radius: 4px;
+  border-radius: 0; /* Sharp edges */
 }
 
 .checkoutx-summary-details {
@@ -126,30 +154,23 @@
   font-weight: 600;
   font-size: 0.95rem;
   margin-bottom: 0.25rem;
+  font-family: var(--checkoutx-font-display);
+  text-transform: uppercase;
 }
 
 .checkoutx-summary-meta {
   font-size: 0.8rem;
-  color: #6c757d;
+  color: var(--checkoutx-soft);
 }
 
 .checkoutx-summary-price {
-  font-weight: 600;
+  font-weight: 700;
   font-size: 0.95rem;
-}
-
-.checkoutx-overline {
-  font-family: 'Inter', sans-serif;
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: #666666;
-  margin-bottom: 0.5rem;
+  font-family: var(--checkoutx-font-display);
 }
 
 .checkoutx-sidebar-block {
-  background: #f9f9f9;
+  background: var(--checkoutx-hover-bg);
   padding: 1.5rem;
   margin-bottom: 1.5rem;
   border-radius: 0;
@@ -164,10 +185,52 @@
   top: 2rem;
 }
 
-@media (max-width: 991.98px) {
-  .checkoutx-sticky {
-    position: static;
-  }
+/* Custom Checkbox/Radio */
+.checkoutx-shell .form-check-input {
+  border-radius: 0;
+  border: 1px solid var(--checkoutx-ink);
+}
+
+.checkoutx-shell .form-check-input:checked {
+  background-color: var(--checkoutx-ink);
+  border-color: var(--checkoutx-ink);
+}
+
+.checkoutx-shell .form-check-input:focus {
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Form inputs & buttons */
+.checkoutx-shell .form-control {
+  background: transparent;
+  border: 1px solid var(--checkoutx-border);
+  border-radius: 0;
+  padding: 0.75rem;
+  font-size: 0.95rem;
+  color: var(--checkoutx-ink);
+}
+
+.checkoutx-shell .form-control:focus {
+  border-color: var(--checkoutx-ink);
+  box-shadow: none;
+}
+
+.checkoutx-shell .btn-dark {
+  background: var(--checkoutx-ink);
+  color: #fff;
+  border: 1px solid var(--checkoutx-ink);
+  border-radius: 0;
+  font-family: var(--checkoutx-font-display);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 1rem 2rem;
+  transition: all 0.2s ease;
+}
+
+.checkoutx-shell .btn-dark:hover:not(:disabled) {
+  background: transparent;
+  color: var(--checkoutx-ink);
 }
 
 .checkoutx-loading {
@@ -176,42 +239,33 @@
   align-items: center;
   justify-content: center;
   min-height: 50vh;
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: var(--checkoutx-font-display);
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
 
+/* Custom Minimalist Modal */
 .checkoutx-modal .modal-content {
   border-radius: 0;
-  border: 4px solid #000000;
-  background-color: #ffffff;
-  color: #000000;
-  font-family: 'Inter', sans-serif;
+  border: 4px solid var(--checkoutx-ink);
+  background-color: var(--checkoutx-bg);
+  color: var(--checkoutx-ink);
+  font-family: var(--checkoutx-font-sans);
   box-shadow: 8px 8px 0px 0px rgba(0,0,0,1);
 }
 
 .checkoutx-modal .modal-header {
-  border-bottom: 1px solid #e5e5e5;
+  border-bottom: 1px solid var(--checkoutx-border);
   border-radius: 0;
   padding: 1.25rem 1.5rem;
 }
 
-.checkoutx-modal-header-danger {
-  border-bottom: 2px solid #dc3545 !important;
-}
-
-.checkoutx-modal-header-warning {
-  border-bottom: 2px solid #ffc107 !important;
-}
-
 .checkoutx-modal .modal-title {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: var(--checkoutx-font-display);
   font-weight: 700;
   text-transform: uppercase;
   font-size: 1.1rem;
   letter-spacing: 0.02em;
-  display: flex;
-  align-items: center;
 }
 
 .checkoutx-modal .modal-body {
@@ -221,7 +275,7 @@
 }
 
 .checkoutx-modal .modal-footer {
-  border-top: 1px solid #e5e5e5;
+  border-top: 1px solid var(--checkoutx-border);
   padding: 1rem 1.5rem;
   border-radius: 0;
 }
@@ -235,4 +289,10 @@
   background-color: rgba(0, 0, 0, 0.6) !important;
   backdrop-filter: blur(5px) !important;
   opacity: 1 !important;
+}
+
+@media (max-width: 991.98px) {
+  .checkoutx-sticky {
+    position: static;
+  }
 }

@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Nationalized;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -68,6 +69,7 @@ public class Order extends BaseEntity {
     @Column(name = "payment_status", nullable = false, length = 20)
     private OrderPaymentStatus paymentStatus = OrderPaymentStatus.UNPAID;
 
+    @Nationalized
     @Column(length = 500)
     private String note;
 

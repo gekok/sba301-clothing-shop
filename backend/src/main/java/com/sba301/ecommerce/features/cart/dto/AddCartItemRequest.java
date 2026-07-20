@@ -7,7 +7,10 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class UpdateCartItemRequest {
+public class AddCartItemRequest {
+    @NotNull
+    private Long variantId;
+
     @NotNull
     @Min(1)
     private Integer quantity;

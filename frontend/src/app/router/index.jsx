@@ -25,6 +25,7 @@ import AuditLogs from '../../features/audit-logs/pages/AuditLogs.jsx';
 import ProductCreate from '../../features/products/pages/ProductCreate.jsx';
 import ProductEdit from '../../features/products/pages/ProductEdit.jsx';
 import ProductDetail from '../../features/products/pages/ProductDetail';
+import VNPayReturn from '../../features/checkout/components/VNPayReturn.jsx';
 
 const teamFeatureRoutes = [
   { path: 'products', element: <ProductList /> },
@@ -34,6 +35,7 @@ const teamFeatureRoutes = [
   { path: 'products/:id', element: <ProductList /> },
   { path: 'cart', element: <CartExperience /> },
   { path: 'checkout', element: <CheckoutLayout /> },
+  { path: 'checkout/vnpay-return', element: <VNPayReturn /> },
   { path: 'admin/dashboard', element: <Dashboard /> },
   { path: 'admin/products', element: <ProductList /> },
 
