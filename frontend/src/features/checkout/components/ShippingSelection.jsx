@@ -1,10 +1,10 @@
 import { Form, Stack } from 'react-bootstrap';
-import { formatVND } from '../../../../shared/utils/format';
+import { formatVND } from '../../../shared/utils/format.js';
 
 function ShippingSelection({ shippingMethods, selectedShippingId, onChange }) {
   return (
-    <div className="cartx-sidebar-block">
-      <h2 className="cartx-section-title">Vận chuyển</h2>
+    <div className="checkoutx-sidebar-block">
+      <h2 className="checkoutx-section-title">Vận chuyển</h2>
       <Stack gap={3}>
         {shippingMethods.map((method) => (
           <Form.Check

@@ -1,0 +1,516 @@
+/* ══════════════════════════════════════════
+   Store Header — storefront (Guest/Customer)
+   Thiết kế cho web hoàn thiện: mega menu,
+   search panel, account theo role, cart badge
+   ══════════════════════════════════════════ */
+
+.store-header {
+  z-index: 1040;
+}
+
+.store-header--scrolled .store-header__bar {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+/* Promo bar */
+.store-header__promo {
+  background: #111;
+  color: #eee;
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+}
+
+.store-header__promo-inner {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  padding: 0.45rem 0;
+  text-align: center;
+}
+
+.store-header__promo a {
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Main bar */
+.store-header__bar {
+  background: #fff;
+  border-bottom: 1px solid #e8e8e8;
+  transition: box-shadow 0.2s ease;
+}
+
+.store-header__bar-inner {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 1rem;
+  min-height: 64px;
+  padding-top: 0.65rem;
+  padding-bottom: 0.65rem;
+}
+
+@media (min-width: 1200px) {
+  .store-header__bar-inner {
+    grid-template-columns: 180px 1fr auto;
+    min-height: 72px;
+  }
+}
+
+.store-header__logo {
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #111;
+  text-decoration: none;
+  white-space: nowrap;
+  justify-self: center;
+}
+
+@media (min-width: 1200px) {
+  .store-header__logo {
+    justify-self: start;
+    font-size: 1.25rem;
+  }
+}
+
+.store-header__logo:hover {
+  color: #333;
+}
+
+/* Center nav */
+.store-header__nav {
+  justify-content: center;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.store-header__nav-item {
+  position: relative;
+}
+
+.store-header__nav-link {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  color: #222;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.store-header__nav-link:hover,
+.store-header__nav-link.is-active {
+  color: #000;
+  border-bottom-color: #111;
+}
+
+.store-header__nav-link--sale {
+  color: #b42318;
+}
+
+.store-header__nav-link--sale:hover,
+.store-header__nav-link--sale.is-active {
+  color: #991b1b;
+  border-bottom-color: #b42318;
+}
+
+/* Mega menu (hover) */
+.store-mega-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(920px, 92vw);
+  padding-top: 0.75rem;
+  z-index: 1050;
+}
+
+.store-header__nav-item--mega:hover .store-mega-menu,
+.store-header__nav-item--mega:focus-within .store-mega-menu {
+  display: block;
+}
+
+.store-mega-menu > .container {
+  background: #fff;
+  border: 1px solid #ececec;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+}
+
+.store-mega-menu__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+}
+
+.store-mega-menu__card {
+  text-decoration: none;
+  color: inherit;
+  overflow: hidden;
+  border: 1px solid #f0f0f0;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.store-mega-menu__card:hover {
+  border-color: #ccc;
+  transform: translateY(-2px);
+}
+
+.store-mega-menu__card img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  display: block;
+}
+
+.store-mega-menu__card-body {
+  padding: 0.65rem 0.75rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.store-mega-menu__card-body strong {
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.store-mega-menu__card-body span {
+  font-size: 0.75rem;
+  color: #777;
+}
+
+/* Right actions */
+.store-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  justify-self: end;
+}
+
+.store-header__icon-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: none;
+  background: transparent;
+  color: #111;
+  padding: 0.45rem 0.55rem;
+  line-height: 1;
+  border-radius: 4px;
+  transition: background 0.15s ease;
+}
+
+.store-header__icon-btn:hover {
+  background: #f5f5f5;
+}
+
+.store-header__account-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+.store-header__cart {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #111;
+  text-decoration: none;
+  padding: 0.45rem 0.55rem;
+  border-radius: 4px;
+  position: relative;
+  transition: background 0.15s ease;
+}
+
+.store-header__cart:hover {
+  background: #f5f5f5;
+  color: #111;
+}
+
+.store-header__cart-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+.store-header__cart-count {
+  min-width: 1.15rem;
+  height: 1.15rem;
+  padding: 0 0.3rem;
+  border-radius: 999px;
+  background: #111;
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.store-header__account-wrap {
+  position: relative;
+}
+
+.store-header__backdrop {
+  position: fixed;
+  inset: 0;
+  border: none;
+  background: transparent;
+  z-index: 1045;
+}
+
+.store-header__account-dropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  z-index: 1050;
+  min-width: 260px;
+}
+
+/* Search panel */
+.store-header__search-panel {
+  background: #fafafa;
+  border-bottom: 1px solid #e8e8e8;
+  padding: 1rem 0;
+  animation: storeSearchSlide 0.2s ease;
+}
+
+@keyframes storeSearchSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.store-header__search-form {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.store-header__search-icon {
+  color: #888;
+  flex-shrink: 0;
+}
+
+.store-header__search-input {
+  flex: 1;
+  border: none;
+  border-bottom: 2px solid #ddd;
+  border-radius: 0;
+  background: transparent;
+  font-size: 1rem;
+  padding: 0.5rem 0;
+  box-shadow: none !important;
+}
+
+.store-header__search-input:focus {
+  border-bottom-color: #111;
+}
+
+.store-header__search-submit {
+  border: 1px solid #111;
+  background: #111;
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.55rem 1.25rem;
+  flex-shrink: 0;
+}
+
+.store-header__search-submit:hover {
+  background: #333;
+  border-color: #333;
+}
+
+/* Account panel (dropdown + mobile) */
+.store-account-panel {
+  background: #fff;
+  border: 1px solid #ececec;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
+}
+
+.store-account-panel__head {
+  padding: 1rem 1.1rem 0.75rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.store-account-panel__email {
+  font-size: 0.875rem;
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.store-account-panel__role {
+  display: inline-block;
+  margin-top: 0.35rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: #111;
+  color: #fff;
+  padding: 0.15rem 0.45rem;
+}
+
+.store-account-panel__nav {
+  padding: 0.5rem 0;
+}
+
+.store-account-panel__link {
+  display: block;
+  padding: 0.55rem 1.1rem;
+  color: #222;
+  text-decoration: none;
+  font-size: 0.875rem;
+  transition: background 0.12s ease;
+}
+
+.store-account-panel__link:hover {
+  background: #f7f7f7;
+  color: #000;
+}
+
+.store-account-panel__link--portal {
+  font-weight: 500;
+}
+
+.store-account-panel__section-label {
+  padding: 0.35rem 1.1rem 0.15rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #888;
+}
+
+.store-account-panel__divider {
+  height: 1px;
+  background: #f0f0f0;
+  margin: 0.35rem 0;
+}
+
+.store-account-panel__logout {
+  display: block;
+  width: calc(100% - 2.2rem);
+  margin: 0.5rem 1.1rem 0.75rem;
+  border: 1px solid #ddd;
+  background: #fff;
+  color: #111;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0.5rem;
+}
+
+.store-account-panel__logout:hover {
+  background: #f5f5f5;
+}
+
+/* Mobile drawer */
+.store-mobile-nav__section {
+  padding: 0.5rem 0;
+}
+
+.store-mobile-nav__link {
+  display: block;
+  padding: 0.85rem 1.25rem;
+  color: #222;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.store-mobile-nav__link--sale {
+  color: #b42318;
+}
+
+.store-mobile-nav__account {
+  padding: 0.75rem;
+  margin-top: auto;
+}
+
+.store-mobile-nav__account .store-account-panel {
+  box-shadow: none;
+  border: 1px solid #eee;
+}
+
+/* ── Footer (tối giản) ── */
+.store-footer {
+  background: #111;
+  color: #fff;
+}
+
+/* Lưu ý: CSS riêng cho trang chủ (.home-*) đã chuyển sang
+   src/features/home/styles/home.css — import ngay trong HomePage.jsx. */
+
+@media (max-width: 1199.98px) {
+  .store-mega-menu__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 575.98px) {
+  .store-header__bar-inner {
+    gap: 0.5rem;
+  }
+
+  .store-header__logo {
+    font-size: 0.95rem;
+  }
+}
+/* ══════════════════════════════════════════
+   Bổ sung: Guest account dropdown (icon-only
+   + hover/click hiện Đăng nhập / Đăng ký)
+   ══════════════════════════════════════════ */
+
+/* Dropdown guest mặc định ẩn, dùng cùng vị trí với dropdown tài khoản cũ */
+.store-header__account-dropdown--guest {
+  display: none;
+  min-width: 180px;
+}
+
+/* Chỉ hiện khi click vào icon (accountOpen=true) */
+.store-header__account-dropdown--guest.is-open {
+  display: block;
+  animation: storeGuestDropdownSlide 0.15s ease;
+}
+
+@keyframes storeGuestDropdownSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Panel gọn hơn panel tài khoản đầy đủ — không có head/divider/logout */
+.store-account-panel--guest .store-account-panel__nav {
+  padding: 0.35rem 0;
+}
+
+.store-account-panel--guest .store-account-panel__link {
+  font-weight: 500;
+}

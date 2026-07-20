@@ -2,8 +2,8 @@ import { Form, Stack, Button } from 'react-bootstrap';
 
 function VoucherSelection({ voucherInput, voucherNotice, onInputChange, onApply }) {
   return (
-    <div className="cartx-sidebar-block">
-      <h2 className="cartx-section-title">Mã giảm giá</h2>
+    <div className="checkoutx-sidebar-block">
+      <h2 className="checkoutx-section-title">Mã giảm giá</h2>
       <Stack gap={2}>
         <Form.Control
           placeholder="Nhập mã ưu đãi..."

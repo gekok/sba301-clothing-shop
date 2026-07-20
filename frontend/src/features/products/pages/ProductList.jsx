@@ -1,74 +1,127 @@
-import axios from "axios";
-import React, { useState, useEffect } from 'react';
+import { useState } from "react";
+import ProductPagination from "../components/ProductPagination";
+import Button from "react-bootstrap/Button";
+import ProductTable from "../components/ProductTable.jsx";
+import useProducts from "../hooks/useProducts.js";
+import ProductDeleteModal from "../components/ProductDeleteModal";
+import { useNavigate } from "react-router-dom";
 
-function ProductList(){
-    const [products, setProducts] = useState([
+function ProductList() {
 
-    ]);
-    const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
 
-    // gọi api
-    useEffect(() => {
-        axios.get('http://localhost:8080/api/products')
-        .then((response) => {
-            setProducts(response.data);
-            setLoading(false);
-            console.log(response.data);
-        }).catch((error) => {
-            console.error("lỗi kết nối API: ", error);
-            setLoading(false);
-        });
-    }, []);
-    const DeleteProduct = (id) => {};
-    const EditProduct = (id) => {};
-    if (loading) {
-        return <div>Loading...</div>;
+    const [keyword, setKeyword] = useState("");
+
+    const [showDelete, setShowDelete] = useState(false);
+
+    const [selectedProduct, setSelectedProduct] = useState(null);
+
+    const {
+
+        products,
+
+        loading,
+
+        page,
+
+        setPage,
+
+        totalPages,
+
+        loadProducts,
+
+        handleDelete
+
+    } = useProducts();
+    if(loading){
+
+        return <h3>Loading...</h3>;
+
     }
     return (
-        <div className="container">
-            <h2 className="text-center">Danh Sách Sản Phẩm</h2>
-            {products.length === 0 ? (
-                <div className="text-center">Hiện của hàng chưa có sản phẩm nào!</div>
-            ):(
-                <div className="table-responsive">
-                    <table className="table table-striped">
-                        <thead className="table-dark">
-                        <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Brand</th>
-                            <th>Base Price</th>
-                            <th>Slug</th>
-                            <th>Description</th>
-                            <th>Status</th>
-                            <th className="text-center">Action</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {products.map((product) => (
-                            <tr key={product.id}>
-                                <td>{product.id}</td>
-                                <td>{product.name}</td>
-                                <td>{product.brand}</td>
-                                <td>{product.basePrice}</td>
-                                <td>{product.slug}</td>
-                                <td>{product.description}</td>
-                                <td>
-                                    <span className={`badge ${product.status === 'ACTIVE' ? 'bg-success text-white' : 'bg-secondary text-white'}`}>
-                                        {product.status}
-                                    </span>
-                                </td>
-                                <td>
-                                    <button onClick={()=>EditProduct(product.id)}>Edit</button>
-                                    <button onClick={()=>DeleteProduct(product.id)}>Delete</button>
-                                </td>
-                            </tr>
-                        ))}
-                        </tbody>
-                    </table>
+        <div className="container mt-4">
+
+            <div className="d-flex justify-content-between align-items-center mb-3">
+
+                <div>
+                    <h2 className="mb-3">Product Management</h2>
+
+                    <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Search by product name..."
+                        value={keyword}
+                        onChange={(e) => setKeyword(e.target.value)}
+                        style={{ width: "320px" }}
+                    />
                 </div>
+
+                <div>
+
+                    <Button
+                        variant="secondary"
+                        className="me-2"
+                        onClick={loadProducts}
+                    >
+                        Refresh
+                    </Button>
+
+                    <Button
+                        variant="primary"
+                        onClick={() => navigate("/admin/products/create")}
+                    >
+                        Add Product
+                    </Button>
+
+                </div>
+
+            </div>
+
+            <ProductTable products={products.filter(p =>
+                p.name.toLowerCase().includes(keyword.toLowerCase())
             )}
+                          onEdit={(product) =>
+                              navigate(`/admin/products/${product.id}/edit`)
+            }
+                          onDelete={(product)=>{
+                              setSelectedProduct(product);
+
+                              setShowDelete(true);
+
+            }}
+            />
+
+            <ProductPagination
+
+                page={page}
+
+                totalPages={totalPages}
+
+                onPageChange={setPage}
+
+            />
+
+            <ProductDeleteModal
+
+                show={showDelete}
+
+                product={selectedProduct}
+
+                onHide={() => setShowDelete(false)}
+
+                onConfirm={async () => {
+
+                    await handleDelete(selectedProduct.id);
+
+                    setShowDelete(false);
+
+                }}
+
+            />
+
         </div>
-    )
+    );
+
 }
+
 export default ProductList;

@@ -1,45 +1,66 @@
 package com.sba301.ecommerce.features.product.controller;
 
-import com.sba301.ecommerce.features.entities.Product;
-import com.sba301.ecommerce.features.product.repository.ProductRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.sba301.ecommerce.features.product.dto.ProductRequest;
+import com.sba301.ecommerce.features.product.dto.ProductResponse;
+import com.sba301.ecommerce.features.product.service.ProductService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/products")
-@CrossOrigin(origins = "http://localhost:5173")
-
+@RequestMapping("/api/admin/products")
+@RequiredArgsConstructor
 public class ProductController {
-    @Autowired
-    private ProductRepository productRepository;
 
-    @Transactional(readOnly = true)
+    private final ProductService productService;
+
     @GetMapping
-    public List<Map<String, Object>> getAllProducts(){
-        List<Product> products = productRepository.findAll();
-        List<Map<String, Object>> result = new ArrayList<>();
+    public ResponseEntity<Page<ProductResponse>> findAll(
 
-        for (Product product : products) {
-            Map<String, Object> dto = new HashMap<>();
-            dto.put("id", product.getId());
-            dto.put("name", product.getName());
-            dto.put("brand", product.getBrand());
-            dto.put("basePrice", product.getBasePrice());
-            dto.put("slug", product.getSlug());
-            dto.put("description", product.getDescription());
-            dto.put("status", product.getStatus() != null ? product.getStatus().name() : "DRAFT");
-            result.add(dto);
-        }
+            @RequestParam(defaultValue = "0")
+            Integer page,
 
-        return result;
+            @RequestParam(defaultValue = "10")
+            Integer size){
+
+        return ResponseEntity.ok(
+                productService.findAll(page,size)
+        );
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ProductResponse> findById(
+            @PathVariable Long id){
+
+        return ResponseEntity.ok(
+                productService.findById(id)
+        );
+    }
+    @PostMapping
+    public ResponseEntity<ProductResponse> create(
+            @Valid @RequestBody ProductRequest request) {
+        return ResponseEntity.ok(
+                productService.create(request)
+        );
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ProductResponse> update(
+            @PathVariable Long id,
+            @Valid @RequestBody ProductRequest request) {
+
+        return ResponseEntity.ok(
+                productService.update(id, request)
+        );
+    }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(
+            @PathVariable Long id){
+
+        productService.delete(id);
+
+        return ResponseEntity.noContent().build();
     }
 }
