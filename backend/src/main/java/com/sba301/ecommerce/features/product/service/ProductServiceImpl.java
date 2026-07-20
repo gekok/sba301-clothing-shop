@@ -19,7 +19,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -134,6 +133,7 @@ public class ProductServiceImpl implements ProductService {
 
     }
     @Override
+    @Transactional
     public ProductResponse create(ProductRequest request) {
         Category category = categoryRepository
                 .findById(request.getCategoryId())
@@ -161,6 +161,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional
     public ProductResponse update(Long id, ProductRequest request) {
 
         Product product = productRepository
@@ -197,6 +198,7 @@ public class ProductServiceImpl implements ProductService {
         return convertResponse(saved);
     }
     @Override
+    @Transactional
     public void delete(Long id) {
         Product product = productRepository
                 .findByIdAndDeletedAtIsNull(id)
