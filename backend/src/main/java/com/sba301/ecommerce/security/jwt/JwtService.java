@@ -6,7 +6,9 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -20,22 +22,23 @@ import java.util.Map;
 //   Build: Jwts.builder().subject(email).claim("role", role).issuedAt(..).expiration(..).signWith(key).compact()
 //   Parse: Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload()   (0.12.x, KHÔNG getBody())
 //   Methods: String generateToken(email, role); String extractEmail(token); boolean isValid(token);
-@Service
+@Component
 public class JwtService {
     @Value("${jwt.secret}")
     private String secret;
 
     @Value("${jwt.access-expiration}")
-    private long accessExpiration;
+    public long accessExpiration;
 
     @Value("${jwt.refresh-expiration}")
-    private long refreshExpiration;
+    public long refreshExpiration;
     
     public String generateJwtToken(CustomUserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role",userDetails.getAuthorities().iterator().next().getAuthority());
         claims.put("email",userDetails.getEmail());
         claims.put("user_id",userDetails.getId().toString());
+        claims.put("type", "access");
 
         return Jwts.builder()
                 .claims(claims)
@@ -44,6 +47,12 @@ public class JwtService {
                 .expiration(new Date(System.currentTimeMillis() + accessExpiration))
                 .signWith(getSigningKey(),Jwts.SIG.HS256)
                 .compact();
+    }
+
+    public boolean isAccessToken(String token) {
+        return "access".equals(
+                getAllClaims(token).get("type", String.class)
+        );
     }
 
     private SecretKey getSigningKey() {
@@ -72,5 +81,23 @@ public class JwtService {
 
     public String getEmailFromToken(String token) {
         return getAllClaims(token).getSubject();
+    }
+
+    public String generateRefreshToken(CustomUserDetails userDetails) {
+        return Jwts.builder()
+                .subject(userDetails.getEmail())
+                .issuedAt(new Date())
+                .expiration(new Date(
+                        System.currentTimeMillis() + refreshExpiration
+                ))
+                .claim("type", "refresh")
+                .signWith(getSigningKey(), Jwts.SIG.HS256)
+                .compact();
+    }
+
+    public boolean isRefreshToken(String token) {
+        return "refresh".equals(
+                getAllClaims(token).get("type", String.class)
+        );
     }
 }

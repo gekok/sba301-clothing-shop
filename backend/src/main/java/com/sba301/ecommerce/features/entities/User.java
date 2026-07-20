@@ -5,9 +5,7 @@ import com.sba301.ecommerce.features.entities.enums.UserStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.time.Instant;
@@ -24,7 +22,9 @@ import java.util.List;
         })
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 public class User extends BaseEntity {
 
     // Nullable: walk-in customers may not have email/password
@@ -69,7 +69,7 @@ public class User extends BaseEntity {
     @Column(name = "locked_until")
     private Instant lockedUntil;
 
-    @Size(max = 20)
+
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)

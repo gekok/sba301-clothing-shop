@@ -3,8 +3,7 @@ package com.sba301.ecommerce.features.entities;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.Nationalized;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -13,8 +12,11 @@ import java.time.Instant;
 
 @Getter
 @Setter
+@Builder
 @Entity
 @Table(name = "user_refresh_tokens")
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserRefreshToken extends BaseEntity {
 //    @Id
 //    @GeneratedValue(strategy = GenerationType.IDENTITY)
