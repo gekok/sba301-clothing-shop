@@ -1,17 +1,19 @@
 import Table from "react-bootstrap/Table";
 import Button from "react-bootstrap/Button";
-import { formatPrice } from "../utils/productFormatter";
 import ProductStatusBadge from "./ProductStatusBadge.jsx";
 import { useNavigate } from "react-router-dom";
+import {formatVND} from "../../../shared/utils/format.js";
+import "../styles/product-table.css";
 
 function ProductTable({ products, onEdit, onDelete }) {
 
     const navigate = useNavigate();
 
     return (
-        <Table striped bordered hover responsive>
+        <div className="product-table-wrapper">
+            <Table responsive hover className="product-table align-middle">
 
-            <thead>
+                <thead className="bg-light">
 
             <tr>
 
@@ -45,19 +47,30 @@ function ProductTable({ products, onEdit, onDelete }) {
                         <td>{product.id}</td>
 
                         <td style={{ width: "100px" }}>
-
-                            <img
-                                src={
-                                    product.images?.length > 0
-                                        ? product.images[0].imageUrl
-                                        : "/images/no-image.png"
-                                }
-                                alt={product.name}
-                                width={70}
-                                height={70}
-                                className="rounded border"
-                            />
-
+                            {product.images?.length > 0 && product.images[0]?.url ? (
+                                <img
+                                    src={product.images[0].url}
+                                    alt={product.images[0].alt || product.name}
+                                    width={70}
+                                    height={70}
+                                    className="rounded border"
+                                    style={{ objectFit: "cover" }}
+                                    onError={(event) => {
+                                        event.currentTarget.style.display = "none";
+                                    }}
+                                />
+                            ) : (
+                                <div
+                                    className="rounded border text-muted d-flex align-items-center justify-content-center"
+                                    style={{
+                                        width: "70px",
+                                        height: "70px",
+                                        fontSize: "12px"
+                                    }}
+                                >
+                                    No Image
+                                </div>
+                            )}
                         </td>
 
                         <td>{product.name}</td>
@@ -67,7 +80,7 @@ function ProductTable({ products, onEdit, onDelete }) {
                         <td>{product.categoryName}</td>
 
                         <td className="fw-bold text-primary">
-                            {formatPrice(product.basePrice)}
+                            {formatVND(product.basePrice)}
                         </td>
 
                         <td>
@@ -79,46 +92,37 @@ function ProductTable({ products, onEdit, onDelete }) {
                         </td>
 
                         <td>
+                            <div className="d-flex gap-2">
+                                <Button
+                                    variant="outline-dark"
+                                    size="sm"
+                                    className="rounded-0 text-uppercase"
+                                    style={{ fontSize: "0.75rem", letterSpacing: "0.05em" }}
+                                    onClick={() => navigate(`/admin/products/${product.id}`)}
+                                >
+                                    Detail
+                                </Button>
 
-                            <Button
-                                size="sm"
-                                variant="warning"
-                                className="me-2"
-                                onClick={() => onEdit(product)}
-                            >
-                                Edit
-                            </Button>
+                                <Button
+                                    variant="dark"
+                                    size="sm"
+                                    className="rounded-0 text-uppercase"
+                                    style={{ fontSize: "0.75rem", letterSpacing: "0.05em" }}
+                                    onClick={() => onEdit(product)}
+                                >
+                                    Edit
+                                </Button>
 
-                            <Button
-
-                                size="sm"
-
-                                variant="danger"
-
-                                onClick={() => onDelete(product)}
-
-                            >
-
-                                Delete
-
-                            </Button>
-
-                            <Button
-
-                                size="sm"
-
-                                variant="info"
-
-                                className="me-2"
-
-                                onClick={() => navigate(`/admin/products/${product.id}`)}
-
-                            >
-
-                                Detail
-
-                            </Button>
-
+                                <Button
+                                    variant="outline-danger"
+                                    size="sm"
+                                    className="rounded-0 text-uppercase"
+                                    style={{ fontSize: "0.75rem", letterSpacing: "0.05em" }}
+                                    onClick={() => onDelete(product)}
+                                >
+                                    Delete
+                                </Button>
+                            </div>
                         </td>
 
                     </tr>
@@ -128,7 +132,8 @@ function ProductTable({ products, onEdit, onDelete }) {
 
             </tbody>
 
-        </Table>
+            </Table>
+        </div>
     );
 
 }

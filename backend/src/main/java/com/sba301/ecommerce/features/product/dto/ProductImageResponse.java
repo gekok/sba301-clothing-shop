@@ -11,5 +11,7 @@ public class ProductImageResponse {
 
     private String url;
 
+    private Integer displayOrder;
+
     private Boolean isPrimary;
 }
