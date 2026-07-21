@@ -1,8 +1,10 @@
 // ============================================================
 // reviewsService — lớp "giả lập API" cho feature reviews.
 // Mọi thao tác đọc/ghi dữ liệu đều đi qua đây, giống hệt cách 1 API client thật
-// sẽ được gọi. Khi có backend thật, chỉ cần đổi nội dung các hàm export bên dưới
-// sang gọi fetch()/axios — các hook và page phía trên KHÔNG cần sửa gì.
+// sẽ được gọi. Khi có backend thật, đổi nội dung các hàm export bên dưới sang
+// gọi fetch()/axios (async) — lúc đó các hook/page phía trên đang gọi các hàm
+// này một cách đồng bộ (không await, không xử lý loading/error) SẼ cần được
+// cập nhật để xử lý Promise + trạng thái tải/lỗi.
 // ============================================================
 import { products, productVariants, users, orders, initialReviews, currentUser } from '../data/mockData.js'
 

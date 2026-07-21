@@ -7,7 +7,8 @@ const initialProduct = {
     description: "",
     brand: "",
     basePrice: "",
-    status: "DRAFT"
+    status: "DRAFT",
+    imageUrl: ""
 };
 
 function useProductForm(initialData = initialProduct) {

@@ -1,5 +1,6 @@
 package com.sba301.ecommerce.features.product.controller;
 
+import com.sba301.ecommerce.features.entities.enums.ProductStatus;
 import com.sba301.ecommerce.features.product.dto.ProductRequest;
 import com.sba301.ecommerce.features.product.dto.ProductResponse;
 import com.sba301.ecommerce.features.product.service.ProductService;
@@ -23,10 +24,31 @@ public class ProductController {
             Integer page,
 
             @RequestParam(defaultValue = "10")
-            Integer size){
+            Integer size,
+
+            @RequestParam(required = false)
+            String keyword,
+
+            @RequestParam(required = false)
+            Long categoryId,
+
+            @RequestParam(required = false)
+            ProductStatus status,
+
+            @RequestParam(defaultValue = "id")
+            String sortBy,
+
+            @RequestParam(defaultValue = "asc")
+            String direction
+
+    ) {
 
         return ResponseEntity.ok(
-                productService.findAll(page,size)
+                productService.findAll(page, size, keyword,
+                        categoryId,
+                        status,
+                        sortBy,
+                        direction)
         );
     }
 

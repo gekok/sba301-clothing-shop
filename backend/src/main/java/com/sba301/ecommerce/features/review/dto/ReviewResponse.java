@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 public class ReviewResponse {
     private Long id;
     private Long productId;
-    private Long userId;
     private String authorName;
     private Long orderItemId;
     private Integer rating;

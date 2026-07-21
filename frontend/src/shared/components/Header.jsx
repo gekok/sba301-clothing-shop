@@ -8,6 +8,7 @@ import {
 import { Bag, List, Person, Search, X } from 'react-bootstrap-icons';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { clearAuthState, getAuthState } from '../utils/auth';
+import { getCartSnapshot } from '../../features/cart/services/cartService.js';
 import '../styles/layout.css';
 
 const SITE_NAME = 'SBA301 Shop';
@@ -95,12 +96,12 @@ const getAccountMenu = (isAuthenticated, role) => {
   return { account, portal };
 };
 
-// Đọc số lượng item trong giỏ từ localStorage
-// Format cart: [{ variantId, quantity, ... }] — tương thích CartExperience
-const getCartCount = () => {
+// Lấy số lượng item trong giỏ từ nguồn dữ liệu thật (giống CartExperience: getCartSnapshot() -> /carts/me),
+// KHÔNG đọc localStorage vì không có chỗ nào trong app ghi giỏ hàng vào đó.
+const getCartCount = async () => {
   try {
-    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-    return cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+    const snapshot = await getCartSnapshot();
+    return snapshot.items.reduce((sum, item) => sum + (item.quantity || 1), 0);
   } catch {
     return 0;
   }
@@ -110,7 +111,7 @@ const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [cartCount, setCartCount] = useState(getCartCount);
+  const [cartCount, setCartCount] = useState(0);
   const [authState, setAuthStateLocal] = useState(getAuthState());
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
@@ -143,15 +144,21 @@ const Header = () => {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Sync cart badge khi localStorage thay đổi (từ tab khác hoặc CartExperience)
+  // Tải + đồng bộ số lượng giỏ hàng thật từ server, khi mount và khi có thay đổi
+  // (cart:updated được useCartItems dispatch sau khi add/update/remove thành công).
   useEffect(() => {
-    const onStorage = () => setCartCount(getCartCount());
-    window.addEventListener('storage', onStorage);
-    // Custom event cho cùng tab (CartExperience dispatch 'cart:updated')
-    window.addEventListener('cart:updated', onStorage);
+    let mounted = true;
+    const syncCartCount = () => {
+      getCartCount().then((count) => {
+        if (mounted) setCartCount(count);
+      });
+    };
+
+    syncCartCount();
+    window.addEventListener('cart:updated', syncCartCount);
     return () => {
-      window.removeEventListener('storage', onStorage);
-      window.removeEventListener('cart:updated', onStorage);
+      mounted = false;
+      window.removeEventListener('cart:updated', syncCartCount);
     };
   }, []);
 
@@ -161,8 +168,8 @@ const Header = () => {
       clearAuthState();
       setAuthStateLocal(getAuthState());
 
-      // Đồng bộ badge với dữ liệu thực trong localStorage
-      setCartCount(getCartCount());
+      // Đồng bộ badge với dữ liệu thực từ server
+      getCartCount().then(setCartCount);
 
       navigate('/login');
     };

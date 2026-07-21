@@ -4,6 +4,7 @@ package com.sba301.ecommerce.features.product.service;
 //   Long create(ProductRequest); ProductResponse update(Long, ProductRequest); void delete(Long) (xoa mem: deletedAt/status).
 //   LUU Y: paging 0-based (dung lap bug repo mau default index=1).
 
+import com.sba301.ecommerce.features.entities.enums.ProductStatus;
 import com.sba301.ecommerce.features.product.dto.ProductRequest;
 import com.sba301.ecommerce.features.product.dto.ProductResponse;
 import org.springframework.data.domain.Page;
@@ -11,7 +12,12 @@ import org.springframework.data.domain.Page;
 public interface ProductService {
     Page<ProductResponse> findAll(
             Integer page,
-            Integer size
+            Integer size,
+            String keyword,
+            Long categoryId,
+            ProductStatus status,
+            String sortBy,
+            String direction
     );
 
     ProductResponse findById(Long id);

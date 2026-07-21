@@ -41,14 +41,13 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     @Transactional
     public ReviewResponse createReview(ReviewRequest request, Long productId) {
-        // TODO Auto-generated method stub
+        // Không echo lại userId trong message lỗi: tránh lộ thông tin dò userId nào
+        // tồn tại trong hệ thống (user enumeration) cho request 404.
         User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Không tìm thấy user id=" + request.getUserId()));
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy user."));
 
         OrderItem orderItem = orderItemRepository.findById(request.getOrderItemId())
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Không tìm thấy order item id=" + request.getOrderItemId()));
+                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy order item."));
 
         Long actualProductId = orderItem.getVariant().getProduct().getId();
         if (!actualProductId.equals(productId)) {
@@ -86,7 +85,6 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     @Transactional(readOnly = true)
     public Page<ReviewResponse> getReviewsByProduct(Long productId, Pageable pageable) {
-        // TODO Auto-generated method stub
         return reviewRepository
                 .findByProduct_IdOrderByCreatedAtDesc(productId, pageable)
                 .map(reviewMapper::toResponse);
@@ -95,7 +93,6 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     @Transactional(readOnly = true)
     public ReviewSummaryResponse getSummaryByProduct(Long productId) {
-        // TODO Auto-generated method stub
         List<Integer> ratings = reviewRepository.findAllRatingsByProductId(productId);
 
         long total = ratings.size();

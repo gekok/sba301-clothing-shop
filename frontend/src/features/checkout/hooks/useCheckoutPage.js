@@ -1,76 +1,89 @@
 import { useState, useEffect, useMemo } from 'react';
-import { getCartSnapshot } from '../../cart/services/cartService.js';
+import { useQuery } from '@tanstack/react-query';
 import { applyVoucherAPI, addAddressAPI, getAddressesAPI, getShippingMethodsAPI } from '../services/checkoutService.js';
 import { getItemsSubtotal } from '../../cart/utils/cartMath.js';
 import { getDiscountAmount, getCartTotals } from '../utils/checkoutMath.js';
-import { isPurchasable } from '../../cart/hooks/useCartItems.js';
+import api from '../../../shared/services/axios.js';
 
 export function useCheckoutPage() {
-  const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
-  const [checkoutItems, setCheckoutItems] = useState([]);
-  const [addresses, setAddresses] = useState([]);
-  const [shippingMethods, setShippingMethods] = useState([]);
-  
+
   const [selectedAddressId, setSelectedAddressId] = useState(null);
   const [selectedShippingId, setSelectedShippingId] = useState('');
   const [voucherInput, setVoucherInput] = useState('');
   const [voucherApplied, setVoucherApplied] = useState(null);
   const [voucherNotice, setVoucherNotice] = useState('');
   const [orderNote, setOrderNote] = useState('');
-  
+
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('COD');
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [checkoutNotice, setCheckoutNotice] = useState('');
 
+  const [sessionId, setSessionId] = useState(() => sessionStorage.getItem('checkout_session_id'));
+  const [sessionExpiresAt, setSessionExpiresAt] = useState(null);
+
+  // 1. Fetch Session Data
+  const { data: sessionData, isLoading: isSessionLoading, isError: isSessionError, error: sessionError } = useQuery({
+    queryKey: ['checkoutSession', sessionId],
+    queryFn: async () => {
+      if (!sessionId) throw new Error("No session ID");
+      const res = await api.get(`/checkout/session/${sessionId}`);
+      return res.data;
+    },
+    enabled: !!sessionId,
+    retry: false
+  });
+
+  // 2. Fetch Addresses
+  const { data: addressesData, isLoading: isAddressesLoading } = useQuery({
+    queryKey: ['addresses'],
+    queryFn: async () => {
+      const res = await getAddressesAPI();
+      return res.data;
+    },
+  });
+
+  // 3. Fetch Shipping Methods
+  const { data: shippingData, isLoading: isShippingLoading } = useQuery({
+    queryKey: ['shippingMethods'],
+    queryFn: async () => {
+      const res = await getShippingMethodsAPI();
+      return res.data;
+    },
+  });
+
+  const loading = isSessionLoading || isAddressesLoading || isShippingLoading;
+
   useEffect(() => {
-    let mounted = true;
-    async function initCheckout() {
-      try {
-        const storedIdsRaw = sessionStorage.getItem('checkout_selected_items');
-        if (!storedIdsRaw) {
-          setErrorMessage('Không tìm thấy thông tin sản phẩm cần thanh toán. Vui lòng quay lại giỏ hàng.');
-          setLoading(false);
-          return;
-        }
-        const intentIds = JSON.parse(storedIdsRaw);
-        
-        const [cartRes, addressRes, shippingRes] = await Promise.all([
-          getCartSnapshot(),
-          getAddressesAPI(),
-          getShippingMethodsAPI()
-        ]);
-        if (!mounted) return;
-
-        const cartData = cartRes;
-        const addressesData = addressRes.data;
-        const shippingData = shippingRes.data;
-
-        // Chỉ lấy những item nào được chọn và còn hàng
-        const validItems = cartData.items.filter(item => isPurchasable(item) && intentIds.includes(item.id));
-        setCheckoutItems(validItems);
-
-        setAddresses(addressesData || []);
-        setShippingMethods(shippingData || []);
-
-        if (addressesData?.length > 0) {
-          const defaultAddr = addressesData.find(a => a.isDefault);
-          setSelectedAddressId(defaultAddr ? defaultAddr.id : addressesData[0].id);
-        }
-
-        if (shippingData?.length > 0) {
-          setSelectedShippingId(shippingData[0].id);
-        }
-
-      } catch (err) {
-        setErrorMessage('Lỗi khi tải thông tin thanh toán.');
-      } finally {
-        if (mounted) setLoading(false);
-      }
+    if (isSessionError) {
+      setErrorMessage(sessionError?.response?.data?.message || 'Phiên thanh toán không tồn tại hoặc đã hết hạn.');
     }
-    initCheckout();
-    return () => mounted = false;
-  }, []);
+    if (sessionData) {
+      setSessionExpiresAt(sessionData.expiresAt);
+    }
+  }, [isSessionError, sessionError, sessionData]);
+
+  const checkoutItems = useMemo(() => {
+    if (!sessionData) return [];
+    return sessionData.items;
+  }, [sessionData]);
+
+  const addresses = addressesData || [];
+  const shippingMethods = shippingData || [];
+
+  // Initialize selections
+  useEffect(() => {
+    if (addresses.length > 0 && !selectedAddressId) {
+      const defaultAddr = addresses.find(a => a.isDefault);
+      setSelectedAddressId(defaultAddr ? defaultAddr.id : addresses[0].id);
+    }
+  }, [addresses, selectedAddressId]);
+
+  useEffect(() => {
+    if (shippingMethods.length > 0 && !selectedShippingId) {
+      setSelectedShippingId(shippingMethods[0].id);
+    }
+  }, [shippingMethods, selectedShippingId]);
 
   const itemsSubtotal = useMemo(() => getItemsSubtotal(checkoutItems), [checkoutItems]);
   const selectedAddress = useMemo(() => addresses.find(a => a.id === selectedAddressId), [addresses, selectedAddressId]);
@@ -126,6 +139,7 @@ export function useCheckoutPage() {
     orderNote, setOrderNote,
     selectedPaymentMethod, setSelectedPaymentMethod,
     isPlacingOrder, setIsPlacingOrder, checkoutNotice, setCheckoutNotice,
-    totals, canCheckout, addAddress
+    totals, canCheckout, addAddress,
+    sessionId, sessionExpiresAt
   };
 }

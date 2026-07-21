@@ -1,26 +1,22 @@
-import { voucherCatalog, addressesMock, shippingMethodsMock } from '../data/checkoutMock.js';
-
-// Giả lập độ trễ mạng
-const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+import api from '../../../shared/services/axios.js';
+import { voucherCatalog, shippingMethodsMock } from '../data/checkoutMock.js';
 
 export async function addAddressAPI(addressData) {
-  await delay(300);
-  return Promise.resolve({ success: true, data: { ...addressData, id: Date.now() } });
+  const res = await api.post('/addresses', addressData);
+  return res;
 }
 
 export async function applyVoucherAPI(code) {
-  await delay(300);
   const matched = voucherCatalog?.[code] || null;
   if (!matched) throw new Error('Mã giảm giá không hợp lệ.');
   return Promise.resolve({ success: true, data: matched });
 }
 
 export async function getAddressesAPI() {
-  await delay(300);
-  return Promise.resolve({ success: true, data: addressesMock });
+  const res = await api.get('/addresses');
+  return res;
 }
 
 export async function getShippingMethodsAPI() {
-  await delay(300);
   return Promise.resolve({ success: true, data: shippingMethodsMock });
 }
