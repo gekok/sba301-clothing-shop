@@ -31,9 +31,11 @@ public class ProductVariant {
     @Column(nullable = false, length = 64)
     private String sku;
 
+    @org.hibernate.annotations.Nationalized
     @Column(nullable = false, length = 20)
     private String size;
 
+    @org.hibernate.annotations.Nationalized
     @Column(nullable = false, length = 50)
     private String color;
 
