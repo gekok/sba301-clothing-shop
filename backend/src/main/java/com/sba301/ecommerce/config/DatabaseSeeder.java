@@ -12,6 +12,7 @@ import com.sba301.ecommerce.features.address.repository.AddressRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -43,7 +44,11 @@ public class DatabaseSeeder implements CommandLineRunner {
         this.addressRepository = addressRepository;
     }
 
+    // Runs in one transaction so lazy collections stay loadable.
+    // Without it, the "already seeded" branch below reloads Product/Cart outside a session
+    // (open-in-view is off) and getVariants()/getItems() throws LazyInitializationException.
     @Override
+    @Transactional
     public void run(String... args) throws Exception {
         // 1. Seed Category and Product first
         Product savedProduct;
