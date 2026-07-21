@@ -2,7 +2,7 @@ import { Button, Card, Col, Container, Row } from 'react-bootstrap';
 import { ArrowRight } from 'react-bootstrap-icons';
 import { Link } from 'react-router-dom';
 import { formatVND } from '../../../shared/utils/format.js';
-import { getLowestPrice } from '../utils/home.util.js';
+import { getLowestPrice } from '../utils/homeUtil.js';
 
 const FeaturedProducts = ({ products, productImages }) => (
     <section className="py-5">
