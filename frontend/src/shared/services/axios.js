@@ -20,10 +20,16 @@ api.interceptors.request.use((config) => {
 });
 
 // Bắt 401 → clear token + redirect login (tuỳ team cài route /login sau).
+// Chỉ coi đây là "phiên hết hạn" (và bắn auth:logout) nếu request TRƯỚC ĐÓ thực sự
+// có mang access token. Nếu không có token sẵn (khách chưa đăng nhập), 401 là
+// hành vi bình thường của các endpoint cần auth (vd /carts/me) — không nên
+// force-logout/redirect một người chưa từng đăng nhập.
 api.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err.response?.status === 401) {
+    const hadToken = Boolean(localStorage.getItem('accessToken'));
+
+    if (err.response?.status === 401 && hadToken) {
       localStorage.removeItem('accessToken');
       // window.location.href = '/login';
       localStorage.removeItem('role');
