@@ -1,6 +1,7 @@
 package com.sba301.ecommerce.features.auth.dto;
 
 import com.sba301.ecommerce.features.entities.enums.Role;
+import com.sba301.ecommerce.features.entities.enums.UserStatus;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.Email;
@@ -16,6 +17,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RegisterRequest {
+
     @NotBlank(message = "Email not blanked")
     @Email
     @Size(min=5,max = 50)
@@ -25,7 +27,15 @@ public class RegisterRequest {
     @Size(min=8)
     private String password;
 
+    private String fullName;
+
+    private int phone;
+
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     private Role roles = Role.CUSTOMER;
+
+    @Enumerated(EnumType.STRING)
+    private UserStatus status = UserStatus.PENDING;
 
 }

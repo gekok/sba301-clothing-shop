@@ -1,8 +1,32 @@
-import { Link } from "react-router-dom";
+import React, { useState } from "react";
+import { Link,useNavigate } from "react-router-dom";
 import { Button, Card, Form, Nav } from "react-bootstrap";
 import "./AuthPages.css";
+import {login} from "../service/apiAuth";
 
 export default function Login() {
+  const [email,setEmail] = useState("");
+  const [password,setPassword] = useState("");
+  const [errorLogin,setErrorLogin] = useState("");
+  const [loadding,setLoadding] = useState("");
+
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
+      e.preventDefault();
+      setLoadding(true);
+
+      try {
+        const result = await login({email,password});
+        console.log(result);
+        setLoadding(false);
+        navigate("/products")
+      } catch (error) {
+        setLoadding(false);
+        setErrorLogin(error.response.data);
+        console.log(error.response.data);
+      }
+    }
   return (
     <div className="auth-shell">
       <Card className="auth-card">
@@ -20,12 +44,15 @@ export default function Login() {
         </Nav>
 
         <Card.Body className="auth-body">
-          <Form>
+          <Form onSubmit={handleSubmit}>
             <Form.Control
               className="auth-field"
               type="text"
               placeholder="Nhập email hoặc Tên đăng nhập"
-              autoComplete="username"
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              
             />
 
             <Form.Control
@@ -33,16 +60,21 @@ export default function Login() {
               type="password"
               placeholder="Mật khẩu"
               autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
             />
 
+            {errorLogin && <div className="auth-error">{errorLogin.message}</div>}
             <div className="auth-actions">
-              <Button type="button" className="auth-primary-btn login">
-                ĐĂNG NHẬP
+              <Button type="submit" className="auth-primary-btn login" disabled={loadding}>
+                {loadding ? "Loadding...":"ĐĂNG NHẬP"}
               </Button>
             </div>
 
             <div className="auth-center-link">
-              <a href="#">Quên mật khẩu?</a>
+              <a href="/forgot-password">
+                Quên mật khẩu?
+              </a>
             </div>
 
             <div className="auth-divider">Hoặc đăng nhập với</div>

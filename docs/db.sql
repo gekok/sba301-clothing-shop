@@ -12,7 +12,8 @@
      3) Khi BE chạy, đổi spring.jpa.hibernate.ddl-auto=validate (hoặc none)
         để Hibernate không sửa schema này nữa.
 ============================================================================ */
-
+CREATE DATABASE sba301_ecommerce COLLATE Vietnamese_CI_AS;
+          GO
 USE sba301_ecommerce;
 GO
 

@@ -4,14 +4,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
-import jakarta.persistence.EntityNotFoundException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 // TODO: @ExceptionHandler cho:
@@ -62,13 +58,13 @@ public class GlobalExceptionHandler {
                                 .body(response);
         }
 
-        @ExceptionHandler(Exception.class)
-        public ResponseEntity<ErrorResponse> handleException(Exception e) {
-                ErrorResponse response = ErrorResponse.builder()
-                                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                                .message(e.getMessage())
-                                .timestamp(LocalDateTime.now())
-                                .build();
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleException(Exception e) {
+        ErrorResponse response =ErrorResponse.builder()
+                .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .message(e.getMessage())
+                .timestamp(LocalDateTime.now())
+                .build();
 
                 return ResponseEntity
                                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -93,32 +89,8 @@ public class GlobalExceptionHandler {
                                 .errors(errors)
                                 .build();
 
-                return ResponseEntity
-                                .badRequest()
-                                .body(response);
-        }
-
-        @ExceptionHandler(ReviewNotEligibleException.class)
-        public ResponseEntity<Map<String, Object>> handleNotEligible(ReviewNotEligibleException ex) {
-                return buildResponse(HttpStatus.FORBIDDEN, ex.getMessage());
-        }
-
-        @ExceptionHandler(DuplicateReviewException.class)
-        public ResponseEntity<Map<String, Object>> handleDuplicate(DuplicateReviewException ex) {
-                return buildResponse(HttpStatus.CONFLICT, ex.getMessage());
-        }
-
-        @ExceptionHandler(EntityNotFoundException.class)
-        public ResponseEntity<Map<String, Object>> handleEntityNotFound(EntityNotFoundException ex) {
-                return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage());
-        }
-
-        private ResponseEntity<Map<String, Object>> buildResponse(HttpStatus status, String message) {
-                Map<String, Object> body = new LinkedHashMap<>();
-                body.put("timestamp", LocalDateTime.now());
-                body.put("status", status.value());
-                body.put("error", status.getReasonPhrase());
-                body.put("message", message);
-                return ResponseEntity.status(status).body(body);
-        }
+        return ResponseEntity
+                .badRequest()
+                .body(response);
+    }
 }

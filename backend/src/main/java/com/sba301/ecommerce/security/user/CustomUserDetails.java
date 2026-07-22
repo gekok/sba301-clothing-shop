@@ -1,6 +1,9 @@
 package com.sba301.ecommerce.security.user;
 
 import com.sba301.ecommerce.features.entities.User;
+import com.sba301.ecommerce.features.entities.enums.UserStatus;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -12,21 +15,18 @@ import java.util.List;
 //   getUsername()=email, getPassword()=passwordHash,
 //   getAuthorities()=List.of(new SimpleGrantedAuthority("ROLE_"+user.getRole().name())),
 //   isEnabled()=user.getIsActive(); expose getUser() để lấy id không cần query lại.
+@Getter
+@RequiredArgsConstructor
 public class CustomUserDetails implements UserDetails {
-
     private final User user;
-
-    public CustomUserDetails(User user) {
-        this.user = user;
-    }
-
-    public User getUser() {
-        return user;
-    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
+        return List.of(
+                new SimpleGrantedAuthority(
+                        user.getRole().name()
+                )
+        );
     }
 
     @Override
@@ -39,23 +39,15 @@ public class CustomUserDetails implements UserDetails {
         return user.getEmail();
     }
 
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
+    public Long getId(){
+        return user.getId();
     }
 
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
+    public UserStatus getStatus(){
+        return user.getStatus();
     }
 
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return user.getStatus() != null && user.getStatus().equals("ACTIVE");
+    public String getEmail(){
+        return user.getEmail();
     }
 }

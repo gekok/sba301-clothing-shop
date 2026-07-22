@@ -1,7 +1,8 @@
 package com.sba301.ecommerce.config;
 
-import com.sba301.ecommerce.features.auth.repositories.UserRepository;
+
 import com.sba301.ecommerce.features.entities.User;
+import com.sba301.ecommerce.features.pos.repository.UserPosRepository;
 import com.sba301.ecommerce.security.user.CustomUserDetails;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -22,10 +23,10 @@ import java.io.IOException;
 @Component
 public class MockDevelopmentAuthFilter extends OncePerRequestFilter {
 
-    private final UserRepository userRepository;
+    private final UserPosRepository userPosRepository;
 
-    public MockDevelopmentAuthFilter(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public MockDevelopmentAuthFilter(UserPosRepository userPosRepository) {
+        this.userPosRepository = userPosRepository;
     }
 
     @Override
@@ -40,7 +41,7 @@ public class MockDevelopmentAuthFilter extends OncePerRequestFilter {
         // String mockEmail = "admin@sba301.local";
 
         if (SecurityContextHolder.getContext().getAuthentication() == null) {
-            User user = userRepository.findUserByEmail(mockEmail);
+            User user = userPosRepository.findUserByEmail(mockEmail);
             if (user != null) {
                 CustomUserDetails userDetails = new CustomUserDetails(user);
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(

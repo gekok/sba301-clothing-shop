@@ -1,12 +1,11 @@
 package com.sba301.ecommerce.features.entities;
 
 import com.sba301.ecommerce.features.entities.enums.Role;
+import com.sba301.ecommerce.features.entities.enums.UserStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Nationalized;
 
@@ -24,7 +23,9 @@ import java.util.List;
         })
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 public class User extends BaseEntity {
 
     // Nullable: walk-in customers may not have email/password
@@ -41,6 +42,7 @@ public class User extends BaseEntity {
     @Column(length = 20)
     private String phone;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private Role role = Role.CUSTOMER;
@@ -51,6 +53,7 @@ public class User extends BaseEntity {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Address> addresses = new ArrayList<>();
 
+    @Builder.Default
     @NotNull
     @ColumnDefault("0")
     @Column(name = "email_verified", nullable = false)
@@ -70,10 +73,10 @@ public class User extends BaseEntity {
     @Column(name = "locked_until")
     private Instant lockedUntil;
 
-    @Size(max = 20)
+
     @NotNull
-    @ColumnDefault("'ACTIVE'")
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
-    private String status = "ACTIVE";
+    private UserStatus status;
 
 }

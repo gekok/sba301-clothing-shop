@@ -1,11 +1,11 @@
 package com.sba301.ecommerce.features.entities;
 
+import com.sba301.ecommerce.features.entities.enums.EmailVerificationType;
 import jakarta.persistence.*;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.*;
 
 import java.time.Instant;
@@ -13,8 +13,11 @@ import java.util.UUID;
 
 @Getter
 @Setter
+@Builder
 @Entity
 @Table(name = "email_verification")
+@NoArgsConstructor
+@AllArgsConstructor
 public class EmailVerification {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -33,10 +36,11 @@ public class EmailVerification {
     @Column(name = "otp", nullable = false)
     private String otp;
 
-    @Size(max = 30)
+
     @NotNull
+    @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false, length = 30)
-    private String type;
+    private EmailVerificationType type;
 
     @NotNull
     @ColumnDefault("0")

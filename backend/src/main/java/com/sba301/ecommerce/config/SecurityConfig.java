@@ -1,10 +1,17 @@
 package com.sba301.ecommerce.config;
 
+import com.sba301.ecommerce.security.user.CustomUserDetailsService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -26,17 +33,23 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableMethodSecurity
 public class SecurityConfig {
-
+    private final CustomUserDetailsService customUserDetailsService;
+    private final PasswordEncoder passwordEncoder;
     private final MockDevelopmentAuthFilter mockAuthFilter;
 
-    public SecurityConfig(MockDevelopmentAuthFilter mockAuthFilter) {
+    @Autowired
+    public SecurityConfig(CustomUserDetailsService customUserDetailsService,
+                          PasswordEncoder passwordEncoder,
+                          MockDevelopmentAuthFilter mockAuthFilter) {
+        this.customUserDetailsService = customUserDetailsService;
+        this.passwordEncoder = passwordEncoder;
         this.mockAuthFilter = mockAuthFilter;
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf((csrf -> csrf.disable())) //Tắt csrf vì web restApi ko cần
+                .csrf((AbstractHttpConfigurer::disable)) //Tắt csrf vì web restApi ko cần
                 .cors(cors ->cors.configurationSource(corsConfigurationSource())) //bật customs config cors có thể viết là Customizer.withDefaults()
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) //Vì dùng jwt nên tắt session
                 .addFilterBefore(mockAuthFilter, UsernamePasswordAuthenticationFilter.class) // Đăng ký Mock Filter TẠM THỜI
@@ -60,5 +73,13 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", configuration);
 
         return source;
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager()  {
+        DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
+        daoAuthenticationProvider.setUserDetailsService(customUserDetailsService);
+        daoAuthenticationProvider.setPasswordEncoder(passwordEncoder);
+        return new ProviderManager(daoAuthenticationProvider);
     }
 }

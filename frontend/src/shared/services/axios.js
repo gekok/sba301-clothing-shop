@@ -1,5 +1,5 @@
 import axios from 'axios';
-
+import {refreshToken} from '../../features/auth/service/apiAuth';
 // Base URL đọc từ Vite env (file .env / .env.local). Fallback localhost cho dev.
 const baseURL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080/api/v1';
 
@@ -19,24 +19,49 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Bắt 401 → clear token + redirect login (tuỳ team cài route /login sau).
-// Chỉ coi đây là "phiên hết hạn" (và bắn auth:logout) nếu request TRƯỚC ĐÓ thực sự
-// có mang access token. Nếu không có token sẵn (khách chưa đăng nhập), 401 là
-// hành vi bình thường của các endpoint cần auth (vd /carts/me) — không nên
-// force-logout/redirect một người chưa từng đăng nhập.
+// Response interceptor: runs after every reply arrives
 api.interceptors.response.use(
-  (res) => res,
-  (err) => {
-    const hadToken = Boolean(localStorage.getItem('accessToken'));
+  function (response) {
+    return response; // pass a good response straight through
+  },
+  async function (error) {
+    const originalConfig = error.config;
 
-    if (err.response?.status === 401 && hadToken) {
-      localStorage.removeItem('accessToken');
-      // window.location.href = '/login';
-      localStorage.removeItem('role');
-      localStorage.removeItem('email');
-      window.dispatchEvent(new Event('auth:logout'));
+    if (error.response) {
+      console.log("Error response:", error.response.status, originalConfig.url);
     }
-    return Promise.reject(err);
+
+    // originalConfig.url !== "/api/v1/auths/refresh"
+    if (
+      error.response &&
+      error.response.status === 401 &&
+      !originalConfig._retry
+    ) {
+      originalConfig._retry = true; // Đánh dấu đã retry
+
+      try {
+        console.log("Session expired. Attempting to refresh token...");
+
+        const response = await refreshToken;
+        const newAccessToken = response.data.accessToken;
+
+        localStorage.setItem("access_token", newAccessToken);
+        // Thực hiện lại request ban đầu với session (cookie) mới
+        return api(originalConfig);
+      } catch (_error) {
+        console.error("Refresh token failed, logging out...", _error);
+        // Nếu refresh token cũng hết hạn hoặc lỗi -> Xoá session và đẩy về login
+        localStorage.removeItem("user");
+
+        if (window.location.pathname !== "/login") {
+          window.location.href = "/login";
+        }
+
+        return Promise.reject(_error);
+      }
+    }
+
+    return Promise.reject(error);
   },
 );
 
