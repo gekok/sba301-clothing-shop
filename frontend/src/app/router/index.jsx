@@ -30,38 +30,41 @@ import CustomerProductDetail from '../../features/products/pages/CustomerProduct
 import MyOrders from '../../features/orders/pages/MyOrders.jsx';
 import PublicProductList from '../../features/products/pages/PublicProductList.jsx';
 import VNPayReturn from '../../features/checkout/components/VNPayReturn.jsx';
+import RequireRole from '../../shared/components/RequireRole.jsx';
+
+const ADMIN_STAFF = ['ADMIN', 'STAFF'];
 
 const teamFeatureRoutes = [
   { path: 'products', element: <PublicProductList /> },
 
-  { path: 'products/create', element: <ProductCreate /> },
+  { path: 'products/create', element: <RequireRole roles={ADMIN_STAFF}><ProductCreate /></RequireRole> },
 
   { path: 'products/:id', element: <CustomerProductDetail /> },
   { path: 'cart', element: <CartExperience /> },
   { path: 'checkout', element: <CheckoutLayout /> },
   { path: 'checkout/vnpay-return', element: <VNPayReturn /> },
   { path: 'my-orders', element: <MyOrders /> },
-  { path: 'admin/dashboard', element: <Dashboard /> },
-  { path: 'admin/products', element: <ProductList /> },
+  { path: 'admin/dashboard', element: <RequireRole roles={ADMIN_STAFF}><Dashboard /></RequireRole> },
+  { path: 'admin/products', element: <RequireRole roles={ADMIN_STAFF}><ProductList /></RequireRole> },
 
   {
     path:"admin/products/:id",
-    element:<ProductDetail/>
+    element:<RequireRole roles={ADMIN_STAFF}><ProductDetail/></RequireRole>
   },
 
   {
     path: 'admin/products/create',
-    element: <ProductCreate />
+    element: <RequireRole roles={ADMIN_STAFF}><ProductCreate /></RequireRole>
   },
 
   {
     path: 'admin/products/:id/edit',
-    element: <ProductEdit />
+    element: <RequireRole roles={ADMIN_STAFF}><ProductEdit /></RequireRole>
   },
 
-  { path: 'admin/orders', element: <OrderManagement /> },
-  { path: 'admin/audit-logs', element: <AuditLogs /> },
-  { path: 'staff/pos', element: <POS /> },
+  { path: 'admin/orders', element: <RequireRole roles={ADMIN_STAFF}><OrderManagement /></RequireRole> },
+  { path: 'admin/audit-logs', element: <RequireRole roles={['ADMIN']}><AuditLogs /></RequireRole> },
+  { path: 'staff/pos', element: <RequireRole roles={ADMIN_STAFF}><POS /></RequireRole> },
   ...reviewRoutes,
 ];
 

@@ -1,8 +1,32 @@
-import { Link } from "react-router-dom";
-import { Button, Card, Form, Nav } from "react-bootstrap";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Alert, Button, Card, Form, Nav, Spinner } from "react-bootstrap";
+import { login } from "../services/authService.js";
+import { setAuthState } from "../../../shared/utils/auth.js";
 import "./AuthPages.css";
 
 export default function Login() {
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setSubmitting(true);
+    try {
+      const res = await login({ email, password });
+      setAuthState({ accessToken: res.accessToken, role: res.role, email: res.email });
+      navigate("/");
+    } catch (err) {
+      setError(err.response?.data?.message || "Đăng nhập thất bại. Vui lòng thử lại!");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <div className="auth-shell">
       <Card className="auth-card">
@@ -20,12 +44,16 @@ export default function Login() {
         </Nav>
 
         <Card.Body className="auth-body">
-          <Form>
+          {error && <Alert variant="danger">{error}</Alert>}
+
+          <Form onSubmit={handleSubmit}>
             <Form.Control
               className="auth-field"
               type="text"
               placeholder="Nhập email hoặc Tên đăng nhập"
               autoComplete="username"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
 
             <Form.Control
@@ -33,11 +61,13 @@ export default function Login() {
               type="password"
               placeholder="Mật khẩu"
               autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
             />
 
             <div className="auth-actions">
-              <Button type="button" className="auth-primary-btn login">
-                ĐĂNG NHẬP
+              <Button type="submit" className="auth-primary-btn login" disabled={submitting}>
+                {submitting ? <Spinner animation="border" size="sm" /> : "ĐĂNG NHẬP"}
               </Button>
             </div>
 
