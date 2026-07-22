@@ -1,12 +1,62 @@
 package com.sba301.ecommerce.security.jwt;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-// TODO: sign/parse JWT bằng app.jwt.secret + app.jwt.expiration-ms.
-//   Key:   Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret))  (secret PHẢI >= 32 byte base64)
-//   Build: Jwts.builder().subject(email).claim("role", role).issuedAt(..).expiration(..).signWith(key).compact()
-//   Parse: Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload()   (0.12.x, KHÔNG getBody())
-//   Methods: String generateToken(email, role); String extractEmail(token); boolean isValid(token);
+import javax.crypto.SecretKey;
+import java.util.Date;
+
 @Service
 public class JwtService {
+
+    @Value("${app.jwt.secret}")
+    private String secret;
+
+    @Value("${app.jwt.expiration-ms}")
+    private long expirationMs;
+
+    private SecretKey key() {
+        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
+    }
+
+    public String generateToken(String email, String role) {
+        Date now = new Date();
+        Date expiry = new Date(now.getTime() + expirationMs);
+        return Jwts.builder()
+                .subject(email)
+                .claim("role", role)
+                .issuedAt(now)
+                .expiration(expiry)
+                .signWith(key())
+                .compact();
+    }
+
+    private Claims parseClaims(String token) {
+        return Jwts.parser()
+                .verifyWith(key())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+    }
+
+    public String extractEmail(String token) {
+        return parseClaims(token).getSubject();
+    }
+
+    public String extractRole(String token) {
+        return parseClaims(token).get("role", String.class);
+    }
+
+    public boolean isValid(String token) {
+        try {
+            parseClaims(token);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }

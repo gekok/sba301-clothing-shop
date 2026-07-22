@@ -1,7 +1,9 @@
 package com.sba301.ecommerce.config;
 
+import com.sba301.ecommerce.security.jwt.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -14,23 +16,23 @@ import java.util.List;
 
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-// TODO: thêm @EnableWebSecurity @RequiredArgsConstructor (inject JwtAuthenticationFilter).
-//   Beans: PasswordEncoder(BCrypt), AuthenticationManager(từ AuthenticationConfiguration), CorsConfigurationSource(origin http://localhost:5173).
-//   SecurityFilterChain: cors() + csrf(disable) + sessionManagement(STATELESS)
-//     + addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
-//   authorizeHttpRequests (path SAU context-path /api — KHÔNG thêm /api):
-//     permitAll: OPTIONS /**, /auth/**, GET /products/**, GET /categories/**, /swagger-ui/**, /swagger-ui.html, /v3/api-docs/**, /actuator/health
-//     hasRole("CUSTOMER"): /carts/**
-//     hasAnyRole("ADMIN","STAFF"): POST/PUT/DELETE products+categories, PUT /orders/*/status
-//     anyRequest().authenticated()
+// authorizeHttpRequests (path SAU context-path /api/v1 — controller nào tự khai "/api/..." trong
+// @RequestMapping thì matcher vẫn phải ghi nguyên "/api/..." vì đó là path riêng của controller,
+// không phải context-path):
+//   permitAll: OPTIONS /**, /auth/**, GET sản phẩm/danh mục/review, swagger, actuator/health
+//   hasRole("CUSTOMER"): /carts/**
+//   hasAnyRole("ADMIN","STAFF"): ghi/sửa/xoá sản phẩm, /admin/orders/**, /pos/**
+//   hasRole("ADMIN"): /audit-logs/**
+//   Các endpoint chưa liệt kê (reviews POST, addresses, checkout, orders/me...) tạm giữ permitAll
+//   như hiện trạng — chưa audit hết trong lần sửa nhanh này, cần PR riêng để siết tiếp.
 @Configuration
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    private final MockDevelopmentAuthFilter mockAuthFilter;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-    public SecurityConfig(MockDevelopmentAuthFilter mockAuthFilter) {
-        this.mockAuthFilter = mockAuthFilter;
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
     @Bean
@@ -39,11 +41,25 @@ public class SecurityConfig {
                 .csrf((csrf -> csrf.disable())) //Tắt csrf vì web restApi ko cần
                 .cors(cors ->cors.configurationSource(corsConfigurationSource())) //bật customs config cors có thể viết là Customizer.withDefaults()
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) //Vì dùng jwt nên tắt session
-                .addFilterBefore(mockAuthFilter, UsernamePasswordAuthenticationFilter.class) // Đăng ký Mock Filter TẠM THỜI
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests((auth)->{
                     auth
-                            .requestMatchers("/","/api/auth/**").permitAll()
-                            .anyRequest().permitAll(); //đang mở tất cả Api ko cần check
+                            .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                            .requestMatchers("/", "/auth/**").permitAll()
+                            .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/actuator/health").permitAll()
+                            .requestMatchers(HttpMethod.GET,
+                                    "/api/admin/products/**", "/api/admin/v2/products/**",
+                                    "/categories/**", "/products/*/reviews/**").permitAll()
+                            .requestMatchers("/carts/**").hasRole("CUSTOMER")
+                            .requestMatchers(HttpMethod.POST, "/api/admin/products", "/api/admin/v2/products",
+                                    "/api/admin/v2/products/upload-image").hasAnyRole("ADMIN", "STAFF")
+                            .requestMatchers(HttpMethod.PUT, "/api/admin/products/**", "/api/admin/v2/products/**")
+                                    .hasAnyRole("ADMIN", "STAFF")
+                            .requestMatchers(HttpMethod.DELETE, "/api/admin/products/**").hasAnyRole("ADMIN", "STAFF")
+                            .requestMatchers("/admin/orders/**").hasAnyRole("ADMIN", "STAFF")
+                            .requestMatchers("/pos/**").hasAnyRole("ADMIN", "STAFF")
+                            .requestMatchers("/audit-logs/**").hasRole("ADMIN")
+                            .anyRequest().permitAll(); //các endpoint còn lại giữ nguyên hiện trạng, chưa siết trong lần sửa nhanh này
                 });
 
         return http.build();
