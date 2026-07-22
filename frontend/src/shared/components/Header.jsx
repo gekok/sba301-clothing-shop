@@ -13,12 +13,6 @@ import '../styles/layout.css';
 
 const SITE_NAME = 'SBA301 Shop';
 
-const ANNOUNCEMENT = {
-  message: 'Miễn phí vận chuyển cho đơn từ 499.000đ · Đổi trả trong 7 ngày',
-  link: '/products',
-  linkLabel: 'Mua ngay',
-};
-
 const STORE_NAV_BEFORE_PRODUCTS = [
   { label: 'Trang chủ', to: '/' },
   { label: 'Giới thiệu', to: '/about' },
@@ -144,9 +138,16 @@ const Header = () => {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Tải + đồng bộ số lượng giỏ hàng thật từ server, khi mount và khi có thay đổi
-  // (cart:updated được useCartItems dispatch sau khi add/update/remove thành công).
+  // Tải + đồng bộ số lượng giỏ hàng thật từ server, chỉ khi ĐÃ đăng nhập.
+  // Chạy lại mỗi khi authState.isAuthenticated đổi (login/logout) và khi có
+  // cart:updated (useCartItems dispatch sau khi add/update/remove thành công).
+  // Khách chưa đăng nhập: không gọi /carts/me, badge luôn về 0.
   useEffect(() => {
+    if (!authState.isAuthenticated) {
+      setCartCount(0);
+      return undefined;
+    }
+
     let mounted = true;
     const syncCartCount = () => {
       getCartCount().then((count) => {
@@ -162,17 +163,17 @@ const Header = () => {
       window.removeEventListener('cart:updated', syncCartCount);
       window.removeEventListener('cartUpdated', syncCartCount);
     };
-  }, []);
+  }, [authState.isAuthenticated]);
 
   // Bắt 401 từ axios interceptor → force logout
+  // (axios.js chỉ bắn event này khi trước đó thực sự có access token, tức là
+  // phiên đã hết hạn — nên navigate('/login') ở đây là hợp lý, không xảy ra
+  // với khách chưa từng đăng nhập.)
   useEffect(() => {
     const onForceLogout = () => {
       clearAuthState();
       setAuthStateLocal(getAuthState());
-
-      // Đồng bộ badge với dữ liệu thực từ server
-      getCartCount().then(setCartCount);
-
+      setCartCount(0);
       navigate('/login');
     };
 
@@ -270,14 +271,6 @@ const Header = () => {
 
   return (
     <header className={`store-header sticky-top ${scrolled ? 'store-header--scrolled' : ''}`}>
-      <div className="store-header__promo">
-        <Container className="store-header__promo-inner">
-          <span>{ANNOUNCEMENT.message}</span>
-          <Link to={ANNOUNCEMENT.link} onClick={closeMenus}>
-            {ANNOUNCEMENT.linkLabel}
-          </Link>
-        </Container>
-      </div>
 
       <div className="store-header__bar">
         <Container className="store-header__bar-inner">

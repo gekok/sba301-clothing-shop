@@ -5,6 +5,9 @@ import { ArrowLeft, Bag, Lightning, CheckLg, BoxSeam } from 'react-bootstrap-ico
 import { getProductById } from '../service/productService.js';
 import { addItemAPI } from '../../cart/services/cartService.js';
 import { formatVND } from '../../../shared/utils/format.js';
+import { useProductReviewsApi } from '../../reviews/hooks/useReviews.js';
+import ReviewSummary from '../../reviews/components/ReviewSummary.jsx';
+import ReviewList from '../../reviews/components/ReviewList.jsx';
 
 export default function CustomerProductDetail() {
   const { id } = useParams();
@@ -21,6 +24,8 @@ export default function CustomerProductDetail() {
   const [addingToCart, setAddingToCart] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [showToast, setShowToast] = useState(false);
+
+  const { summary: reviewSummary, reviews, loading: reviewsLoading, error: reviewsError } = useProductReviewsApi(id);
 
   useEffect(() => {
     loadProduct();
@@ -308,6 +313,33 @@ export default function CustomerProductDetail() {
             </div>
           </Col>
         </Row>
+
+        {/* Đánh giá sản phẩm */}
+        <div className="checkoutx-panel p-4 p-md-5 border border-dark border-3 bg-white mt-5" style={{ boxShadow: '8px 8px 0px #000' }}>
+          <h3 className="fw-bold text-uppercase mb-4" style={{ fontFamily: 'Space Grotesk, sans-serif', letterSpacing: '0.02em' }}>
+            Đánh giá sản phẩm
+          </h3>
+
+          {reviewsLoading && (
+            <div className="d-flex align-items-center gap-2 text-muted py-3">
+              <Spinner animation="border" size="sm" />
+              <span>Đang tải đánh giá...</span>
+            </div>
+          )}
+
+          {!reviewsLoading && reviewsError && (
+            <Alert variant="warning" className="rounded-0 mb-0">
+              {reviewsError}
+            </Alert>
+          )}
+
+          {!reviewsLoading && !reviewsError && (
+            <>
+              <ReviewSummary summary={reviewSummary} />
+              <ReviewList reviews={reviews} currentUserId={null} />
+            </>
+          )}
+        </div>
       </Container>
 
       {/* Success Toast */}
