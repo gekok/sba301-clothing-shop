@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
-import {deleteProduct, getProducts} from "../service/productService";
+import {
+    deleteProduct,
+    getProducts
+} from "../service/productService";
 
-function useProducts() {
+function useProducts(initialConfig = {}) {
 
     const [products, setProducts] = useState([]);
 
@@ -15,13 +18,36 @@ function useProducts() {
 
     const [totalElements, setTotalElements] = useState(0);
 
-    const loadProducts = async (currentPage = page) => {
+    const [categoryId, setCategoryId] = useState(initialConfig.categoryId || "");
+
+    const [status, setStatus] = useState(initialConfig.status || "");
+
+    const [keyword, setKeyword] = useState("");
+
+    const [sortBy, setSortBy] = useState("id");
+
+    const [direction, setDirection] = useState("asc");
+
+    const loadProducts = async (
+        currentPage = page,
+        currentKeyword = keyword,
+        currentCategoryId = categoryId,
+        currentStatus = status
+    ) => {
 
         try {
 
             setLoading(true);
 
-            const response = await getProducts(currentPage, size);
+            const response = await getProducts(
+                currentPage,
+                size,
+                currentKeyword,
+                currentCategoryId,
+                currentStatus,
+                sortBy,
+                direction
+            );
 
             setProducts(response.data.content);
 
@@ -33,7 +59,7 @@ function useProducts() {
 
         } catch (error) {
 
-            console.error(error);
+            console.error("Unable to load products:", error);
 
         } finally {
 
@@ -43,11 +69,59 @@ function useProducts() {
 
     };
 
+    const changeSort = (value) => {
+
+        const [field, dir] = value.split(",");
+
+        setPage(0);
+
+        setSortBy(field);
+
+        setDirection(dir);
+
+    };
+
     useEffect(() => {
 
-        loadProducts(page);
+        loadProducts(
+            page,
+            keyword,
+            categoryId,
+            status
+        );
 
-    }, [page]);
+    }, [
+        page,
+        keyword,
+        categoryId,
+        status,
+        sortBy,
+        direction
+    ]);
+
+    const searchProducts = (value) => {
+
+        setPage(0);
+
+        setKeyword(value);
+
+    };
+
+    const filterByCategory = (value) => {
+
+        setPage(0);
+
+        setCategoryId(value);
+
+    };
+
+    const filterByStatus = (value) => {
+
+        setPage(0);
+
+        setStatus(value);
+
+    };
 
     const handleDelete = async (id) => {
 
@@ -55,11 +129,19 @@ function useProducts() {
 
             await deleteProduct(id);
 
-            loadProducts();
+            await loadProducts(
+                page,
+                keyword,
+                categoryId,
+                status
+            );
 
         } catch (error) {
 
-            console.error(error);
+            console.error(
+                "Unable to delete product:",
+                error
+            );
 
         }
 
@@ -78,6 +160,24 @@ function useProducts() {
         totalPages,
 
         totalElements,
+
+        keyword,
+
+        categoryId,
+
+        status,
+
+        sortBy,
+
+        direction,
+
+        searchProducts,
+
+        filterByCategory,
+
+        filterByStatus,
+
+        changeSort,
 
         loadProducts,
 

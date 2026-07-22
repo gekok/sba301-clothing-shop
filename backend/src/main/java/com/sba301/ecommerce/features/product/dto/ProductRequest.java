@@ -2,6 +2,7 @@ package com.sba301.ecommerce.features.product.dto;
 
 // TODO: create/update (admin/staff): name, slug, description, brand, basePrice, categoryId, status + jakarta validation.
 import com.sba301.ecommerce.features.entities.enums.ProductStatus;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -9,6 +10,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -32,4 +35,7 @@ public class ProductRequest {
 
     @NotNull(message = "Status is required")
     private ProductStatus status;
+
+    @Valid
+    private List<ProductImageRequest> images = new ArrayList<>();
 }

@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.Nationalized;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -34,6 +35,7 @@ public class User extends BaseEntity {
     @Column(name = "password_hash", length = 255)
     private String passwordHash;
 
+    @Nationalized
     @Column(name = "full_name", nullable = false, length = 150)
     private String fullName;
 
@@ -66,7 +68,7 @@ public class User extends BaseEntity {
     @NotNull
     @ColumnDefault("0")
     @Column(name = "failed_login_attempts", nullable = false)
-    private Integer failedLoginAttempts;
+    private Integer failedLoginAttempts = 0;
 
     @Column(name = "locked_until")
     private Instant lockedUntil;

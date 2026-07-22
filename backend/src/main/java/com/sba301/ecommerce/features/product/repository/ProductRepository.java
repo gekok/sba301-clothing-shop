@@ -2,6 +2,8 @@ package com.sba301.ecommerce.features.product.repository;
 
 import com.sba301.ecommerce.features.entities.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 
@@ -33,6 +35,31 @@ public interface ProductRepository extends JpaRepository<Product,Long> {
     // Filter theo status
     Page<Product> findByDeletedAtIsNullAndStatus(
             ProductStatus status,
+            Pageable pageable
+    );
+
+    @Query("""
+        SELECT p
+        FROM Product p
+        WHERE p.deletedAt IS NULL
+          AND (
+                :keyword IS NULL
+                OR :keyword = ''
+                OR LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
+              )
+          AND (
+                :categoryId IS NULL
+                OR p.category.id = :categoryId
+              )
+          AND (
+                :status IS NULL
+                OR p.status = :status
+              )
+    """)
+    Page<Product> searchProducts(
+            @Param("keyword") String keyword,
+            @Param("categoryId") Long categoryId,
+            @Param("status") ProductStatus status,
             Pageable pageable
     );
 }

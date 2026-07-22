@@ -1,0 +1,81 @@
+.product-form-card {
+  background: #fff;
+  border: 1px solid #d9d9d9;
+  border-radius: 0;
+  padding: 2.5rem 2rem;
+  margin-bottom: 2rem;
+}
+
+.product-form-group {
+  margin-bottom: 1.5rem;
+}
+
+.product-form-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.product-form-field {
+  width: 100%;
+  border: none !important;
+  border-bottom: 1px solid #cfcfcf !important;
+  border-radius: 0 !important;
+  padding: 12px 6px !important;
+  font-size: 14px;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.product-form-field:focus {
+  border-bottom-color: #000 !important;
+}
+
+.product-form-field[readonly],
+.product-form-field:disabled {
+  background: #fafafa !important;
+  border-bottom-style: dashed !important;
+  color: #777;
+}
+
+.product-form-select {
+  width: 100%;
+  border: none !important;
+  border-bottom: 1px solid #cfcfcf !important;
+  border-radius: 0 !important;
+  padding: 12px 6px !important;
+  font-size: 14px;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none;
+  cursor: pointer;
+}
+
+.product-form-select:focus {
+  border-bottom-color: #000 !important;
+}
+
+.product-form-img-preview {
+  border: 1px solid #eee;
+  padding: 6px;
+  background: #fff;
+  max-width: 200px;
+  border-radius: 3px;
+  margin-top: 1rem;
+}
+
+.product-form-textarea {
+  border: 1px solid #cfcfcf !important;
+  padding: 12px !important;
+  resize: vertical;
+}
+
+.product-form-textarea:focus {
+  border-color: #000 !important;
+}

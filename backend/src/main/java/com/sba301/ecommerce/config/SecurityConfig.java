@@ -19,6 +19,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
 // TODO: thêm @EnableWebSecurity @RequiredArgsConstructor (inject JwtAuthenticationFilter).
 //   Beans: PasswordEncoder(BCrypt), AuthenticationManager(từ AuthenticationConfiguration), CorsConfigurationSource(origin http://localhost:5173).
 //   SecurityFilterChain: cors() + csrf(disable) + sessionManagement(STATELESS)
@@ -41,12 +43,19 @@ public class SecurityConfig {
         this.passwordEncoder = passwordEncoder;
     }
 
+    private final MockDevelopmentAuthFilter mockAuthFilter;
+
+    public SecurityConfig(MockDevelopmentAuthFilter mockAuthFilter) {
+        this.mockAuthFilter = mockAuthFilter;
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf((AbstractHttpConfigurer::disable)) //Tắt csrf vì web restApi ko cần
                 .cors(cors ->cors.configurationSource(corsConfigurationSource())) //bật customs config cors có thể viết là Customizer.withDefaults()
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) //Vì dùng jwt nên tắt session
+                .addFilterBefore(mockAuthFilter, UsernamePasswordAuthenticationFilter.class) // Đăng ký Mock Filter TẠM THỜI
                 .authorizeHttpRequests((auth)->{
                     auth
                             .requestMatchers("/","/api/auth/**").permitAll()

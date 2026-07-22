@@ -8,6 +8,8 @@ import {
     getProductById,
     updateProduct
 } from "../service/productService";
+import useProductForm from "../hooks/useProductForm.js";
+import "../styles/product.css";
 
 function ProductEdit() {
 
@@ -17,17 +19,13 @@ function ProductEdit() {
 
     const navigate = useNavigate();
 
-    const [product, setProduct] = useState({
-        categoryId: "",
-        name: "",
-        slug: "",
-        description: "",
-        brand: "",
-        basePrice: "",
-        status: "DRAFT"
-    });
-
-    const [errors, setErrors] = useState({});
+    const {
+        product,
+        setProduct,
+        errors,
+        handleChange,
+        validate
+    } = useProductForm();
 
     const [loading, setLoading] = useState(true);
 
@@ -75,7 +73,13 @@ function ProductEdit() {
                 description: productData.description ?? "",
                 brand: productData.brand ?? "",
                 basePrice: productData.basePrice ?? "",
-                status: productData.status ?? "DRAFT"
+                status: productData.status ?? "DRAFT",
+                imageUrl:
+                    productData.images?.find(
+                        (image) => image.isPrimary
+                    )?.url ||
+                    productData.images?.[0]?.url ||
+                    ""
             });
 
         } catch (error) {
@@ -95,53 +99,7 @@ function ProductEdit() {
 
     };
 
-    // Cập nhật state khi người dùng thay đổi dữ liệu trên form
-    const handleChange = (event) => {
 
-        const { name, value } = event.target;
-
-        setProduct((currentProduct) => ({
-            ...currentProduct,
-            [name]: value
-        }));
-
-        setErrors((currentErrors) => ({
-            ...currentErrors,
-            [name]: ""
-        }));
-
-    };
-
-    // Kiểm tra dữ liệu trước khi gửi lên backend
-    const validate = () => {
-
-        const newErrors = {};
-
-        if (!product.name.trim()) {
-            newErrors.name = "Product name is required";
-        }
-
-        if (!product.slug.trim()) {
-            newErrors.slug = "Slug is required";
-        }
-
-        if (!product.categoryId) {
-            newErrors.categoryId = "Category is required";
-        }
-
-        if (
-            product.basePrice === "" ||
-            Number(product.basePrice) <= 0
-        ) {
-            newErrors.basePrice =
-                "Base price must be greater than 0";
-        }
-
-        setErrors(newErrors);
-
-        return Object.keys(newErrors).length === 0;
-
-    };
 
     // Gửi yêu cầu cập nhật sản phẩm
     const handleSubmit = async (event) => {
@@ -159,9 +117,22 @@ function ProductEdit() {
             setServerError("");
 
             const requestData = {
-                ...product,
                 categoryId: Number(product.categoryId),
-                basePrice: Number(product.basePrice)
+                name: product.name,
+                slug: product.slug,
+                description: product.description,
+                brand: product.brand,
+                basePrice: Number(product.basePrice),
+                status: product.status,
+                images: product.imageUrl.trim()
+                    ? [
+                        {
+                            url: product.imageUrl.trim(),
+                            displayOrder: 0,
+                            isPrimary: true
+                        }
+                    ]
+                    : []
             };
 
             await updateProduct(id, requestData);
@@ -202,18 +173,11 @@ function ProductEdit() {
     }
 
     return (
-
         <div className="container mt-4">
-
-            <div className="d-flex justify-content-between align-items-center mb-4">
-
+            <div className="card rounded-0 mb-4">
+                <div className="card-body d-flex justify-content-between align-items-center">
                 <div>
-
-                    <p className="text-muted mb-1">
-                        Product Management
-                    </p>
-
-                    <h2 className="mb-0">
+                    <h2 className="fw-bold text-uppercase mb-0" style={{ letterSpacing: "0.05em" }}>
                         Edit Product
                     </h2>
 
@@ -221,13 +185,15 @@ function ProductEdit() {
 
                 <Button
                     variant="outline-dark"
+                    className="rounded-0 text-uppercase"
+                    style={{ fontSize: "0.85rem", letterSpacing: "0.05em", padding: "8px 16px" }}
                     onClick={() =>
                         navigate("/admin/products")
                     }
                 >
                     Back to List
                 </Button>
-
+                </div>
             </div>
 
             {serverError && (

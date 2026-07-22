@@ -1,52 +1,105 @@
-// src/pages/admin/OrderManagement.jsx
+// src/features/orders/pages/OrderManagement.jsx
 // UI 1 — Admin quản lý đơn: bảng đơn + lọc + đổi trạng thái động + xem chi tiết.
-import { useMemo, useState } from 'react';
-import { Table, Form, Button, Modal, Row, Col, Stack } from 'react-bootstrap';
+// Dữ liệu lấy thật từ backend: GET /admin/orders, PUT /admin/orders/{id}/status.
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Table, Form, Button, Modal, Row, Col, Stack, Alert, Spinner, Container } from 'react-bootstrap';
 
-import { MOCK_ORDERS } from '../../../shared/mock/orders';
+import { getOrders, updateOrderStatus } from '../services/orderService.js';
 import { formatVND, formatDateTime } from '../../../shared/utils/format';
-import { getValidTransitions, ORDER_STATUS_LABEL } from '../../../shared/utils/orderStatus';
+import { readApiError } from '../../../shared/utils/apiError.js';
+import { getValidTransitions, ORDER_STATUS_LABEL, CHANNEL_LABEL } from '../../../shared/utils/orderStatus';
 import StatusBadge from '../../../shared/components/StatusBadge.jsx';
 
 // Danh sách giá trị để đổ vào ô lọc (khớp enum backend).
 const ORDER_STATUSES = ['PENDING', 'CONFIRMED', 'SHIPPING', 'DELIVERED', 'COMPLETED', 'CANCELLED'];
 const CHANNELS = ['ONLINE', 'IN_STORE'];
 
-function OrderManagement() {
-  // Nguồn dữ liệu: copy từ mock vào state để có thể đổi trạng thái tại chỗ.
-  const [orders, setOrders] = useState(MOCK_ORDERS);
+// Chờ 400ms sau khi ngừng gõ mới gọi API, tránh mỗi ký tự 1 request.
+// Cùng cách làm với ProductList.jsx của nhóm sản phẩm.
+const SEARCH_DEBOUNCE_MS = 400;
 
-  // 3 điều kiện lọc.
+function OrderManagement() {
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true); // true ngay từ đầu vì vừa vào là gọi API
+  const [error, setError] = useState('');
+  const [savingId, setSavingId] = useState(null); // id đơn đang chờ server trả lời
+
+  // 3 điều kiện lọc. Cả 3 đều đẩy xuống server, không lọc tại chỗ.
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [channelFilter, setChannelFilter] = useState('ALL');
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
 
   // Đơn đang mở modal chi tiết (null = không mở).
   const [detailOrder, setDetailOrder] = useState(null);
 
-  // Lọc đơn theo trạng thái + kênh + mã đơn. useMemo: chỉ tính lại khi input đổi.
-  const filteredOrders = useMemo(() => {
-    const kw = search.trim().toLowerCase();
-    return orders.filter((o) => {
-      const matchStatus = statusFilter === 'ALL' || o.status === statusFilter;
-      const matchChannel = channelFilter === 'ALL' || o.channel === channelFilter;
-      const matchSearch = o.orderCode.toLowerCase().includes(kw);
-      return matchStatus && matchChannel && matchSearch;
-    });
-  }, [orders, statusFilter, channelFilter, search]);
+  // Gõ tới đâu hẹn giờ tới đó; gõ tiếp thì huỷ hẹn cũ (clearTimeout trong hàm dọn dẹp).
+  useEffect(() => {
+    // globalThis.* thay vì gọi trần: cấu hình eslint của dự án chưa khai báo biến
+    // toàn cục của trình duyệt, gọi trần sẽ bị báo no-undef (giống globalThis.confirm bên dưới).
+    const timer = globalThis.setTimeout(() => setDebouncedSearch(search), SEARCH_DEBOUNCE_MS);
+    return () => globalThis.clearTimeout(timer);
+  }, [search]);
 
-  // Đổi trạng thái 1 đơn -> tạo MẢNG MỚI (cập nhật bất biến, không sửa trực tiếp).
-  function handleChangeStatus(orderId, toStatus) {
+  // Số thứ tự của lần gọi API gần nhất. Đổi bộ lọc liên tiếp sẽ có nhiều request bay
+  // cùng lúc, và request cũ (quét nhiều dữ liệu hơn) có thể về SAU request mới rồi ghi
+  // đè kết quả đúng. Chỉ nhận kết quả của lần gọi mới nhất.
+  const latestRequestRef = useRef(0);
+
+  // useCallback để hàm chỉ được tạo lại khi bộ lọc đổi -> effect bên dưới không chạy vô tận.
+  const loadOrders = useCallback(async () => {
+    const requestId = ++latestRequestRef.current;
+    try {
+      setLoading(true);
+      const data = await getOrders({
+        status: statusFilter,
+        channel: channelFilter,
+        keyword: debouncedSearch,
+      });
+      if (requestId !== latestRequestRef.current) return; // đã có lần gọi mới hơn
+      setOrders(data);
+      setError('');
+    } catch (err) {
+      if (requestId !== latestRequestRef.current) return;
+      setError(readApiError(err, 'Không tải được danh sách đơn hàng.'));
+    } finally {
+      // Chỉ request mới nhất được tắt spinner, tránh tắt trong khi request kia còn chạy.
+      if (requestId === latestRequestRef.current) setLoading(false);
+    }
+  }, [statusFilter, channelFilter, debouncedSearch]);
+
+  useEffect(() => {
+    loadOrders();
+  }, [loadOrders]);
+
+  // Đổi trạng thái: gọi server trước, server đồng ý mới tải lại bảng.
+  // Tải lại (thay vì sửa 1 dòng tại chỗ) vì đơn có thể văng ra khỏi bộ lọc đang xem:
+  // đang lọc "Chờ xác nhận" mà bấm Xác nhận thì đơn đó phải biến mất khỏi danh sách.
+  async function handleChangeStatus(orderId, toStatus) {
     const ok = globalThis.confirm(`Đổi trạng thái sang "${ORDER_STATUS_LABEL[toStatus]}"?`);
     if (!ok) return;
-    setOrders((prev) =>
-      prev.map((o) => (o.id === orderId ? { ...o, status: toStatus } : o)),
-    );
+    try {
+      setSavingId(orderId);
+      await updateOrderStatus(orderId, toStatus);
+      setError('');
+      await loadOrders();
+    } catch (err) {
+      // Server từ chối (vd chuyển sai luật) -> bảng giữ nguyên, không lệch với DB.
+      setError(readApiError(err, 'Đổi trạng thái thất bại.'));
+    } finally {
+      setSavingId(null);
+    }
   }
 
   return (
-    <>
+    <Container className="py-4">
       <h1 className="mb-4">Quản lý đơn hàng</h1>
+
+      {error && (
+        <Alert variant="danger" dismissible onClose={() => setError('')}>
+          {error}
+        </Alert>
+      )}
 
       {/* Thanh lọc */}
       <Row className="g-2 mb-3">
@@ -62,20 +115,20 @@ function OrderManagement() {
           <Form.Select value={channelFilter} onChange={(e) => setChannelFilter(e.target.value)}>
             <option value="ALL">Tất cả kênh</option>
             {CHANNELS.map((c) => (
-              <option key={c} value={c}>{c === 'ONLINE' ? 'Online' : 'Tại shop'}</option>
+              <option key={c} value={c}>{CHANNEL_LABEL[c]}</option>
             ))}
           </Form.Select>
         </Col>
         <Col xs={12} md={6}>
           <Form.Control
-            placeholder="Tìm theo mã đơn..."
+            placeholder="Tìm theo mã đơn hoặc tên khách..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </Col>
       </Row>
 
-      <p className="text-muted">Hiển thị {filteredOrders.length}/{orders.length} đơn</p>
+      <p className="text-muted">Hiển thị {orders.length} đơn</p>
 
       <Table striped bordered hover responsive>
         <thead>
@@ -91,39 +144,51 @@ function OrderManagement() {
           </tr>
         </thead>
         <tbody>
-          {filteredOrders.map((o) => (
-            <tr key={o.id}>
-              <td>
-                <Button variant="link" className="p-0" onClick={() => setDetailOrder(o)}>
-                  {o.orderCode}
-                </Button>
-              </td>
-              <td>{o.customerName}</td>
-              <td>{o.channel === 'ONLINE' ? 'Online' : 'Tại shop'}</td>
-              <td className="text-end">{formatVND(o.totalAmount)}</td>
-              <td><StatusBadge status={o.status} type="order" /></td>
-              <td><StatusBadge status={o.paymentStatus} type="payment" /></td>
-              <td>{formatDateTime(o.createdAt)}</td>
-              <td>
-                <Stack direction="horizontal" gap={1}>
-                  {getValidTransitions(o.status).map((action) => (
-                    <Button
-                      key={action.to}
-                      size="sm"
-                      variant={action.variant}
-                      onClick={() => handleChangeStatus(o.id, action.to)}
-                    >
-                      {action.label}
-                    </Button>
-                  ))}
-                  {getValidTransitions(o.status).length === 0 && (
-                    <span className="text-muted small">—</span>
-                  )}
-                </Stack>
+          {orders.map((o) => {
+            // Tính 1 lần rồi dùng lại: trước đó gọi getValidTransitions 2 lần cho mỗi dòng.
+            const actions = getValidTransitions(o.status);
+            return (
+              <tr key={o.id}>
+                <td>
+                  <Button variant="link" className="p-0" onClick={() => setDetailOrder(o)}>
+                    {o.orderCode}
+                  </Button>
+                </td>
+                <td>{o.customerName}</td>
+                <td>{CHANNEL_LABEL[o.channel] ?? o.channel}</td>
+                <td className="text-end">{formatVND(o.totalAmount)}</td>
+                <td><StatusBadge status={o.status} type="order" /></td>
+                <td><StatusBadge status={o.paymentStatus} type="payment" /></td>
+                <td>{formatDateTime(o.createdAt)}</td>
+                <td>
+                  <Stack direction="horizontal" gap={1}>
+                    {actions.map((action) => (
+                      <Button
+                        key={action.to}
+                        size="sm"
+                        variant={action.variant}
+                        disabled={savingId === o.id}
+                        onClick={() => handleChangeStatus(o.id, action.to)}
+                      >
+                        {action.label}
+                      </Button>
+                    ))}
+                    {actions.length === 0 && (
+                      <span className="text-muted small">—</span>
+                    )}
+                  </Stack>
+                </td>
+              </tr>
+            );
+          })}
+          {loading && (
+            <tr>
+              <td colSpan={8} className="text-center py-4">
+                <Spinner animation="border" size="sm" /> Đang tải...
               </td>
             </tr>
-          ))}
-          {filteredOrders.length === 0 && (
+          )}
+          {!loading && orders.length === 0 && (
             <tr>
               <td colSpan={8} className="text-center text-muted py-4">
                 Không có đơn nào khớp bộ lọc.
@@ -144,12 +209,13 @@ function OrderManagement() {
               <p className="mb-1"><strong>Khách:</strong> {detailOrder.customerName}</p>
               <p className="mb-1">
                 <strong>Kênh:</strong>{' '}
-                {detailOrder.channel === 'ONLINE' ? 'Online' : 'Tại shop'}
+                {CHANNEL_LABEL[detailOrder.channel] ?? detailOrder.channel}
                 {detailOrder.createdByStaffName && ` (NV: ${detailOrder.createdByStaffName})`}
               </p>
-              {detailOrder.shippingAddress && (
-                <p className="mb-1"><strong>Giao tới:</strong> {detailOrder.shippingAddress}</p>
-              )}
+              <p className="mb-1">
+                <strong>Thanh toán:</strong>{' '}
+                <StatusBadge status={detailOrder.paymentStatus} type="payment" />
+              </p>
               {detailOrder.note && (
                 <p className="mb-1"><strong>Ghi chú:</strong> {detailOrder.note}</p>
               )}
@@ -166,7 +232,8 @@ function OrderManagement() {
                   </tr>
                 </thead>
                 <tbody>
-                  {detailOrder.items.map((it) => (
+                  {/* ?? [] phòng khi backend đổi shape: items thiếu là cả trang trắng */}
+                  {(detailOrder.items ?? []).map((it) => (
                     <tr key={it.id}>
                       <td>{it.productName}</td>
                       <td>{it.variantInfo}</td>
@@ -183,32 +250,6 @@ function OrderManagement() {
                 <div>Phí ship: {formatVND(detailOrder.shippingFee)}</div>
                 <div className="fw-bold">Tổng: {formatVND(detailOrder.totalAmount)}</div>
               </div>
-
-              <h6 className="mt-3">Thanh toán</h6>
-              {detailOrder.payments.length === 0 ? (
-                <p className="text-muted">Chưa có giao dịch thanh toán.</p>
-              ) : (
-                <Table size="sm" bordered>
-                  <thead>
-                    <tr>
-                      <th>Phương thức</th>
-                      <th className="text-end">Số tiền</th>
-                      <th>Trạng thái</th>
-                      <th>Thời gian</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {detailOrder.payments.map((p) => (
-                      <tr key={p.id}>
-                        <td>{p.method}</td>
-                        <td className="text-end">{formatVND(p.amount)}</td>
-                        <td>{p.status}</td>
-                        <td>{formatDateTime(p.paidAt)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </Table>
-              )}
             </>
           )}
         </Modal.Body>
@@ -216,7 +257,7 @@ function OrderManagement() {
           <Button variant="secondary" onClick={() => setDetailOrder(null)}>Đóng</Button>
         </Modal.Footer>
       </Modal>
-    </>
+    </Container>
   );
 }
 

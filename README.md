@@ -223,7 +223,7 @@ Tài khoản mẫu đề xuất:
 
 ### 4.4. Workflow chính
 
-> **Quy ước path**: dùng **resource phẳng** (không prefix `/admin`,`/staff`). Phân quyền bằng **role qua Spring Security** (`SecurityConfig` + role CUSTOMER/STAFF/ADMIN), KHÔNG bằng path. Endpoint Payment / Review / Address / AuditLog là **planned** (chưa scaffold — defer).
+> **Quy ước path (theo code thực tế)**: các nhóm Admin/Staff (`AdminOrderController`, `PosController`, `AuditLogController`) dùng prefix riêng (`/admin/orders`, `/pos`, `/audit-logs`) để tách khỏi controller phục vụ khách — khác với quy ước "resource phẳng" ban đầu, vì phân quyền theo role qua Spring Security (`@PreAuthorize`) **chưa được implement** (`SecurityConfig` hiện `anyRequest().permitAll()`, mọi request tạm auto-login qua `MockDevelopmentAuthFilter`), nên path riêng đang là cách duy nhất phân biệt 2 nhóm chức năng. `ProductController`/`ProductV2Controller` map thêm tiền tố `/api/admin` — cộng với `server.servlet.context-path=/api/v1` (mục 3.3) thành path thật lặp `/api` 2 lần (`/api/v1/api/admin/products`); FE gọi khớp đúng path này nên không lỗi, nhưng không nhất quán với các controller còn lại. Address / Review / AuditLog **đã implement** (không còn "planned"); Payment vẫn chưa có controller riêng, xử lý lồng trong luồng checkout (VNPay) và POS.
 
 **Guest (chưa đăng nhập)** — `permitAll`, không cần token:
 ```
@@ -240,17 +240,18 @@ POST /api/auth/login                 (đăng nhập)
 POST /api/carts/items                (add to cart)
 POST /api/orders                     (checkout — tạo order từ cart hiện tại)
 GET  /api/orders/me                  (xem đơn của mình)
-POST /api/payments                   (planned — chọn method, trả tiền)
-POST /api/reviews                    (planned — review sau khi DELIVERED)
+POST /api/payments                   (planned — chọn method, trả tiền; hiện xử lý lồng trong checkout VNPay, chưa có controller riêng)
+POST /api/products/{productId}/reviews   (review sau khi DELIVERED — path nested theo product, không phải /reviews top-level)
 ```
 
-**Admin / Staff** (role enforce qua SecurityConfig, không qua path):
+**Admin / Staff** (hiện phân biệt bằng path riêng, xem quy ước ở trên — chưa enforce role qua `@PreAuthorize`):
 ```
-POST /api/categories                 (ADMIN/STAFF — tạo danh mục)
-POST /api/products                   (ADMIN/STAFF — tạo sản phẩm + variant)
-PUT  /api/orders/{id}/status         (ADMIN/STAFF — confirm / ship / cancel / deliver)
-POST /api/orders                     (STAFF tạo đơn POS, channel=IN_STORE)
-GET  /api/audit-logs                 (planned — ADMIN)
+POST /api/categories                     (ADMIN/STAFF — tạo danh mục)
+POST /api/admin/products                 (ADMIN/STAFF — tạo sản phẩm, path thật lặp /api 2 lần — xem quy ước ở trên)
+POST /api/admin/v2/products              (ADMIN/STAFF — tạo sản phẩm + variant, bản v2)
+PUT  /api/admin/orders/{id}/status       (ADMIN/STAFF — confirm / ship / cancel / deliver, controller riêng AdminOrderController)
+POST /api/pos/orders                     (STAFF tạo đơn bán tại quầy — endpoint riêng của PosController, KHÔNG dùng chung POST /orders)
+GET  /api/audit-logs                     (ADMIN — đã implement, không còn planned)
 ```
 
 ---
@@ -330,11 +331,11 @@ ecommerce/
 
 | # | Người | Phần phụ trách | Việc cần làm chính |
 |---|---|---|---|
-| 1 | A | Tài khoản, địa chỉ & **phân quyền** | Đăng ký, đăng nhập (sinh JWT), xem/sửa thông tin cá nhân, quản lý sổ địa chỉ. **Phụ trách luôn Spring Security**: cài JWT filter, cấu hình ai (ADMIN / STAFF / CUSTOMER) được gọi API nào, viết sẵn helper `@PreAuthorize("hasRole('ADMIN')")`… cho 4 người còn lại dùng |
-| 2 | B | Sản phẩm & danh mục | Hiển thị danh mục, danh sách sản phẩm, chi tiết sản phẩm (size + màu), trang admin thêm/sửa/xoá sản phẩm |
-| 3 | C | Giỏ hàng & đặt hàng online | Thêm vào giỏ, cập nhật số lượng, đặt hàng, chọn cách thanh toán, xem lịch sử đơn của mình |
-| 4 | D | Quản trị & bán tại shop | Trang admin duyệt đơn, đổi trạng thái đơn (giao / huỷ), nhân viên tạo đơn tại cửa hàng (POS), ghi lại lịch sử thao tác của admin |
-| 5 | E | Đánh giá & layout chung | Người mua xong viết đánh giá sản phẩm, làm phần giao diện chung (thanh menu, footer, routing, lưu trạng thái đăng nhập) |
+| 1 | A — Nguyễn Quang Quyền | Tài khoản, địa chỉ & **phân quyền** | Đăng ký, đăng nhập (sinh JWT), xem/sửa thông tin cá nhân, quản lý sổ địa chỉ. **Phụ trách luôn Spring Security**: cài JWT filter, cấu hình ai (ADMIN / STAFF / CUSTOMER) được gọi API nào, viết sẵn helper `@PreAuthorize("hasRole('ADMIN')")`… cho 4 người còn lại dùng |
+| 2 | B — Phạm Đình Đạt | Sản phẩm & danh mục | Hiển thị danh mục, danh sách sản phẩm, chi tiết sản phẩm (size + màu), trang admin thêm/sửa/xoá sản phẩm |
+| 3 | C — Hà Vũ Long | Giỏ hàng & đặt hàng online | Thêm vào giỏ, cập nhật số lượng, đặt hàng, chọn cách thanh toán, xem lịch sử đơn của mình |
+| 4 | D — Vũ Hoàng Phúc | Quản trị & bán tại shop | Trang admin duyệt đơn, đổi trạng thái đơn (giao / huỷ), nhân viên tạo đơn tại cửa hàng (POS), ghi lại lịch sử thao tác của admin |
+| 5 | E — Ngô Văn Bảo | Đánh giá & layout chung | Người mua xong viết đánh giá sản phẩm, làm phần giao diện chung (thanh menu, footer, routing, lưu trạng thái đăng nhập) |
 
 > **Quy ước phân quyền chung** (cả 5 người phải nắm):
 > - Mỗi API trên controller phải ghi rõ vai trò được gọi bằng `@PreAuthorize` — vd `hasRole('ADMIN')`, `hasAnyRole('ADMIN','STAFF')`, `hasRole('CUSTOMER')`, hoặc `permitAll()` cho endpoint public (đăng ký, login, xem sản phẩm).

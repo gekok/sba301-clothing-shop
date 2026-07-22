@@ -7,6 +7,7 @@ import useProductForm from "../hooks/useProductForm";
 import { createProduct } from "../service/productService";
 import { useEffect } from "react";
 import { getCategories } from "../service/categoryService";
+import "../styles/product.css";
 
 function ProductCreate() {
     const navigate = useNavigate();
@@ -34,14 +35,27 @@ function ProductCreate() {
             setServerError("");
 
             const requestData = {
-                ...product,
                 categoryId: Number(product.categoryId),
-                basePrice: Number(product.basePrice)
+                name: product.name,
+                slug: product.slug,
+                description: product.description,
+                brand: product.brand,
+                basePrice: Number(product.basePrice),
+                status: product.status,
+                images: product.imageUrl.trim()
+                    ? [
+                        {
+                            url: product.imageUrl.trim(),
+                            displayOrder: 0,
+                            isPrimary: true
+                        }
+                    ]
+                    : []
             };
 
             await createProduct(requestData);
 
-            navigate("/products");
+            navigate("/admin/products");
         } catch (error) {
             console.error(error);
 
@@ -74,23 +88,23 @@ function ProductCreate() {
 
     return (
         <div className="container mt-4">
-            <div className="d-flex justify-content-between align-items-center mb-4">
+            <div className="card rounded-0 mb-4">
+                <div className="card-body d-flex justify-content-between align-items-center">
                 <div>
-                    <p className="text-muted mb-1">
-                        Product Management
-                    </p>
-
-                    <h2 className="mb-0">
+                    <h2 className="fw-bold text-uppercase mb-0" style={{ letterSpacing: "0.05em" }}>
                         Create Product
                     </h2>
                 </div>
 
                 <Button
                     variant="outline-dark"
-                    onClick={() => navigate("/products")}
+                    className="rounded-0 text-uppercase"
+                    style={{ fontSize: "0.85rem", letterSpacing: "0.05em", padding: "8px 16px" }}
+                    onClick={() => navigate("/admin/products")}
                 >
                     Back to List
                 </Button>
+                </div>
             </div>
 
             {serverError && (

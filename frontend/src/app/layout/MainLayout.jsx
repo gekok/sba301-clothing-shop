@@ -2,6 +2,7 @@ import { Outlet } from 'react-router-dom';
 import Header from '../../shared/components/Header';
 import Footer from '../../shared/components/Footer';
 
+
 const MainLayout = () => {
   return (
     <div className="d-flex flex-column min-vh-100">
@@ -10,6 +11,7 @@ const MainLayout = () => {
         <Outlet />
       </main>
       <Footer />
+
     </div>
   );
 };
