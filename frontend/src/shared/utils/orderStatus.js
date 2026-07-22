@@ -16,6 +16,13 @@ export const ORDER_STATUS_VARIANT={
     CANCELLED: 'danger',
     COMPLETED: 'dark',
 };
+//2b. Nhãn kênh bán (Khớp enum OrderChannel.java)
+// Gom vào đây vì trước đó câu `channel === 'ONLINE' ? 'Online' : 'Tại shop'` bị chép
+// ở 3 chỗ trong OrderManagement và 1 chỗ ghi cứng trong POS.
+export const CHANNEL_LABEL={
+    ONLINE: 'Online',
+    IN_STORE: 'Tại shop',
+};
 //3. Trạng thái thanh toán (Khớp enum OrderPaymentStatus.java)
 export const PAYMENT_STATUS_LABEL={
     UNPAID: 'Chưa thanh toán',
@@ -39,7 +46,10 @@ export const ORDER_TRANSITIONS={
         {to: 'CANCELLED', label: 'Hủy', variant: 'danger'},
     ],
     SHIPPING: [
-        {to: 'DELIVERED', label: 'Đang giao', variant: 'success'},
+        // Chữ trên nút phải là HÀNH ĐỘNG admin sắp làm, không phải trạng thái đích.
+        // "Đã giao" trùng y hệt ORDER_STATUS_LABEL.DELIVERED nên đọc như một lời khẳng
+        // định trạng thái, lệch với 3 nút anh em đều là động từ (Xác nhận / Giao hàng / Hủy).
+        {to: 'DELIVERED', label: 'Xác nhận đã giao', variant: 'success'},
         {to: 'CANCELLED', label: 'Hủy', variant: 'danger'},
     ],
     DELIVERED: [

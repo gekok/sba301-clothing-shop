@@ -19,6 +19,9 @@ function VNPayReturn() {
           params[key] = value;
         });
 
+        // Clear the checkout session since the order is already created
+        sessionStorage.removeItem('checkout_session_id');
+
         // Call backend API to verify and update transaction
         const response = await api.get('/orders/vnpay-callback', { params });
         setOrderDetails(response.data);
@@ -134,10 +137,7 @@ function VNPayReturn() {
             </Alert>
 
             <div className="d-flex flex-column gap-3">
-              <Button as={Link} to="/checkout" variant="dark" className="rounded-0 text-uppercase fw-bold py-3">
-                Quay lại trang thanh toán
-              </Button>
-              <Button as={Link} to="/" variant="outline-dark" className="rounded-0 text-uppercase fw-bold py-3 border-2">
+              <Button as={Link} to="/" variant="dark" className="rounded-0 text-uppercase fw-bold py-3">
                 Trở về trang chủ
               </Button>
             </div>
