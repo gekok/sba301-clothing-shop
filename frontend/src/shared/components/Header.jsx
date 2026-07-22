@@ -13,12 +13,6 @@ import '../styles/layout.css';
 
 const SITE_NAME = 'SBA301 Shop';
 
-const ANNOUNCEMENT = {
-  message: 'Miễn phí vận chuyển cho đơn từ 499.000đ · Đổi trả trong 7 ngày',
-  link: '/products',
-  linkLabel: 'Mua ngay',
-};
-
 const STORE_NAV_BEFORE_PRODUCTS = [
   { label: 'Trang chủ', to: '/' },
   { label: 'Giới thiệu', to: '/about' },
