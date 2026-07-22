@@ -10,7 +10,6 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -19,11 +18,11 @@ import java.time.LocalDateTime;
 @Table(name = "password_reset_tokens")
 @NoArgsConstructor
 @AllArgsConstructor
-public class PasswordResetToken extends BaseEntity {
-//    @Id
-//    @GeneratedValue(strategy = GenerationType.IDENTITY)
-//    @Column(name = "id", nullable = false)
-//    private Long id;
+public class PasswordResetToken  {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
+    private Long id;
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -47,6 +46,6 @@ public class PasswordResetToken extends BaseEntity {
     @NotNull
     @ColumnDefault("sysutcdatetime()")
     @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
 }

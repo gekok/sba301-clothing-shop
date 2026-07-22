@@ -21,4 +21,7 @@ public interface AuthService {
             HttpServletRequest request,
             HttpServletResponse response
     );
+    public void forgotPassword(String email);
+    public String VerifyOtpForgotPassword(String email,String otp);
+    public void resetPassword(String token,String newPassword);
 }

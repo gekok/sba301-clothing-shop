@@ -1,9 +1,6 @@
 package com.sba301.ecommerce.features.auth.controller;
 
-import com.sba301.ecommerce.features.auth.dto.LoginRequest;
-import com.sba301.ecommerce.features.auth.dto.LoginResponse;
-import com.sba301.ecommerce.features.auth.dto.RegisterRequest;
-import com.sba301.ecommerce.features.auth.dto.VerificationEmailRequest;
+import com.sba301.ecommerce.features.auth.dto.*;
 import com.sba301.ecommerce.features.auth.service.AuthService;
 import com.sba301.ecommerce.security.jwt.JwtService;
 import com.sba301.ecommerce.security.user.CustomUserDetails;
@@ -49,7 +46,7 @@ public class AuthController {
         return ResponseEntity.ok(Map.of("message", "User registered successfully"));
     }
 
-    @GetMapping("/verification")
+    @PostMapping("/verification")
     public ResponseEntity<?> verification(@RequestBody VerificationEmailRequest verificationEmailRequest) {
         authService.verifyEmail(verificationEmailRequest);
         return ResponseEntity.ok(Map.of("message", "Verification success!"));
@@ -64,8 +61,8 @@ public class AuthController {
                     new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword())
             );
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            String accessToken = jwtService.generateJwtToken((CustomUserDetails) authentication);
-            String refreshToken = jwtService.generateRefreshToken((CustomUserDetails) authentication);
+            String accessToken = jwtService.generateJwtToken((CustomUserDetails) authentication.getPrincipal());
+            String refreshToken = jwtService.generateRefreshToken((CustomUserDetails) authentication.getPrincipal());
             authService.saveRefreshToken(
                     loginRequest.getEmail(),
                     refreshToken,
@@ -89,7 +86,7 @@ public class AuthController {
             return ResponseEntity.ok(new LoginResponse(accessToken, null));
     }
 
-    @PostMapping("/refresh")
+    @PostMapping("/refresh-token")
     public ResponseEntity<?> refresh(@CookieValue String refreshToken,
                                      HttpServletResponse response,
                                      HttpServletRequest request) {
@@ -110,6 +107,25 @@ public class AuthController {
                 cookie.toString()
         );
         return ResponseEntity.ok(new LoginResponse(loginResponse.getAccessToken(),null));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request){
+        System.out.println(request.getEmail());
+        authService.forgotPassword(request.getEmail());
+        return ResponseEntity.ok(Map.of("message", "Password forgot success!"));
+    }
+
+    @PostMapping("/verify-otp")
+    public ResponseEntity<?> VerifyOtpForgotPassword(@Valid @RequestBody VerificationEmailRequest verificationEmailRequest){
+        String token = authService.VerifyOtpForgotPassword(verificationEmailRequest.getEmail(),verificationEmailRequest.getOtp());
+        return ResponseEntity.ok(Map.of("token", token));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request){
+        authService.resetPassword(request.getToken(),request.getPassword());
+        return ResponseEntity.ok(Map.of("message", "Password reset success!"));
     }
 
 

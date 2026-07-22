@@ -36,7 +36,7 @@ public class EmailVerification {
     @Column(name = "otp", nullable = false)
     private String otp;
 
-    @Size(max = 30)
+
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false, length = 30)
