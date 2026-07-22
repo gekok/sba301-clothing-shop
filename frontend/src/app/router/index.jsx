@@ -61,7 +61,6 @@ const teamFeatureRoutes = [
   { path: 'admin/orders', element: <OrderManagement /> },
   { path: 'admin/audit-logs', element: <AuditLogs /> },
   { path: 'staff/pos', element: <POS /> },
-  ...reviewRoutes,
 ];
 
 export const router = createBrowserRouter([
