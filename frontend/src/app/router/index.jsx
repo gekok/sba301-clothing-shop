@@ -28,10 +28,11 @@ import ProductEdit from '../../features/products/pages/ProductEdit.jsx';
 import ProductDetail from '../../features/products/pages/ProductDetail';
 import CustomerProductDetail from '../../features/products/pages/CustomerProductDetail.jsx';
 import MyOrders from '../../features/orders/pages/MyOrders.jsx';
+import PublicProductList from '../../features/products/pages/PublicProductList.jsx';
 import VNPayReturn from '../../features/checkout/components/VNPayReturn.jsx';
 
 const teamFeatureRoutes = [
-  { path: 'products', element: <ProductList /> },
+  { path: 'products', element: <PublicProductList /> },
 
   { path: 'products/create', element: <ProductCreate /> },
 
