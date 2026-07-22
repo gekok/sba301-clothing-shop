@@ -10,8 +10,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.sba301.ecommerce.exception.DuplicateReviewException;
+import com.sba301.ecommerce.exception.InvalidCredentialsException;
 import com.sba301.ecommerce.exception.ReviewNotEligibleException;
-import com.sba301.ecommerce.features.auth.repositories.UserRepository;
 import com.sba301.ecommerce.features.entities.Order;
 import com.sba301.ecommerce.features.entities.OrderItem;
 import com.sba301.ecommerce.features.entities.Review;
@@ -23,6 +23,7 @@ import com.sba301.ecommerce.features.review.dto.ReviewResponse;
 import com.sba301.ecommerce.features.review.dto.ReviewSummaryResponse;
 import com.sba301.ecommerce.features.review.mapper.ReviewMapper;
 import com.sba301.ecommerce.features.review.repository.ReviewRepository;
+import com.sba301.ecommerce.security.user.CurrentUserProvider;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +34,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     private final ReviewRepository reviewRepository;
     private final ReviewMapper reviewMapper;
-    private final UserRepository userRepository;
+    private final CurrentUserProvider currentUserProvider;
     private final OrderItemRepository orderItemRepository;
 
     private static final List<OrderStatus> ELIGIBLE_STATUSES = List.of(OrderStatus.DELIVERED, OrderStatus.COMPLETED);
@@ -41,10 +42,11 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     @Transactional
     public ReviewResponse createReview(ReviewRequest request, Long productId) {
-        // Không echo lại userId trong message lỗi: tránh lộ thông tin dò userId nào
-        // tồn tại trong hệ thống (user enumeration) cho request 404.
-        User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy user."));
+        // userId lấy từ SecurityContext (người đang đăng nhập), KHÔNG lấy từ
+        // request body — tránh 1 user tự ý gửi userId của người khác để mạo danh
+        // đánh giá (cùng pattern CurrentUserProvider đã dùng ở Cart/Order/Pos).
+        User user = currentUserProvider.getCurrentUser()
+                .orElseThrow(() -> new InvalidCredentialsException("Bạn cần đăng nhập để đánh giá sản phẩm."));
 
         OrderItem orderItem = orderItemRepository.findById(request.getOrderItemId())
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy order item."));

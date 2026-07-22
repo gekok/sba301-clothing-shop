@@ -15,6 +15,7 @@ import com.sba301.ecommerce.features.order.dto.OrderResponse;
 import com.sba301.ecommerce.features.order.repository.OrderRepository;
 import com.sba301.ecommerce.features.order.repository.InventoryReservationRepository;
 import com.sba301.ecommerce.features.product.repository.ProductVariantRepository;
+import com.sba301.ecommerce.features.review.repository.ReviewRepository;
 import com.sba301.ecommerce.security.user.CustomUserDetails;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -39,6 +40,7 @@ public class OrderServiceImpl implements OrderService {
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
     private final InventoryReservationRepository reservationRepository;
+    private final ReviewRepository reviewRepository;
     private final VNPayConfig vnPayConfig;
 
     public OrderServiceImpl(OrderRepository orderRepository,
@@ -48,6 +50,7 @@ public class OrderServiceImpl implements OrderService {
                             CartRepository cartRepository,
                             CartItemRepository cartItemRepository,
                             InventoryReservationRepository reservationRepository,
+                            ReviewRepository reviewRepository,
                             VNPayConfig vnPayConfig) {
         this.orderRepository = orderRepository;
         this.userRepository = userRepository;
@@ -56,6 +59,7 @@ public class OrderServiceImpl implements OrderService {
         this.cartRepository = cartRepository;
         this.cartItemRepository = cartItemRepository;
         this.reservationRepository = reservationRepository;
+        this.reviewRepository = reviewRepository;
         this.vnPayConfig = vnPayConfig;
     }
 
@@ -189,7 +193,8 @@ public class OrderServiceImpl implements OrderService {
             cartRepository.save(cart);
         }
 
-        OrderResponse response = toOrderResponse(savedOrder);
+        // Đơn vừa tạo chắc chắn chưa có review nào -> khỏi query, dùng set rỗng.
+        OrderResponse response = toOrderResponse(savedOrder, Collections.emptySet());
 
         // Generate VNPAY payment url if VNPAY method is selected
         if ("VNPAY".equalsIgnoreCase(request.getPaymentMethod())) {
@@ -220,7 +225,8 @@ public class OrderServiceImpl implements OrderService {
                 .orElseThrow(() -> new ResourceNotFoundException("Payment record not found for VNPAY"));
 
         if (payment.getStatus() != PaymentTxnStatus.PENDING) {
-            return toOrderResponse(order); // Already processed
+            // Đơn vừa thanh toán/VNPAY callback không thể có review (chưa DELIVERED).
+            return toOrderResponse(order, Collections.emptySet()); // Already processed
         }
 
         String responseCode = vnpParams.get("vnp_ResponseCode");
@@ -250,7 +256,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         Order saved = orderRepository.save(order);
-        return toOrderResponse(saved);
+        return toOrderResponse(saved, Collections.emptySet());
     }
 
     @Override
@@ -258,7 +264,11 @@ public class OrderServiceImpl implements OrderService {
     public List<OrderResponse> listMyOrders() {
         User currentUser = getCurrentUser();
         List<Order> orders = orderRepository.findByUserIdOrderByCreatedAtDesc(currentUser.getId());
-        return orders.stream().map(this::toOrderResponse).collect(Collectors.toList());
+        Set<Long> reviewedOrderItemIds = new HashSet<>(
+                reviewRepository.findReviewedOrderItemIdsByUserId(currentUser.getId()));
+        return orders.stream()
+                .map(order -> toOrderResponse(order, reviewedOrderItemIds))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -272,10 +282,14 @@ public class OrderServiceImpl implements OrderService {
             throw new ResourceNotFoundException("Order not found for this user");
         }
 
-        return toOrderResponse(order);
+        Set<Long> reviewedOrderItemIds = new HashSet<>(
+                reviewRepository.findReviewedOrderItemIdsByUserId(currentUser.getId()));
+        return toOrderResponse(order, reviewedOrderItemIds);
     }
 
-    private OrderResponse toOrderResponse(Order order) {
+    // reviewedOrderItemIds: nạp 1 lần cho cả danh sách đơn (listMyOrders) thay vì
+    // query lại theo từng item -> tránh N+1.
+    private OrderResponse toOrderResponse(Order order, Set<Long> reviewedOrderItemIds) {
         OrderResponse response = new OrderResponse();
         response.setOrderCode(order.getOrderCode());
         response.setStatus(order.getStatus().name());
@@ -288,11 +302,14 @@ public class OrderServiceImpl implements OrderService {
         response.setItems(order.getItems().stream()
                 .map(item -> {
                     OrderItemResponse itemDto = new OrderItemResponse();
+                    itemDto.setOrderItemId(item.getId());
+                    itemDto.setProductId(item.getVariant().getProduct().getId());
                     itemDto.setProductName(item.getProductName());
                     itemDto.setVariantInfo(item.getVariantInfo());
                     itemDto.setUnitPrice(item.getUnitPrice());
                     itemDto.setQuantity(item.getQuantity());
                     itemDto.setSubtotal(item.getSubtotal());
+                    itemDto.setReviewed(reviewedOrderItemIds.contains(item.getId()));
                     return itemDto;
                 })
                 .collect(Collectors.toList()));

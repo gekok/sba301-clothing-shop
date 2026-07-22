@@ -1,10 +1,11 @@
 import { useEffect, useState, useMemo } from 'react';
 import { Container, Row, Col, Card, Badge, Button, Nav, Spinner, Alert } from 'react-bootstrap';
-import { BagCheck, Eye, BoxSeam, ClockHistory, ArrowRight } from 'react-bootstrap-icons';
+import { BagCheck, Eye, BoxSeam, ClockHistory, ArrowRight, StarFill } from 'react-bootstrap-icons';
 import { Link } from 'react-router-dom';
 import api from '../../../shared/services/axios.js';
 import { formatVND } from '../../../shared/utils/format.js';
 import OrderDetailModal from '../components/OrderDetailModal.jsx';
+import ReviewFormModal from '../../reviews/components/ReviewFormModal.jsx';
 
 export default function MyOrders() {
   const [orders, setOrders] = useState([]);
@@ -14,6 +15,9 @@ export default function MyOrders() {
 
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showModal, setShowModal] = useState(false);
+
+  const [reviewItem, setReviewItem] = useState(null);
+  const [showReviewModal, setShowReviewModal] = useState(false);
 
   useEffect(() => {
     fetchMyOrders();
@@ -41,6 +45,24 @@ export default function MyOrders() {
   const handleOpenDetail = (order) => {
     setSelectedOrder(order);
     setShowModal(true);
+  };
+
+  const handleOpenReview = (item) => {
+    setReviewItem(item);
+    setShowReviewModal(true);
+  };
+
+  // Đánh dấu reviewed=true ngay trên state cục bộ sau khi gửi thành công, khỏi
+  // phải fetch lại /orders/me chỉ để đổi 1 field.
+  const handleReviewSubmitted = (orderItemId) => {
+    setOrders((prev) =>
+      prev.map((order) => ({
+        ...order,
+        items: order.items?.map((item) =>
+          item.orderItemId === orderItemId ? { ...item, reviewed: true } : item,
+        ),
+      })),
+    );
   };
 
   const getStatusBadge = (status) => {
@@ -163,9 +185,27 @@ export default function MyOrders() {
                           <span className="fw-bold d-block">{item.productName}</span>
                           <span className="text-muted small">{item.variantInfo}</span>
                         </div>
-                        <div className="text-end">
-                          <span className="text-muted small">{formatVND(item.unitPrice)} x {item.quantity}</span>
-                          <span className="fw-bold d-block text-dark">{formatVND(item.subtotal || item.unitPrice * item.quantity)}</span>
+                        <div className="text-end d-flex align-items-center gap-3">
+                          <div>
+                            <span className="text-muted small d-block">{formatVND(item.unitPrice)} x {item.quantity}</span>
+                            <span className="fw-bold d-block text-dark">{formatVND(item.subtotal || item.unitPrice * item.quantity)}</span>
+                          </div>
+                          {order.status === 'COMPLETED' && (
+                            item.reviewed ? (
+                              <Badge bg="light" text="dark" className="rounded-0 border border-dark d-inline-flex align-items-center gap-1">
+                                <StarFill className="text-warning" /> Đã đánh giá
+                              </Badge>
+                            ) : (
+                              <Button
+                                size="sm"
+                                variant="outline-dark"
+                                className="rounded-0 text-uppercase fw-bold border-2"
+                                onClick={() => handleOpenReview(item)}
+                              >
+                                Viết đánh giá
+                              </Button>
+                            )
+                          )}
                         </div>
                       </div>
                     ))}
@@ -196,6 +236,14 @@ export default function MyOrders() {
         show={showModal}
         onHide={() => setShowModal(false)}
         order={selectedOrder}
+      />
+
+      {/* Modal viết đánh giá */}
+      <ReviewFormModal
+        show={showReviewModal}
+        onHide={() => setShowReviewModal(false)}
+        item={reviewItem}
+        onSubmitted={handleReviewSubmitted}
       />
     </div>
   );

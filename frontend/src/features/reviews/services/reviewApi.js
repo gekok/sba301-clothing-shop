@@ -22,9 +22,10 @@ export async function fetchReviews(productId, { page = 0, size = 10 } = {}) {
   return res.data
 }
 
-export async function submitReview(productId, { userId, orderItemId, rating, comment }) {
+// userId KHÔNG gửi lên nữa — BE tự lấy người đang đăng nhập từ SecurityContext
+// (tránh 1 user gửi userId của người khác để mạo danh đánh giá).
+export async function submitReview(productId, { orderItemId, rating, comment }) {
   const res = await api.post(`/products/${productId}/reviews`, {
-    userId,
     orderItemId,
     rating,
     comment,

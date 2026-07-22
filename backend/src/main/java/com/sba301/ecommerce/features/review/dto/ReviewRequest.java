@@ -12,9 +12,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReviewRequest {
-    @NotNull(message = "userId không được để trống")
-    private Long userId;
-
     @NotNull(message = "orderItemId không được để trống")
     private Long orderItemId;
 
