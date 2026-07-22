@@ -71,7 +71,7 @@ const getAccountMenu = (isAuthenticated, role) => {
 
   const account = [
     { label: 'Thông tin cá nhân', to: '/account' },
-    { label: 'Đơn hàng của tôi', to: '/orders' },
+    { label: 'Đơn hàng của tôi', to: '/my-orders' },
     { label: 'Sổ địa chỉ', to: '/account/addresses' },
   ];
 
@@ -156,9 +156,11 @@ const Header = () => {
 
     syncCartCount();
     window.addEventListener('cart:updated', syncCartCount);
+    window.addEventListener('cartUpdated', syncCartCount);
     return () => {
       mounted = false;
       window.removeEventListener('cart:updated', syncCartCount);
+      window.removeEventListener('cartUpdated', syncCartCount);
     };
   }, []);
 
