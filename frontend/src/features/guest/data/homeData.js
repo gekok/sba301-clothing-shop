@@ -26,8 +26,8 @@ export const CATEGORY_NAV = [
 ];
 
 export const TRUST_BADGES = [
-    { title: 'Free Shipping', description: 'On orders over $50' },
-    { title: 'Secure Payment', description: '100% secure payment' },
-    { title: '24/7 Support', description: 'We are here to help' },
-    { title: 'Easy Returns', description: '30-day return policy' },
+    { title: 'Miễn phí vận chuyển', description: 'Đơn hàng từ 499.000đ' },
+    { title: 'Thanh toán an toàn',  description: 'Bảo mật 100%' },
+    { title: 'Hỗ trợ 24/7',         description: 'Luôn sẵn sàng hỗ trợ bạn' },
+    { title: 'Đổi trả dễ dàng',     description: 'Trong vòng 7 ngày' },
 ];

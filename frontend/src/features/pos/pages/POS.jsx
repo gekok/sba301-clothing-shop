@@ -1,37 +1,67 @@
-// src/pages/staff/POS.jsx
-// UI 2 — Staff POS: chọn variant -> giỏ hàng -> thanh toán tiền mặt -> hoá đơn.
-import { useMemo, useState } from 'react';
-import { Row, Col, Card, Form, Button, Table, Badge, Stack } from 'react-bootstrap';
+// src/features/pos/pages/POS.jsx
+// UI 2 — Staff POS: chọn biến thể -> giỏ hàng -> thanh toán -> hoá đơn.
+// Dữ liệu thật từ backend: GET /pos/variants, POST /pos/orders.
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Row, Col, Card, Form, Button, Table, Stack, Alert, Spinner, Container } from 'react-bootstrap';
 
-import { MOCK_PRODUCTS } from '../../../shared/mock/products';
+import { getPosVariants, createPosOrder } from '../services/posService.js';
 import { formatVND } from '../../../shared/utils/format';
+import { readApiError } from '../../../shared/utils/apiError.js';
+import { CHANNEL_LABEL } from '../../../shared/utils/orderStatus';
+import StatusBadge from '../../../shared/components/StatusBadge.jsx';
 
-// Làm phẳng (flatten): mỗi sản phẩm có nhiều variant -> 1 danh sách variant phẳng,
-// mỗi dòng kèm tên sản phẩm + nhãn gọn để hiển thị/search.
-const ALL_VARIANTS = MOCK_PRODUCTS.flatMap((p) =>
-  p.variants.map((v) => ({
-    ...v,
-    productName: p.name,
-    label: `${p.name} - ${v.size}/${v.color}`,
-  })),
-);
+// Khớp enum PaymentMethod.java. Bán tại quầy thực tế chỉ dùng 2 hình thức này.
+const PAYMENT_METHODS = [
+  { value: 'CASH', label: 'Tiền mặt' },
+  { value: 'BANK_TRANSFER', label: 'Chuyển khoản' },
+];
+
+// Nhãn hiển thị cho 1 biến thể, dùng lại ở cả lưới chọn hàng lẫn dòng trong giỏ.
+function buildLabel(variant) {
+  return `${variant.productName} - ${variant.size}/${variant.color}`;
+}
 
 function POS() {
+  const [variants, setVariants] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
   const [search, setSearch] = useState('');
   const [cart, setCart] = useState([]); // [{ variantId, label, price, quantity, stock }]
   const [customerName, setCustomerName] = useState('');
+  const [note, setNote] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('CASH');
   const [invoice, setInvoice] = useState(null); // đơn vừa tạo (null = đang bán)
 
-  // Lọc danh sách variant theo từ khoá (tên hoặc SKU).
+  const loadVariants = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await getPosVariants();
+      setVariants(data);
+      setError('');
+    } catch (err) {
+      setError(readApiError(err, 'Không tải được danh sách sản phẩm.'));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadVariants();
+  }, [loadVariants]);
+
+  // Lọc ngay tại chỗ, không gọi lại API mỗi lần gõ: nhân viên đứng quầy cần
+  // danh sách nhảy tức thì, chờ mạng vài trăm ms là khó chịu.
   const filteredVariants = useMemo(() => {
     const kw = search.trim().toLowerCase();
-    if (!kw) return ALL_VARIANTS;
-    return ALL_VARIANTS.filter(
-      (v) => v.label.toLowerCase().includes(kw) || v.sku.toLowerCase().includes(kw),
+    if (!kw) return variants;
+    return variants.filter(
+      (v) => buildLabel(v).toLowerCase().includes(kw) || v.sku.toLowerCase().includes(kw),
     );
-  }, [search]);
+  }, [search, variants]);
 
-  // Thêm 1 variant vào giỏ. Nếu đã có -> tăng số lượng (không vượt tồn).
+  // Thêm 1 biến thể vào giỏ. Đã có -> tăng số lượng (không vượt tồn).
   function addToCart(variant) {
     setCart((prev) => {
       const existing = prev.find((it) => it.variantId === variant.id);
@@ -45,7 +75,7 @@ function POS() {
         ...prev,
         {
           variantId: variant.id,
-          label: variant.label,
+          label: buildLabel(variant),
           price: variant.price,
           quantity: 1,
           stock: variant.stockQuantity,
@@ -78,67 +108,101 @@ function POS() {
     [cart],
   );
 
-  // Thanh toán: tạo đơn IN_STORE / COMPLETED / PAID rồi hiện hoá đơn.
-  function handleCheckout() {
+  // Thanh toán: server mới là nơi trừ kho và sinh mã đơn, client không tự bịa hoá đơn.
+  async function handleCheckout() {
     if (cart.length === 0) return;
-    setInvoice({
-      orderCode: `POS-${Date.now()}`,
-      customerName: customerName.trim() || 'Khách lẻ',
-      status: 'COMPLETED',
-      paymentStatus: 'PAID',
-      method: 'CASH',
-      items: cart,
-      total,
-    });
-    setCart([]);
-    setCustomerName('');
+    try {
+      setSubmitting(true);
+      const created = await createPosOrder({
+        items: cart.map((it) => ({ variantId: it.variantId, quantity: it.quantity })),
+        customerName: customerName.trim() || null,
+        note: note.trim() || null,
+        paymentMethod,
+      });
+      setInvoice(created);
+      setCart([]);
+      setCustomerName('');
+      setNote('');
+      setError('');
+      // Bắt buộc tải lại: vừa bán xong nên tồn kho trên server đã giảm,
+      // không nạp lại thì lần bán sau vẫn tính theo tồn cũ và bị server từ chối.
+      await loadVariants();
+    } catch (err) {
+      // Hết hàng / sản phẩm ngừng bán -> giữ nguyên giỏ để nhân viên sửa lại.
+      setError(readApiError(err, 'Tạo đơn thất bại.'));
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   // ----- Màn hoá đơn (sau khi thanh toán) -----
   if (invoice) {
     return (
-      <>
+      <Container className="py-4">
         <h1 className="mb-4">Hoá đơn {invoice.orderCode}</h1>
+        {/* Phải hiện cả ở màn hoá đơn: nhánh này return sớm, nếu chỉ đặt Alert ở màn bán
+            thì lỗi tải lại tồn kho sau khi thanh toán sẽ bị nuốt, nhân viên bán tiếp
+            trên số tồn cũ mà không biết. */}
+        {error && (
+          <Alert variant="danger" dismissible onClose={() => setError('')}>
+            {error}
+          </Alert>
+        )}
         <Card>
           <Card.Body>
             <p className="mb-1"><strong>Khách:</strong> {invoice.customerName}</p>
-            <p className="mb-1"><strong>Kênh:</strong> Tại shop (IN_STORE)</p>
+            <p className="mb-1"><strong>Kênh:</strong> {CHANNEL_LABEL[invoice.channel] ?? invoice.channel}</p>
+            {invoice.createdByStaffName && (
+              <p className="mb-1"><strong>Nhân viên:</strong> {invoice.createdByStaffName}</p>
+            )}
+            {invoice.note && (
+              <p className="mb-1"><strong>Ghi chú:</strong> {invoice.note}</p>
+            )}
             <p className="mb-3">
-              <Badge bg="dark" className="me-1">{invoice.status}</Badge>
-              <Badge bg="success">{invoice.paymentStatus} · {invoice.method}</Badge>
+              <StatusBadge status={invoice.status} type="order" />{' '}
+              <StatusBadge status={invoice.paymentStatus} type="payment" />
             </p>
             <Table bordered size="sm">
               <thead>
                 <tr>
                   <th>Sản phẩm</th>
+                  <th>Phân loại</th>
                   <th className="text-end">Đơn giá</th>
                   <th className="text-center">SL</th>
                   <th className="text-end">Thành tiền</th>
                 </tr>
               </thead>
               <tbody>
-                {invoice.items.map((it) => (
-                  <tr key={it.variantId}>
-                    <td>{it.label}</td>
-                    <td className="text-end">{formatVND(it.price)}</td>
+                {(invoice.items ?? []).map((it) => (
+                  <tr key={it.id}>
+                    <td>{it.productName}</td>
+                    <td>{it.variantInfo}</td>
+                    <td className="text-end">{formatVND(it.unitPrice)}</td>
                     <td className="text-center">{it.quantity}</td>
-                    <td className="text-end">{formatVND(it.price * it.quantity)}</td>
+                    <td className="text-end">{formatVND(it.subtotal)}</td>
                   </tr>
                 ))}
               </tbody>
             </Table>
-            <h4 className="text-end">Tổng: {formatVND(invoice.total)}</h4>
+            <h4 className="text-end">Tổng: {formatVND(invoice.totalAmount)}</h4>
           </Card.Body>
         </Card>
         <Button className="mt-3" onClick={() => setInvoice(null)}>Tạo đơn mới</Button>
-      </>
+      </Container>
     );
   }
 
   // ----- Màn bán hàng -----
   return (
-    <>
-      <h1 className="mb-4">Staff POS — Tạo đơn tại shop</h1>
+    <Container className="py-4">
+      <h1 className="mb-4">Bán hàng tại shop (POS)</h1>
+
+      {error && (
+        <Alert variant="danger" dismissible onClose={() => setError('')}>
+          {error}
+        </Alert>
+      )}
+
       <Row className="g-3">
         {/* Cột trái: chọn sản phẩm */}
         <Col md={7}>
@@ -148,6 +212,17 @@ function POS() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
+
+          {loading && (
+            <div className="text-center py-4">
+              <Spinner animation="border" size="sm" /> Đang tải sản phẩm...
+            </div>
+          )}
+
+          {!loading && filteredVariants.length === 0 && (
+            <p className="text-muted">Không tìm thấy sản phẩm nào.</p>
+          )}
+
           <Row className="g-2">
             {filteredVariants.map((v) => {
               const outOfStock = v.stockQuantity <= 0;
@@ -176,7 +251,9 @@ function POS() {
             <Card.Header>Giỏ hàng</Card.Header>
             <Card.Body>
               <Form.Group className="mb-3">
-                <Form.Label>Tên khách (để trống = Khách lẻ)</Form.Label>
+                {/* Nói đúng chỗ tên này được lưu: đơn tại quầy đứng tên tài khoản chung
+                    "Khách lẻ", tên gõ ở đây đi vào ghi chú của đơn. */}
+                <Form.Label>Tên khách (ghi vào ghi chú đơn)</Form.Label>
                 <Form.Control
                   placeholder="Khách lẻ"
                   value={customerName}
@@ -184,8 +261,26 @@ function POS() {
                 />
               </Form.Group>
 
+              <Form.Group className="mb-3">
+                <Form.Label>Hình thức thanh toán</Form.Label>
+                <Form.Select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>
+                  {PAYMENT_METHODS.map((m) => (
+                    <option key={m.value} value={m.value}>{m.label}</option>
+                  ))}
+                </Form.Select>
+              </Form.Group>
+
+              <Form.Group className="mb-3">
+                <Form.Label>Ghi chú</Form.Label>
+                <Form.Control
+                  placeholder="Không bắt buộc"
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                />
+              </Form.Group>
+
               {cart.length === 0 ? (
-                <p className="text-muted">Chưa có sản phẩm. Bấm "Thêm +" bên trái.</p>
+                <p className="text-muted">Chưa có sản phẩm. Bấm &quot;Thêm +&quot; bên trái.</p>
               ) : (
                 <Table size="sm" borderless>
                   <tbody>
@@ -220,16 +315,16 @@ function POS() {
               <Button
                 className="w-100 mt-2"
                 variant="success"
-                disabled={cart.length === 0}
+                disabled={cart.length === 0 || submitting}
                 onClick={handleCheckout}
               >
-                Thanh toán (tiền mặt)
+                {submitting ? 'Đang xử lý...' : 'Thanh toán'}
               </Button>
             </Card.Body>
           </Card>
         </Col>
       </Row>
-    </>
+    </Container>
   );
 }
 

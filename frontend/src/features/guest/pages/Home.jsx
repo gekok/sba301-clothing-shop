@@ -1,4 +1,4 @@
-import { CATEGORY_NAV, PRODUCT_IMAGES, TRUST_BADGES } from '../data/home.data.js';
+import { CATEGORY_NAV, PRODUCT_IMAGES, TRUST_BADGES } from '../data/homeData.js';
 import { useFeaturedProducts } from '../hooks/useFeaturedProducts.js';
 import HeroSection from '../components/HeroSection.jsx';
 import TrustBadges from '../components/TrustBadges.jsx';

@@ -8,6 +8,7 @@ import {
 import { Bag, List, Person, Search, X } from 'react-bootstrap-icons';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { clearAuthState, getAuthState } from '../utils/auth';
+import { getCartSnapshot } from '../../features/cart/services/cartService.js';
 import '../styles/layout.css';
 
 const SITE_NAME = 'SBA301 Shop';
@@ -95,13 +96,23 @@ const getAccountMenu = (isAuthenticated, role) => {
   return { account, portal };
 };
 
+// Lấy số lượng item trong giỏ từ nguồn dữ liệu thật (giống CartExperience: getCartSnapshot() -> /carts/me),
+// KHÔNG đọc localStorage vì không có chỗ nào trong app ghi giỏ hàng vào đó.
+const getCartCount = async () => {
+  try {
+    const snapshot = await getCartSnapshot();
+    return snapshot.items.reduce((sum, item) => sum + (item.quantity || 1), 0);
+  } catch {
+    return 0;
+  }
+};
+
 const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const cartCount = 0;
-
-  const [authState, setAuthState] = useState(getAuthState());
+  const [cartCount, setCartCount] = useState(0);
+  const [authState, setAuthStateLocal] = useState(getAuthState());
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -113,22 +124,62 @@ const Header = () => {
     authState.role,
   );
 
+  // Sync auth khi navigate (đăng nhập/đăng xuất ở trang khác)
   useEffect(() => {
-    setAuthState(getAuthState());
+    setAuthStateLocal(getAuthState());
   }, [location.pathname]);
 
+  // Đóng tất cả panel khi chuyển trang
   useEffect(() => {
     setSearchOpen(false);
     setMobileMenuOpen(false);
     setAccountOpen(false);
   }, [location.pathname]);
 
+  // Scroll shadow
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  // Tải + đồng bộ số lượng giỏ hàng thật từ server, khi mount và khi có thay đổi
+  // (cart:updated được useCartItems dispatch sau khi add/update/remove thành công).
+  useEffect(() => {
+    let mounted = true;
+    const syncCartCount = () => {
+      getCartCount().then((count) => {
+        if (mounted) setCartCount(count);
+      });
+    };
+
+    syncCartCount();
+    window.addEventListener('cart:updated', syncCartCount);
+    return () => {
+      mounted = false;
+      window.removeEventListener('cart:updated', syncCartCount);
+    };
+  }, []);
+
+  // Bắt 401 từ axios interceptor → force logout
+  useEffect(() => {
+    const onForceLogout = () => {
+      clearAuthState();
+      setAuthStateLocal(getAuthState());
+
+      // Đồng bộ badge với dữ liệu thực từ server
+      getCartCount().then(setCartCount);
+
+      navigate('/login');
+    };
+
+    window.addEventListener('auth:logout', onForceLogout);
+
+    return () => {
+      window.removeEventListener('auth:logout', onForceLogout);
+    };
+  }, [navigate]);
 
   const closeMenus = () => {
     setMobileMenuOpen(false);
@@ -138,7 +189,7 @@ const Header = () => {
 
   const handleLogout = () => {
     clearAuthState();
-    setAuthState(getAuthState());
+    setAuthStateLocal(getAuthState());
     closeMenus();
     navigate('/');
   };
@@ -319,9 +370,8 @@ const Header = () => {
             </button>
 
             <div
-              className={`store-header__account-wrap ${
-                !authState.isAuthenticated ? 'store-header__account-wrap--guest' : ''
-              }`}
+              className={`store-header__account-wrap ${!authState.isAuthenticated ? 'store-header__account-wrap--guest' : ''
+                }`}
             >
               <button
                 type="button"
@@ -341,7 +391,6 @@ const Header = () => {
                 )}
               </button>
 
-              {/* Đã đăng nhập: dropdown chỉ mở khi click (giữ hành vi cũ) */}
               {authState.isAuthenticated && accountOpen && (
                 <>
                   <button
@@ -356,7 +405,6 @@ const Header = () => {
                 </>
               )}
 
-              {/* Guest: dropdown chỉ mở khi click, có backdrop để click ra ngoài là đóng */}
               {!authState.isAuthenticated && accountOpen && (
                 <>
                   <button
@@ -375,7 +423,7 @@ const Header = () => {
             <Link to="/cart" className="store-header__cart" aria-label="Giỏ hàng" onClick={handleCartClick}>
               <Bag size={20} />
               <span className="store-header__cart-label d-none d-lg-inline">Giỏ hàng</span>
-              {authState.isAuthenticated && cartCount > 0 && (
+              {cartCount > 0 && (
                 <span className="store-header__cart-count">{cartCount}</span>
               )}
             </Link>
@@ -448,7 +496,7 @@ const Header = () => {
               </Link>
             ))}
             <Link to="/cart" className="store-mobile-nav__link" onClick={handleCartClick}>
-              Giỏ hàng {authState.isAuthenticated && cartCount > 0 ? `(${cartCount})` : ''}
+              Giỏ hàng {cartCount > 0 ? `(${cartCount})` : ''}
             </Link>
           </nav>
 
