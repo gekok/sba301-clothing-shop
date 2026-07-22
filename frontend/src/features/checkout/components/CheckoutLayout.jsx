@@ -161,7 +161,9 @@ function CheckoutLayout() {
 
   const handleViewOrder = () => {
     setShowSuccessModal(false);
-    navigate(`/order/${orderCode}`);
+    // Chưa có route chi tiết đơn theo mã (/order/:code) — trang chi tiết thật
+    // đang sống trong OrderDetailModal ở /my-orders, nên trỏ về đó thay vì 404.
+    navigate('/my-orders');
   };
 
   if (loading) {
