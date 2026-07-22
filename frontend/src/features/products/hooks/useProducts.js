@@ -4,7 +4,7 @@ import {
     getProducts
 } from "../service/productService";
 
-function useProducts() {
+function useProducts(initialConfig = {}) {
 
     const [products, setProducts] = useState([]);
 
@@ -18,9 +18,9 @@ function useProducts() {
 
     const [totalElements, setTotalElements] = useState(0);
 
-    const [categoryId, setCategoryId] = useState("");
+    const [categoryId, setCategoryId] = useState(initialConfig.categoryId || "");
 
-    const [status, setStatus] = useState("");
+    const [status, setStatus] = useState(initialConfig.status || "");
 
     const [keyword, setKeyword] = useState("");
 
