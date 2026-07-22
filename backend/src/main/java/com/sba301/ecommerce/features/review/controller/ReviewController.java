@@ -34,7 +34,11 @@ public class ReviewController {
     @Operation(summary = "Lấy danh sách review của 1 product (phân trang)")
     public ResponseEntity<Page<ReviewResponse>> getReviews(
             @PathVariable Long productId,
-            @PageableDefault(size = 10, sort = "createdAt") Pageable pageable) {
+            // Không set sort ở đây: findByProduct_IdOrderByCreatedAtDesc bên repository
+            // đã tự quy định ORDER BY created_at DESC rồi — set thêm sort=createdAt ở
+            // Pageable làm SQL Server nhận created_at 2 lần trong ORDER BY -> lỗi 500
+            // "column has been specified more than once in the order by list".
+            @PageableDefault(size = 10) Pageable pageable) {
         return ResponseEntity.ok(reviewService.getReviewsByProduct(productId, pageable));
     }
 
