@@ -18,5 +18,10 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     @Query("SELECT r.rating FROM Review r WHERE r.product.id = :productId")
     List<Integer> findAllRatingsByProductId(@Param("productId") Long productId);
-    
+
+    // Dùng để đánh dấu hàng loạt order_item nào của user đã review rồi (vd khi
+    // liệt kê đơn hàng), tránh gọi existsByUser_IdAndOrderItem_Id lặp lại N lần.
+    @Query("SELECT r.orderItem.id FROM Review r WHERE r.user.id = :userId")
+    List<Long> findReviewedOrderItemIdsByUserId(@Param("userId") Long userId);
+
 }
