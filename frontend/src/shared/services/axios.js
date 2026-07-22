@@ -1,5 +1,5 @@
 import axios from 'axios';
-import refreshToken from '../../features/auth/service/apiAuth';
+import {refreshToken} from '../../features/auth/service/apiAuth';
 // Base URL đọc từ Vite env (file .env / .env.local). Fallback localhost cho dev.
 const baseURL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080/api/v1';
 

@@ -1,12 +1,14 @@
 package com.sba301.ecommerce.config;
 
-import com.sba301.ecommerce.features.auth.repositories.UserRepository;
+
 import com.sba301.ecommerce.features.category.repository.CategoryRepository;
 import com.sba301.ecommerce.features.cart.repository.CartRepository;
 import com.sba301.ecommerce.features.cart.repository.CartItemRepository;
 import com.sba301.ecommerce.features.entities.*;
 import com.sba301.ecommerce.features.entities.enums.ProductStatus;
 import com.sba301.ecommerce.features.entities.enums.Role;
+import com.sba301.ecommerce.features.entities.enums.UserStatus;
+import com.sba301.ecommerce.features.pos.repository.UserPosRepository;
 import com.sba301.ecommerce.features.product.repository.ProductRepository;
 import com.sba301.ecommerce.features.address.repository.AddressRepository;
 import org.springframework.boot.CommandLineRunner;
@@ -22,7 +24,7 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     private final CategoryRepository categoryRepository;
     private final ProductRepository productRepository;
-    private final UserRepository userRepository;
+    private final UserPosRepository userPosRepository;
     private final PasswordEncoder passwordEncoder;
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
@@ -30,14 +32,14 @@ public class DatabaseSeeder implements CommandLineRunner {
 
     public DatabaseSeeder(CategoryRepository categoryRepository,
                           ProductRepository productRepository,
-                          UserRepository userRepository,
+                          UserPosRepository userPosRepository,
                           PasswordEncoder passwordEncoder,
                           CartRepository cartRepository,
                           CartItemRepository cartItemRepository,
                           AddressRepository addressRepository) {
         this.categoryRepository = categoryRepository;
         this.productRepository = productRepository;
-        this.userRepository = userRepository;
+        this.userPosRepository = userPosRepository;
         this.passwordEncoder = passwordEncoder;
         this.cartRepository = cartRepository;
         this.cartItemRepository = cartItemRepository;
@@ -112,17 +114,17 @@ public class DatabaseSeeder implements CommandLineRunner {
         }
 
         // 2. Seed Test User
-        User user = userRepository.findUserByEmail("customer@sba301.local");
+        User user = userPosRepository.findUserByEmail("customer@sba301.local");
         if (user == null) {
             user = new User();
             user.setEmail("customer@sba301.local");
             user.setPasswordHash(passwordEncoder.encode("password123"));
             user.setFullName("Khách hàng thử nghiệm");
             user.setRole(Role.CUSTOMER);
-            user.setStatus("ACTIVE");
+            user.setStatus(UserStatus.ACTIVE);
             user.setFailedLoginAttempts(0);
             user.setEmailVerified(false);
-            user = userRepository.save(user);
+            user = userPosRepository.save(user);
             System.out.println(">>> Test User customer@sba301.local seeded.");
         }
 
@@ -163,17 +165,17 @@ public class DatabaseSeeder implements CommandLineRunner {
         }
         
         // 5. Seed Admin User and Cart
-        User adminUser = userRepository.findUserByEmail("admin@sba301.local");
+        User adminUser = userPosRepository.findUserByEmail("admin@sba301.local");
         if (adminUser == null) {
             adminUser = new User();
             adminUser.setEmail("admin@sba301.local");
             adminUser.setPasswordHash(passwordEncoder.encode("admin123"));
             adminUser.setFullName("Admin Test");
             adminUser.setRole(Role.ADMIN);
-            adminUser.setStatus("ACTIVE");
+            adminUser.setStatus(UserStatus.ACTIVE);
             adminUser.setFailedLoginAttempts(0);
             adminUser.setEmailVerified(true);
-            adminUser = userRepository.save(adminUser);
+            adminUser = userPosRepository.save(adminUser);
             System.out.println(">>> Test User admin@sba301.local seeded.");
         }
 

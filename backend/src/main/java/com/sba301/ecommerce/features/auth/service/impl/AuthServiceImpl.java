@@ -117,7 +117,7 @@ public class AuthServiceImpl implements AuthService {
             throw new BadRequestException("Email already verified");
         }
 
-        if(emailVerification.getExpiredAt().isAfter(Instant.now())) {
+        if(emailVerification.getExpiredAt().isBefore(Instant.now())) {
             throw new BadRequestException("Email expired");
         }
 

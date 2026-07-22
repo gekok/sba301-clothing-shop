@@ -41,9 +41,7 @@ const Verify_Email = () => {
     navigate("/login")
   }
   return (
-    <div className="d-flex justify-content-center align-items-center vh-120">
-      <h2>Xác nhận Email</h2>
-      <p>Vui lòng kiểm tra email của bạn để xác nhận tài khoản.</p>
+    <div className="d-flex justify-content-center align-items-center vh-100">
       <Card style={{ width: "600px" }} className="p-4">
         <Card.Body>
           <Form onSubmit={handleSubmit}>

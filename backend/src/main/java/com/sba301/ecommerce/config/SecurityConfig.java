@@ -35,17 +35,14 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
     private final CustomUserDetailsService customUserDetailsService;
     private final PasswordEncoder passwordEncoder;
+    private final MockDevelopmentAuthFilter mockAuthFilter;
 
     @Autowired
     public SecurityConfig(CustomUserDetailsService customUserDetailsService,
-                          PasswordEncoder passwordEncoder) {
+                          PasswordEncoder passwordEncoder,
+                          MockDevelopmentAuthFilter mockAuthFilter) {
         this.customUserDetailsService = customUserDetailsService;
         this.passwordEncoder = passwordEncoder;
-    }
-
-    private final MockDevelopmentAuthFilter mockAuthFilter;
-
-    public SecurityConfig(MockDevelopmentAuthFilter mockAuthFilter) {
         this.mockAuthFilter = mockAuthFilter;
     }
 

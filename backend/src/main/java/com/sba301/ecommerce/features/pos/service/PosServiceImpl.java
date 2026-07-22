@@ -3,24 +3,20 @@ package com.sba301.ecommerce.features.pos.service;
 import com.sba301.ecommerce.exception.BadRequestException;
 import com.sba301.ecommerce.features.audit.service.AuditAction;
 import com.sba301.ecommerce.features.audit.service.AuditLogService;
-import com.sba301.ecommerce.features.auth.repositories.UserRepository;
+
 import com.sba301.ecommerce.features.entities.Order;
 import com.sba301.ecommerce.features.entities.OrderItem;
 import com.sba301.ecommerce.features.entities.Payment;
 import com.sba301.ecommerce.features.entities.ProductVariant;
 import com.sba301.ecommerce.features.entities.User;
-import com.sba301.ecommerce.features.entities.enums.OrderChannel;
-import com.sba301.ecommerce.features.entities.enums.OrderPaymentStatus;
-import com.sba301.ecommerce.features.entities.enums.OrderStatus;
-import com.sba301.ecommerce.features.entities.enums.PaymentMethod;
-import com.sba301.ecommerce.features.entities.enums.PaymentTxnStatus;
-import com.sba301.ecommerce.features.entities.enums.Role;
+import com.sba301.ecommerce.features.entities.enums.*;
 import com.sba301.ecommerce.features.order.dto.AdminOrderResponse;
 import com.sba301.ecommerce.features.order.repository.AdminOrderRepository;
 import com.sba301.ecommerce.features.order.service.AdminOrderMapper;
 import com.sba301.ecommerce.features.pos.dto.CreatePosOrderRequest;
 import com.sba301.ecommerce.features.pos.dto.PosVariantResponse;
 import com.sba301.ecommerce.features.pos.repository.PosVariantRepository;
+import com.sba301.ecommerce.features.pos.repository.UserPosRepository;
 import com.sba301.ecommerce.security.user.CurrentUserProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -49,7 +45,7 @@ public class PosServiceImpl implements PosService {
 
     private final PosVariantRepository posVariantRepository;
     private final AdminOrderRepository adminOrderRepository;
-    private final UserRepository userRepository;
+    private final UserPosRepository userPosRepository;
     private final AdminOrderMapper adminOrderMapper;
     private final AuditLogService auditLogService;
     private final CurrentUserProvider currentUserProvider;
@@ -185,7 +181,7 @@ public class PosServiceImpl implements PosService {
 
     // Dùng chung 1 tài khoản "Khách lẻ" cho mọi đơn tại quầy, thay vì đẻ 1 user rỗng mỗi lần bán.
     private User getOrCreateWalkInCustomer() {
-        User existing = userRepository.findUserByEmail(WALK_IN_EMAIL);
+        User existing = userPosRepository.findUserByEmail(WALK_IN_EMAIL);
         if (existing != null) {
             return existing;
         }
@@ -196,11 +192,11 @@ public class PosServiceImpl implements PosService {
         // KHÔNG để "ACTIVE": đây là tài khoản kỹ thuật, không đặt mật khẩu, không ai
         // đăng nhập bằng nó. Để ACTIVE là để hở sẵn 1 tài khoản không mật khẩu cho
         // luồng đăng nhập sau này (CustomUserDetails.isEnabled đọc field này).
-        walkIn.setStatus("SYSTEM");
+        walkIn.setStatus(UserStatus.SYSTEM);
         walkIn.setEmailVerified(false);
         walkIn.setFailedLoginAttempts(0);
         // Không đặt passwordHash: đây là tài khoản kỹ thuật, không ai đăng nhập bằng nó.
-        return userRepository.save(walkIn);
+        return userPosRepository.save(walkIn);
     }
 
     // Order không có cột riêng cho tên khách vãng lai (khách thật thì đọc từ user.fullName),

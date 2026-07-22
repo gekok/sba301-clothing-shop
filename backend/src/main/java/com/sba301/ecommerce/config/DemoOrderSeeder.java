@@ -1,6 +1,6 @@
 package com.sba301.ecommerce.config;
 
-import com.sba301.ecommerce.features.auth.repositories.UserRepository;
+
 import com.sba301.ecommerce.features.entities.Order;
 import com.sba301.ecommerce.features.entities.OrderItem;
 import com.sba301.ecommerce.features.entities.ProductVariant;
@@ -10,6 +10,7 @@ import com.sba301.ecommerce.features.entities.enums.OrderPaymentStatus;
 import com.sba301.ecommerce.features.entities.enums.OrderStatus;
 import com.sba301.ecommerce.features.order.repository.AdminOrderRepository;
 import com.sba301.ecommerce.features.pos.repository.PosVariantRepository;
+import com.sba301.ecommerce.features.pos.repository.UserPosRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +43,7 @@ public class DemoOrderSeeder {
     private static final BigDecimal ONLINE_SHIPPING_FEE = new BigDecimal("30000");
 
     private final AdminOrderRepository adminOrderRepository;
-    private final UserRepository userRepository;
+    private final UserPosRepository userPosRepository;
     private final PosVariantRepository posVariantRepository;
 
     @EventListener(ApplicationReadyEvent.class)
@@ -53,8 +54,8 @@ public class DemoOrderSeeder {
             return;
         }
 
-        User customer = userRepository.findUserByEmail("customer@sba301.local");
-        User admin = userRepository.findUserByEmail("admin@sba301.local");
+        User customer = userPosRepository.findUserByEmail("customer@sba301.local");
+        User admin = userPosRepository.findUserByEmail("admin@sba301.local");
         List<ProductVariant> variants = posVariantRepository.findActiveWithProduct();
 
         if (customer == null || variants.isEmpty()) {
