@@ -24,6 +24,7 @@ IF OBJECT_ID('dbo.reviews', 'U')         IS NOT NULL DROP TABLE dbo.reviews;
 IF OBJECT_ID('dbo.payments', 'U')        IS NOT NULL DROP TABLE dbo.payments;
 IF OBJECT_ID('dbo.order_items', 'U')     IS NOT NULL DROP TABLE dbo.order_items;
 IF OBJECT_ID('dbo.orders', 'U')          IS NOT NULL DROP TABLE dbo.orders;
+IF OBJECT_ID('dbo.inventory_reservations', 'U') IS NOT NULL DROP TABLE dbo.inventory_reservations;
 IF OBJECT_ID('dbo.cart_items', 'U')      IS NOT NULL DROP TABLE dbo.cart_items;
 IF OBJECT_ID('dbo.carts', 'U')           IS NOT NULL DROP TABLE dbo.carts;
 IF OBJECT_ID('dbo.product_images', 'U')  IS NOT NULL DROP TABLE dbo.product_images;
@@ -284,6 +285,28 @@ CREATE TABLE dbo.cart_items (
 GO
 
 /* ============================================================================
+   11b. INVENTORY_RESERVATIONS — giữ chỗ tồn kho khi khách đang ở bước checkout,
+        dọn dẹp bằng job nền theo expires_at (session_id key theo phiên checkout)
+============================================================================ */
+CREATE TABLE dbo.inventory_reservations (
+    id              BIGINT IDENTITY(1,1) PRIMARY KEY,
+    session_id      VARCHAR(100)    NOT NULL,
+    user_id         BIGINT          NOT NULL,
+    variant_id      BIGINT          NOT NULL,
+    quantity        INT             NOT NULL,
+    expires_at      DATETIME2       NOT NULL,
+    created_at      DATETIME2       NOT NULL CONSTRAINT df_invres_created DEFAULT SYSUTCDATETIME(),
+    updated_at      DATETIME2       NOT NULL CONSTRAINT df_invres_updated DEFAULT SYSUTCDATETIME(),
+    CONSTRAINT fk_inv_res_user    FOREIGN KEY (user_id)    REFERENCES dbo.users(id),
+    CONSTRAINT fk_inv_res_variant FOREIGN KEY (variant_id) REFERENCES dbo.product_variants(id)
+);
+GO
+CREATE INDEX ix_inventory_res_session ON dbo.inventory_reservations (session_id);
+CREATE INDEX ix_inventory_res_user    ON dbo.inventory_reservations (user_id);
+CREATE INDEX ix_inventory_res_expires ON dbo.inventory_reservations (expires_at);
+GO
+
+/* ============================================================================
    12. ORDERS — cả đơn online (channel=ONLINE) lẫn đơn POS (channel=IN_STORE)
 ============================================================================ */
 CREATE TABLE dbo.orders (
@@ -440,7 +463,7 @@ VALUES
 -- ADMIN
 (
     N'admin@sba301.local',
-    N'$2a$10$abcdefghijklmnopqrstuv',
+    N'$2b$10$iQY0w/2XMvqT5XXrcGzOledDMyAEHjA.SSnwBzplFsxHOVGgak6OC',
     N'Admin Demo',
     N'0900000001',
     'ADMIN',
@@ -455,7 +478,7 @@ VALUES
 -- STAFF
 (
     N'staff@sba301.local',
-    N'$2a$10$abcdefghijklmnopqrstuv',
+    N'$2b$10$iQY0w/2XMvqT5XXrcGzOledDMyAEHjA.SSnwBzplFsxHOVGgak6OC',
     N'Nhân viên A',
     N'0900000002',
     'STAFF',
@@ -470,7 +493,7 @@ VALUES
 -- CUSTOMER
 (
     N'customer@sba301.local',
-    N'$2a$10$abcdefghijklmnopqrstuv',
+    N'$2b$10$iQY0w/2XMvqT5XXrcGzOledDMyAEHjA.SSnwBzplFsxHOVGgak6OC',
     N'Khách Demo',
     N'0900000003',
     'CUSTOMER',
