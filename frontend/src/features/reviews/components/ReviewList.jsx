@@ -1,14 +1,23 @@
 import { useMemo, useState } from 'react'
+import Pagination from 'react-bootstrap/Pagination'
 import ReviewItem from './ReviewItem.jsx'
 import FilterSortControls from './FilterSortControls.jsx'
 
 /**
  * ReviewList
  * props:
- * - reviews: array review của 1 sản phẩm
+ * - reviews: array review của TRANG hiện tại (đã phân trang từ BE)
  * - currentUserId: number -> để highlight review của chính mình
+ * - page: số trang hiện tại (0-based), mặc định 0
+ * - totalPages: tổng số trang từ BE, mặc định 0
+ * - onPageChange: (nextPage: number) => void -> gọi khi bấm chuyển trang
+ * - onEditReview: (review) => void -> Phase 6b, forward xuống ReviewItem để mở form sửa
+ *   (chỉ ReviewItem tự quyết định có hiện nút Sửa hay không dựa vào ownership + edit-lock)
+ *
+ * Lưu ý: filter/sort (starFilter/sortOrder) chỉ áp dụng trong phạm vi review
+ * của trang hiện tại (client-side), không lọc/sort xuyên trang.
  */
-export default function ReviewList({ reviews, currentUserId }) {
+export default function ReviewList({ reviews, currentUserId, page = 0, totalPages = 0, onPageChange, onEditReview }) {
   const [starFilter, setStarFilter] = useState('all')
   const [sortOrder, setSortOrder] = useState('newest')
 
@@ -40,8 +49,26 @@ export default function ReviewList({ reviews, currentUserId }) {
         <p className="text-muted">Chưa có đánh giá phù hợp.</p>
       ) : (
         visibleReviews.map((review) => (
-          <ReviewItem key={review.id} review={review} highlight={review.userId === currentUserId} />
+          <ReviewItem
+            key={review.id}
+            review={review}
+            currentUserId={currentUserId}
+            highlight={currentUserId != null && review.userId === currentUserId}
+            onEdit={onEditReview}
+          />
         ))
+      )}
+
+      {totalPages > 1 && typeof onPageChange === 'function' && (
+        <Pagination className="justify-content-center mt-3">
+          <Pagination.Prev disabled={page === 0} onClick={() => onPageChange(page - 1)} />
+          {[...Array(totalPages)].map((_, index) => (
+            <Pagination.Item key={index} active={page === index} onClick={() => onPageChange(index)}>
+              {index + 1}
+            </Pagination.Item>
+          ))}
+          <Pagination.Next disabled={page === totalPages - 1} onClick={() => onPageChange(page + 1)} />
+        </Pagination>
       )}
     </div>
   )

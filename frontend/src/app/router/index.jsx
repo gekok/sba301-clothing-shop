@@ -13,6 +13,7 @@ import OrderManagement from '../../features/orders/pages/OrderManagement.jsx';
 import Dashboard from '../../features/dashboard/pages/Dashboard.jsx';
 import POS from '../../features/pos/pages/POS.jsx';
 import AuditLogs from '../../features/audit-logs/pages/AuditLogs.jsx';
+import AdminReviews from '../../features/reviews/pages/AdminReviews.jsx';
 import ProductCreate from '../../features/products/pages/ProductCreate.jsx';
 import ProductEdit from '../../features/products/pages/ProductEdit.jsx';
 import ProductDetail from '../../features/products/pages/ProductDetail';
@@ -47,6 +48,7 @@ const adminRoutes = [
   { path: 'admin/products/:id/edit', element: <ProductEdit /> },
   { path: 'admin/orders', element: <OrderManagement /> },
   { path: 'admin/audit-logs', element: <AuditLogs /> },
+  { path: 'admin/reviews', element: <AdminReviews /> },
 ];
 
 // Route khu vực bán hàng — cần STAFF. Chỉ có POS đợt này (Quản lý đơn hàng của STAFF hoãn
