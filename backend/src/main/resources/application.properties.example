@@ -1,0 +1,63 @@
+# ===== application.properties.example — template cho backend/src/main/resources/application.properties =====
+# Copy file này thành `application.properties` (cùng thư mục), điền giá trị thật của máy mình.
+# File `application.properties` đã được gitignore — KHÔNG commit lên repo (chứa creds DB/mail/JWT).
+# ============================================================================
+
+spring.application.name=sba301-ecommerce
+
+# ===== DataSource (SQL Server) =====
+# Sửa username/password theo máy mình, đừng commit creds thật.
+spring.datasource.url=jdbc:sqlserver://localhost:1433; DatabaseName=sba301_ecommerce; encrypt=true; trustServerCertificate=true;
+spring.datasource.username=sa
+spring.datasource.password=
+spring.datasource.driver-class-name=com.microsoft.sqlserver.jdbc.SQLServerDriver
+
+# ===== JPA / Hibernate =====
+# update: Hibernate tự tạo/sửa bảng theo entity.
+# Đổi 'validate' nếu đã chạy docs/db.sql để tạo schema tay.
+spring.jpa.hibernate.ddl-auto=none
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.SQLServerDialect
+spring.jpa.properties.hibernate.format_sql=true
+spring.jpa.show-sql=true
+spring.jpa.open-in-view=false
+
+# ===== Server =====
+server.port=8080
+server.servlet.context-path=/api/v1
+
+# ===== Springdoc / Swagger UI =====
+springdoc.api-docs.path=/v3/api-docs
+springdoc.swagger-ui.path=/swagger-ui.html
+springdoc.swagger-ui.operationsSorter=method
+
+# ===== Actuator (dev) =====
+management.endpoints.web.exposure.include=health,info
+
+# ===== Custom app config =====
+# Được cung cấp qua biến môi trường (e.g. export APP_JWT_SECRET=...)
+app.jwt.secret=${APP_JWT_SECRET:}
+app.jwt.expiration-ms=86400000
+
+# ===== VNPay config =====
+# Lấy tmn-code/hash-secret từ tài khoản sandbox VNPay của nhóm — hỏi trong nhóm nếu chưa có.
+vnpay.tmn-code=
+vnpay.hash-secret=
+
+# ===== Custom email config =====
+# password là Gmail App Password (không phải mật khẩu Gmail thật) — tạo tại
+# https://myaccount.google.com/apppasswords
+spring.mail.host=smtp.gmail.com
+spring.mail.port=587
+spring.mail.username=
+spring.mail.password=
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
+
+# ===== Custom env config =====
+spring.config.import=optional:file:.env[.properties]
+# Default dev-only bên dưới chỉ để app luôn boot được kể cả chưa set JWT_SECRET (vd máy mới clone
+# repo, chưa tạo .env) — không phải bí mật thật, đừng dùng cho production. Set JWT_SECRET trong
+# .env (xem .env.example) để override bằng secret riêng của máy mình.
+jwt.secret=${JWT_SECRET:CHANGE_ME_dev_only_generate_your_own_secret}
+jwt.access-expiration=900000
+jwt.refresh-expiration=2592000000
