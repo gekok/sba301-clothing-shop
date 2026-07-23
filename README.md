@@ -254,6 +254,21 @@ POST /api/pos/orders                     (STAFF tạo đơn bán tại quầy �
 GET  /api/audit-logs                     (ADMIN — đã implement, không còn planned)
 ```
 
+### 4.5. Phân vùng giao diện theo role (FE)
+
+FE tách route thành **4 nhóm layout theo role**, khai trong `frontend/src/app/router/index.jsx`:
+
+| Layout | Role yêu cầu | Route | Ghi chú |
+|---|---|---|---|
+| `MainLayout` (nhóm Public) | không cần đăng nhập | `/`, `/products`, `/login`, `/register`, ... | Header storefront hiện có |
+| `MainLayout` (nhóm Customer) | `CUSTOMER` | `/cart`, `/checkout`, `/my-orders` | Cùng layout với Public, khác nhóm route có guard |
+| `AdminLayout` | `ADMIN` | `/admin/dashboard`, `/admin/products*`, `/admin/orders`, `/admin/audit-logs` | Nav riêng (`RoleNav`), không dùng Header storefront |
+| `StaffLayout` | `STAFF` | `/staff/pos` | Đợt này STAFF **chỉ có POS** — Quản lý đơn hàng của STAFF (chỉ xem đơn của chính họ) hoãn tới khi phân quyền BE hoàn thiện |
+
+Mỗi nhóm cần đăng nhập được bọc bởi `RequireRole` (`shared/components/RequireRole.jsx`) — đọc `role`/`isAuthenticated` từ `localStorage` (qua `shared/utils/auth.js`), chưa đăng nhập → redirect `/login`, sai role → redirect `/`. `AdminLayout`/`StaffLayout` dùng chung 1 component nav (`shared/components/RoleNav.jsx`), lấy danh sách link theo role từ `shared/constants/roleNav.js`.
+
+> ⚠️ **Chưa hoạt động qua đăng nhập thật**: `RequireRole` đọc `role` từ `localStorage`, nhưng `Login.jsx` hiện **chưa lưu** giá trị này sau khi đăng nhập thành công (`setAuthState()` chưa được gọi ở đâu cả — phần của người 1, xem mục 7). Muốn test thủ công, mở DevTools Console gõ `localStorage.setItem('accessToken','x'); localStorage.setItem('role','ADMIN')` rồi vào `/admin/dashboard`. Guard này cũng chỉ là **UX-gate phía FE**, không phải bảo mật thật — BE hiện vẫn `anyRequest().permitAll()` (xem mục 4.4).
+
 ---
 
 ## 5. Cấu trúc thư mục
@@ -295,11 +310,14 @@ ecommerce/
     └── src/
         ├── main.jsx                   # Entry: mount React + BrowserRouter
         ├── index.css
-        ├── app/                       # App.jsx (routes) + layout/MainLayout.jsx (Navbar + Outlet dùng chung)
+        ├── app/
+        │   ├── router/index.jsx       # Khai route theo 4 nhóm role — xem mục 4.5
+        │   └── layout/                # MainLayout (Public+Customer), AdminLayout, StaffLayout
         ├── shared/                    # Dùng chung mọi feature
-        │   ├── components/            # AppNavbar, StatusBadge, ...
+        │   ├── components/            # Header, RequireRole (route guard), RoleNav, StatusBadge, ...
+        │   ├── constants/              # roleNav.js (data nav-theo-role, dùng bởi RoleNav)
         │   ├── services/              # axios.js (instance + JWT interceptor)
-        │   ├── utils/                 # format, orderStatus
+        │   ├── utils/                 # format, orderStatus, auth (getAuthState/setAuthState)
         │   └── mock/                  # mock data tạm (thay bằng API khi BE xong)
         └── features/                  # Mỗi feature: pages/ (+ components/, services/)
             ├── auth/   home/   products/
