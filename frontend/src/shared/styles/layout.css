@@ -390,19 +390,6 @@
   color: #000;
 }
 
-.store-account-panel__link--portal {
-  font-weight: 500;
-}
-
-.store-account-panel__section-label {
-  padding: 0.35rem 1.1rem 0.15rem;
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #888;
-}
-
 .store-account-panel__divider {
   height: 1px;
   background: #f0f0f0;

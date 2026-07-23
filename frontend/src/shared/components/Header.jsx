@@ -55,39 +55,19 @@ const GUEST_ACCOUNT_MENU = [
   { label: 'Đăng ký', to: '/register' },
 ];
 
-const getAccountMenu = (isAuthenticated, role) => {
+// Dropdown tài khoản storefront này KHÔNG còn liệt kê link "Khu vực làm việc" (Admin/Staff) —
+// đã tách hẳn sang RoleNav.jsx bên trong AdminLayout/StaffLayout, tránh 2 nguồn dữ liệu link
+// công việc lẫn vào nhau ở 2 nơi khác nhau (storefront vs khu làm việc).
+const getAccountMenu = (isAuthenticated) => {
   if (!isAuthenticated) {
-    return {
-      account: GUEST_ACCOUNT_MENU,
-      portal: [],
-    };
+    return GUEST_ACCOUNT_MENU;
   }
 
-  const account = [
+  return [
     { label: 'Thông tin cá nhân', to: '/account' },
     { label: 'Đơn hàng của tôi', to: '/my-orders' },
     { label: 'Sổ địa chỉ', to: '/account/addresses' },
   ];
-
-  const portal = [];
-
-  if (role === 'ADMIN') {
-    portal.push(
-      { label: 'Dashboard', to: '/admin/dashboard' },
-      { label: 'Quản lý sản phẩm', to: '/admin/products' },
-      { label: 'Quản lý đơn hàng', to: '/admin/orders' },
-      { label: 'Nhật ký hệ thống', to: '/admin/audit-logs' },
-    );
-  }
-
-  if (role === 'STAFF') {
-    portal.push(
-      { label: 'Bán hàng POS', to: '/staff/pos' },
-      { label: 'Quản lý đơn hàng', to: '/admin/orders' },
-    );
-  }
-
-  return { account, portal };
 };
 
 // Lấy số lượng item trong giỏ từ nguồn dữ liệu thật (giống CartExperience: getCartSnapshot() -> /carts/me),
@@ -113,10 +93,7 @@ const Header = () => {
   const [accountOpen, setAccountOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
-  const { account: accountLinks, portal: portalLinks } = getAccountMenu(
-    authState.isAuthenticated,
-    authState.role,
-  );
+  const accountLinks = getAccountMenu(authState.isAuthenticated);
 
   // Sync auth khi navigate (đăng nhập/đăng xuất ở trang khác)
   useEffect(() => {
@@ -226,23 +203,6 @@ const Header = () => {
             {item.label}
           </Link>
         ))}
-
-        {portalLinks.length > 0 && (
-          <>
-            <div className="store-account-panel__divider" />
-            <div className="store-account-panel__section-label">Khu vực làm việc</div>
-            {portalLinks.map((item) => (
-              <Link
-                key={item.to}
-                to={item.to}
-                className="store-account-panel__link store-account-panel__link--portal"
-                onClick={closeMenus}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </>
-        )}
 
         <div className="store-account-panel__divider" />
         <button type="button" className="store-account-panel__logout" onClick={handleLogout}>
