@@ -15,6 +15,7 @@ const AppNavbar = () => {
             <Nav.Link as={Link} to="/cart">Giỏ hàng</Nav.Link>
             <Nav.Link as={Link} to="/admin">Admin</Nav.Link>
             <Nav.Link as={Link} to="/admin/orders">Quản lý đơn</Nav.Link>
+            <Nav.Link as={Link} to="/admin/reviews">Quản lý đánh giá</Nav.Link>
             <Nav.Link as={Link} to="/admin/audit-logs">Nhật ký</Nav.Link>
             <Nav.Link as={Link} to="/staff/pos">Staff POS</Nav.Link>
             <Nav.Link as={Link} to="/login">Đăng nhập</Nav.Link>

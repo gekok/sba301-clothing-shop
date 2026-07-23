@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -48,4 +50,14 @@ public class Review {
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    // Ẩn/hiện do admin/staff toggle — review bị ẩn không xoá khỏi DB, chỉ loại khỏi API công khai.
+    @ColumnDefault("1")
+    @Column(name = "is_visible", nullable = false)
+    private Boolean isVisible = true;
+
+    // Hibernate tự fill khi INSERT lẫn UPDATE (xem docs/db.sql migration để biết cách backfill dữ liệu cũ).
+    @UpdateTimestamp
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
 }

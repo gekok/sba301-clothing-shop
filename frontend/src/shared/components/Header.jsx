@@ -76,6 +76,7 @@ const getAccountMenu = (isAuthenticated, role) => {
       { label: 'Dashboard', to: '/admin/dashboard' },
       { label: 'Quản lý sản phẩm', to: '/admin/products' },
       { label: 'Quản lý đơn hàng', to: '/admin/orders' },
+      { label: 'Quản lý đánh giá', to: '/admin/reviews' },
       { label: 'Nhật ký hệ thống', to: '/admin/audit-logs' },
     );
   }

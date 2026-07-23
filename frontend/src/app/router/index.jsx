@@ -22,6 +22,7 @@ import OrderManagement from '../../features/orders/pages/OrderManagement.jsx';
 import Dashboard from '../../features/dashboard/pages/Dashboard.jsx';
 import POS from '../../features/pos/pages/POS.jsx';
 import AuditLogs from '../../features/audit-logs/pages/AuditLogs.jsx';
+import AdminReviews from '../../features/reviews/pages/AdminReviews.jsx';
 import ProductCreate from '../../features/products/pages/ProductCreate.jsx';
 import ProductEdit from '../../features/products/pages/ProductEdit.jsx';
 import ProductDetail from '../../features/products/pages/ProductDetail';
@@ -60,6 +61,9 @@ const teamFeatureRoutes = [
 
   { path: 'admin/orders', element: <OrderManagement /> },
   { path: 'admin/audit-logs', element: <AuditLogs /> },
+  // Phase 7a: chỉ thêm route, CHƯA thêm link điều hướng ở Dashboard.jsx (việc đó là Phase 7b) —
+  // vào bằng cách gõ thẳng URL /admin/reviews.
+  { path: 'admin/reviews', element: <AdminReviews /> },
   { path: 'staff/pos', element: <POS /> },
 ];
 

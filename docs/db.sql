@@ -530,3 +530,31 @@ GO
 
 PRINT N'✅ Schema + seed data đã tạo xong.';
 GO
+
+/* ============================================================================
+   -- migration: review visibility
+   Thêm cột is_visible + updated_at cho dbo.reviews (không phá schema cũ).
+   Chạy khối này SAU khi bảng dbo.reviews đã tồn tại (VD: đã chạy phần script phía trên,
+   hoặc DB đã có sẵn dữ liệu review từ trước). An toàn để chạy lại nhiều lần nhờ kiểm tra
+   IF NOT EXISTS trên từng cột.
+============================================================================ */
+IF NOT EXISTS (
+    SELECT 1 FROM sys.columns
+    WHERE object_id = OBJECT_ID('dbo.reviews') AND name = 'is_visible'
+)
+BEGIN
+    ALTER TABLE dbo.reviews
+        ADD is_visible BIT NOT NULL CONSTRAINT df_reviews_is_visible DEFAULT 1;
+END
+GO
+
+IF NOT EXISTS (
+    SELECT 1 FROM sys.columns
+    WHERE object_id = OBJECT_ID('dbo.reviews') AND name = 'updated_at'
+)
+BEGIN
+    -- Default SYSUTCDATETIME() để SQL Server tự backfill NOT NULL cho các dòng review đã có sẵn.
+    ALTER TABLE dbo.reviews
+        ADD updated_at DATETIME2 NOT NULL CONSTRAINT df_reviews_updated_at DEFAULT SYSUTCDATETIME();
+END
+GO
