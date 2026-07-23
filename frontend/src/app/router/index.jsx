@@ -1,17 +1,8 @@
-// import {createBrowserRouter} from "react-router-dom";
-// import PublicLayout from "../layout/PublicLayout";
-// import { authRoutes } from "../../features/auth/routes";
-// export const router = createBrowserRouter([
-//     {
-//         element: <PublicLayout />,
-//         children: [
-//             ...authRoutes,
-//         ]
-//     }
-// ]);
-
 import { createBrowserRouter } from 'react-router-dom';
 import MainLayout from '../layout/MainLayout.jsx';
+import AdminLayout from '../layout/AdminLayout.jsx';
+import StaffLayout from '../layout/StaffLayout.jsx';
+import RequireRole from '../../shared/components/RequireRole.jsx';
 import { authRoutes } from '../../features/auth/routes';
 import { homeRoute, guestRoutes } from '../../features/guest/routes';
 
@@ -30,47 +21,67 @@ import MyOrders from '../../features/orders/pages/MyOrders.jsx';
 import PublicProductList from '../../features/products/pages/PublicProductList.jsx';
 import VNPayReturn from '../../features/checkout/components/VNPayReturn.jsx';
 
-const teamFeatureRoutes = [
+// Route công khai — không cần đăng nhập. products/create giữ nguyên ở đây (không có prefix
+// admin/) đúng như hiện trạng trước khi tách layout — không tự đổi guard cho route này, ngoài
+// phạm vi (xem báo cáo kèm theo).
+const publicRoutes = [
   { path: 'products', element: <PublicProductList /> },
-
   { path: 'products/create', element: <ProductCreate /> },
-
   { path: 'products/:id', element: <CustomerProductDetail /> },
+];
+
+// Route cần đăng nhập CUSTOMER.
+const customerRoutes = [
   { path: 'cart', element: <CartExperience /> },
   { path: 'checkout', element: <CheckoutLayout /> },
   { path: 'checkout/vnpay-return', element: <VNPayReturn /> },
   { path: 'my-orders', element: <MyOrders /> },
+];
+
+// Route khu vực quản trị — cần ADMIN.
+const adminRoutes = [
   { path: 'admin/dashboard', element: <Dashboard /> },
   { path: 'admin/products', element: <ProductList /> },
-
-  {
-    path:"admin/products/:id",
-    element:<ProductDetail/>
-  },
-
-  {
-    path: 'admin/products/create',
-    element: <ProductCreate />
-  },
-
-  {
-    path: 'admin/products/:id/edit',
-    element: <ProductEdit />
-  },
-
+  { path: 'admin/products/:id', element: <ProductDetail /> },
+  { path: 'admin/products/create', element: <ProductCreate /> },
+  { path: 'admin/products/:id/edit', element: <ProductEdit /> },
   { path: 'admin/orders', element: <OrderManagement /> },
   { path: 'admin/audit-logs', element: <AuditLogs /> },
+];
+
+// Route khu vực bán hàng — cần STAFF. Chỉ có POS đợt này (Quản lý đơn hàng của STAFF hoãn
+// tới khi authen/author hoàn thiện — xem plan).
+const staffRoutes = [
   { path: 'staff/pos', element: <POS /> },
 ];
 
 export const router = createBrowserRouter([
   {
     element: <MainLayout />,
-    children: [
-      homeRoute,
-      ...guestRoutes,
-      ...authRoutes,
-      ...teamFeatureRoutes,
-    ],
+    children: [homeRoute, ...guestRoutes, ...authRoutes, ...publicRoutes],
+  },
+  {
+    element: (
+      <RequireRole allowedRoles={['CUSTOMER']}>
+        <MainLayout />
+      </RequireRole>
+    ),
+    children: customerRoutes,
+  },
+  {
+    element: (
+      <RequireRole allowedRoles={['ADMIN']}>
+        <AdminLayout />
+      </RequireRole>
+    ),
+    children: adminRoutes,
+  },
+  {
+    element: (
+      <RequireRole allowedRoles={['STAFF']}>
+        <StaffLayout />
+      </RequireRole>
+    ),
+    children: staffRoutes,
   },
 ]);

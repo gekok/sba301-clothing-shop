@@ -1,0 +1,102 @@
+/* Thanh nav khu vực Admin/Staff — tái dùng token màu/kiểu chữ từ layout.css (nền trắng,
+   viền dưới #e8e8e8, link uppercase letter-spacing, active border-bottom đen), không bịa
+   bảng màu mới. Dùng bởi RoleNav.jsx (prefix role-nav__*). */
+.role-nav {
+  background: #fff;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.role-nav__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  min-height: 64px;
+  padding: 0.65rem 1.5rem;
+}
+
+.role-nav__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.role-nav__label {
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #111;
+}
+
+.role-nav__back {
+  font-size: 0.82rem;
+  color: #222;
+  text-decoration: none;
+}
+
+.role-nav__back:hover {
+  color: #000;
+}
+
+.role-nav__links {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.role-nav__link {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  color: #222;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.role-nav__link:hover,
+.role-nav__link.is-active {
+  color: #000;
+  border-bottom-color: #111;
+}
+
+.role-nav__account {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.role-nav__badge {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: #111;
+  color: #fff;
+  padding: 0.15rem 0.45rem;
+}
+
+.role-nav__email {
+  font-size: 0.82rem;
+  color: #222;
+}
+
+.role-nav__logout {
+  border: 1px solid #ddd;
+  background: #fff;
+  color: #111;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0.4rem 0.9rem;
+  cursor: pointer;
+}
+
+.role-nav__logout:hover {
+  background: #f5f5f5;
+}
