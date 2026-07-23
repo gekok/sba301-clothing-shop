@@ -33,9 +33,6 @@ pnpm-lock.yaml
 *.p12
 *.jks
 
-# ===== Backend local config (chứa creds DB/mail/JWT — commit application.properties.example thay thế) =====
-backend/src/main/resources/application.properties
-
 # ===== Logs =====
 *.log
 npm-debug.log*
