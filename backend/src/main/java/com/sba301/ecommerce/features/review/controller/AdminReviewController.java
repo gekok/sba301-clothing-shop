@@ -33,7 +33,10 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/admin/reviews")
 @RequiredArgsConstructor
 @Tag(name = "Admin Reviews", description = "Quản trị đánh giá sản phẩm (ẩn/hiện)")
-@PreAuthorize("hasAnyRole('ADMIN','STAFF')")
+// hasAnyAuthority (KHÔNG phải hasAnyRole): CustomUserDetails.getAuthorities() cấp authority thô
+// "ADMIN"/"STAFF", không có tiền tố "ROLE_". hasAnyRole tự thêm "ROLE_" trước khi so khớp nên sẽ
+// luôn fail (403) dù đúng admin/staff thật — hasAnyAuthority so khớp đúng chuỗi thô hiện có.
+@PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
 public class AdminReviewController {
 
     private final AdminReviewService adminReviewService;
