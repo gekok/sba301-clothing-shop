@@ -12,6 +12,10 @@ public final class AuditAction {
     public static final String ORDER_STATUS_CHANGED = "ORDER_STATUS_CHANGED";
     public static final String POS_ORDER_CREATED = "POS_ORDER_CREATED";
 
+    // Phase 3b — admin/staff ẩn hoặc khôi phục 1 review (PATCH /admin/reviews/{id}/visibility).
+    public static final String REVIEW_VISIBILITY_CHANGED = "REVIEW_VISIBILITY_CHANGED";
+
     // Loại đối tượng bị tác động
     public static final String TARGET_ORDER = "ORDER";
+    public static final String TARGET_REVIEW = "REVIEW";
 }

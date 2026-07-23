@@ -8,12 +8,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sba301.ecommerce.features.review.dto.ReviewRequest;
 import com.sba301.ecommerce.features.review.dto.ReviewResponse;
 import com.sba301.ecommerce.features.review.dto.ReviewSummaryResponse;
+import com.sba301.ecommerce.features.review.dto.ReviewUpdateRequest;
 import com.sba301.ecommerce.features.review.service.ReviewService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -55,5 +57,15 @@ public class ReviewController {
             @PathVariable Long productId) {
         ReviewResponse response = reviewService.createReview(request, productId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PutMapping("/{reviewId}")
+    @Operation(summary = "Sửa review của chính mình — chỉ rating/comment, 1 lần, trong vòng 24h")
+    public ResponseEntity<ReviewResponse> updateReview(
+            @PathVariable Long productId,
+            @PathVariable Long reviewId,
+            @Valid @RequestBody ReviewUpdateRequest request) {
+        ReviewResponse response = reviewService.updateReview(productId, reviewId, request);
+        return ResponseEntity.ok(response);
     }
 }
