@@ -10,13 +10,13 @@ import '../styles/roleNav.css';
 // roleNav.js) — không có logic nào rẽ nhánh khác đi.
 //
 // `role` prop = role của layout đang render (AdminLayout truyền "ADMIN", StaffLayout truyền
-// "STAFF") — dùng để hiển thị đúng nhãn khu vực dù localStorage trống. Danh sách link vẫn lấy
-// theo role THẬT từ getAuthState() (không phải prop) để không hiện nhầm menu nếu component này
+// "STAFF") — dùng để hiển thị đúng nhãn khu vực dù chưa có user. Danh sách link vẫn lấy
+// theo role THẬT từ useAuth() (không phải prop) để không hiện nhầm menu nếu component này
 // sau này được dùng lại ở nơi role thật khác với layout đang đứng.
 const RoleNav = ({ role }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const links = getRoleNav(user.roles);
+  const links = getRoleNav(user.role);
   const { sectionLabel, ariaLabel } = getRoleNavMeta(role);
 
   const handleLogout = () => {
@@ -49,7 +49,7 @@ const RoleNav = ({ role }) => {
         </nav>
 
         <div className="role-nav__account">
-          <span className="role-nav__badge">{user?.roles}</span>
+          <span className="role-nav__badge">{user?.role}</span>
           <span className="role-nav__email">{user?.email || 'Tài khoản'}</span>
           <button type="button" className="role-nav__logout" onClick={handleLogout}>
             Đăng xuất

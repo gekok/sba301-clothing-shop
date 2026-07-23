@@ -9,26 +9,15 @@ import { useProductReviewsApi } from '../../reviews/hooks/useReviews.js';
 import ReviewSummary from '../../reviews/components/ReviewSummary.jsx';
 import ReviewList from '../../reviews/components/ReviewList.jsx';
 import ReviewFormModal from '../../reviews/components/ReviewFormModal.jsx';
+import { decodeJwtPayload } from '../../../shared/utils/jwt.js';
 
 // Phase 6b: lấy id của user đang đăng nhập để xác định "review nào là của mình" (hiện nút
-// Sửa + highlight "Bạn"). Không có endpoint /auth/me khả dụng (apiAuth.getMe() gọi
-// "/auth/me" nhưng AuthController chưa có route này — ngoài phạm vi FE-only của 6b),
-// và shared/utils/auth.js (getAuthState) chỉ lưu token/role/email, không có id.
-// -> Giải pháp tối thiểu, không cần đổi BE: tự decode claim "user_id" đã có sẵn trong JWT
-// access token (xem JwtService.generateJwtToken) — token vẫn được BE ký, FE chỉ đọc claim,
-// không dùng để xác thực (mọi request vẫn do BE validate token thật qua JwtAuthenticationFilter).
+// Sửa + highlight "Bạn"). Không có endpoint /auth/me khả dụng (AuthController chưa có route
+// này). Dùng chung decodeJwtPayload với AuthProvider.jsx (xem shared/utils/jwt.js) — tự đọc
+// claim "user_id" có sẵn trong JWT access token (xem JwtService.generateJwtToken).
 function getCurrentUserIdFromToken() {
-  try {
-    const token = localStorage.getItem('accessToken');
-    if (!token) return null;
-    const payload = token.split('.')[1];
-    if (!payload) return null;
-    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
-    const json = JSON.parse(decodeURIComponent(escape(atob(base64))));
-    return json.user_id != null ? Number(json.user_id) : null;
-  } catch {
-    return null;
-  }
+  const claims = decodeJwtPayload(localStorage.getItem('accessToken'));
+  return claims?.user_id != null ? Number(claims.user_id) : null;
 }
 
 export default function CustomerProductDetail() {
