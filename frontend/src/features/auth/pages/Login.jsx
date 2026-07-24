@@ -3,6 +3,8 @@ import { Link,useNavigate } from "react-router-dom";
 import { Button, Card, Form, Nav } from "react-bootstrap";
 import "./AuthPages.css";
 import {login} from "../service/apiAuth";
+import { useAuth } from "../../../app/provider/AuthProvider";
+import { decodeJwtPayload } from "../../../shared/utils/jwt";
 
 export default function Login() {
   const [email,setEmail] = useState("");
@@ -11,6 +13,7 @@ export default function Login() {
   const [loadding,setLoadding] = useState("");
 
   const navigate = useNavigate();
+  const { login: setAuthUser } = useAuth();
 
   const handleSubmit = async (e) => {
       e.preventDefault();
@@ -18,9 +21,17 @@ export default function Login() {
 
       try {
         const result = await login({email,password});
-        console.log(result);
+        setAuthUser(result);
         setLoadding(false);
-        navigate("/products")
+
+        const role = decodeJwtPayload(result.accessToken)?.role;
+        if (role === "ADMIN") {
+          navigate("/admin/dashboard");
+        } else if (role === "STAFF") {
+          navigate("/staff/pos");
+        } else {
+          navigate("/products");
+        }
       } catch (error) {
         setLoadding(false);
         setErrorLogin(error.response.data);

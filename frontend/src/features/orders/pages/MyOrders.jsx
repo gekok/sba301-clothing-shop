@@ -4,6 +4,7 @@ import { BagCheck, Eye, BoxSeam, ClockHistory, ArrowRight, StarFill } from 'reac
 import { Link } from 'react-router-dom';
 import api from '../../../shared/services/axios.js';
 import { formatVND } from '../../../shared/utils/format.js';
+import { ORDER_STATUS_LABEL } from '../../../shared/utils/orderStatus.js';
 import OrderDetailModal from '../components/OrderDetailModal.jsx';
 import ReviewFormModal from '../../reviews/components/ReviewFormModal.jsx';
 
@@ -74,8 +75,9 @@ export default function MyOrders() {
       case 'SHIPPING':
         return <Badge bg="info" text="dark" className="rounded-0 text-uppercase px-3 py-2">Đang giao</Badge>;
       case 'DELIVERED':
+        return <Badge bg="success" className="rounded-0 text-uppercase px-3 py-2">{ORDER_STATUS_LABEL.DELIVERED}</Badge>;
       case 'COMPLETED':
-        return <Badge bg="success" className="rounded-0 text-uppercase px-3 py-2">Hoàn thành</Badge>;
+        return <Badge bg="success" className="rounded-0 text-uppercase px-3 py-2">{ORDER_STATUS_LABEL.COMPLETED}</Badge>;
       case 'CANCELLED':
         return <Badge bg="danger" className="rounded-0 text-uppercase px-3 py-2">Đã hủy</Badge>;
       default:

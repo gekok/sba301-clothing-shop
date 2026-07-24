@@ -8,6 +8,7 @@ import {
 import { Bag, List, Person, Search, X } from 'react-bootstrap-icons';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {useAuth} from '../../app/provider/AuthProvider';
+import { getCartSnapshot } from '../../features/cart/services/cartService.js';
 import '../styles/layout.css';
 
 const SITE_NAME = 'SBA301 Shop';
@@ -60,14 +61,23 @@ const GUEST_ACCOUNT_MENU = [
   { label: 'Đăng ký', to: '/register' },
 ];
 
-
+// Lấy số lượng item trong giỏ từ nguồn dữ liệu thật (giống CartExperience: getCartSnapshot() -> /carts/me),
+// KHÔNG đọc localStorage vì không có chỗ nào trong app ghi giỏ hàng vào đó.
+const getCartCount = async () => {
+  try {
+    const snapshot = await getCartSnapshot();
+    return snapshot.items.reduce((sum, item) => sum + (item.quantity || 1), 0);
+  } catch {
+    return 0;
+  }
+};
 
 const Header = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const cartCount = 0;
+  const [cartCount, setCartCount] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -84,7 +94,7 @@ const Header = () => {
 
   const account = [
     { label: 'Thông tin cá nhân', to: '/account' },
-    { label: 'Đơn hàng của tôi', to: '/orders' },
+    { label: 'Đơn hàng của tôi', to: '/my-orders' },
     { label: 'Sổ địa chỉ', to: '/account/addresses' },
   ];
 
@@ -93,10 +103,7 @@ const Header = () => {
   return { account, portal };
 };
 
-  const { account: accountLinks, portal: portalLinks } = getAccountMenu(
-    user ? true:false,
-    user?.roles,
-  );
+  const { account: accountLinks, portal: portalLinks } = getAccountMenu();
 
   useEffect(() => {
     setSearchOpen(false);
@@ -110,6 +117,33 @@ const Header = () => {
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  // Tải + đồng bộ số lượng giỏ hàng thật từ server, chỉ khi ĐÃ đăng nhập.
+  // Chạy lại mỗi khi user đổi (login/logout) và khi có cart:updated (useCartItems dispatch
+  // sau khi add/update/remove thành công). Khách chưa đăng nhập: không gọi /carts/me, badge
+  // luôn về 0.
+  useEffect(() => {
+    if (!user) {
+      setCartCount(0);
+      return undefined;
+    }
+
+    let mounted = true;
+    const syncCartCount = () => {
+      getCartCount().then((count) => {
+        if (mounted) setCartCount(count);
+      });
+    };
+
+    syncCartCount();
+    window.addEventListener('cart:updated', syncCartCount);
+    window.addEventListener('cartUpdated', syncCartCount);
+    return () => {
+      mounted = false;
+      window.removeEventListener('cart:updated', syncCartCount);
+      window.removeEventListener('cartUpdated', syncCartCount);
+    };
+  }, [user]);
 
   const closeMenus = () => {
     setMobileMenuOpen(false);
@@ -138,7 +172,7 @@ const Header = () => {
     <div className="store-account-panel">
       <div className="store-account-panel__head">
         <div className="store-account-panel__email">{user?.email || 'Tài khoản'}</div>
-        <span className="store-account-panel__role">{user?.roles || 'USER'}</span>
+        <span className="store-account-panel__role">{user?.role || 'USER'}</span>
       </div>
 
       <nav className="store-account-panel__nav">
