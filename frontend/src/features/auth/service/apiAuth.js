@@ -1,7 +1,7 @@
 import api from "../../../shared/services/axios";
 
 // LOGIN
-export const login = async (data) => {
+export const loginApi = async (data) => {
   const response = await api.post("/auth/login", data);
   return response.data;
 };
@@ -20,7 +20,7 @@ export const verifyEmail = async (data) =>{
 
 // GET CURRENT USER
 export const getMe = async () => {
-  const response = await api.get("/auth/me");
+  const response = await api.get("/users/me");
   return response.data;
 };
 

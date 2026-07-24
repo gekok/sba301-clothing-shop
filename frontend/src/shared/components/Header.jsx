@@ -64,6 +64,7 @@ const GUEST_ACCOUNT_MENU = [
 
 const Header = () => {
   const { user, logout } = useAuth();
+  console.log(user);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -83,9 +84,9 @@ const Header = () => {
   }
 
   const account = [
-    { label: 'Thông tin cá nhân', to: '/account' },
-    { label: 'Đơn hàng của tôi', to: '/orders' },
-    { label: 'Sổ địa chỉ', to: '/account/addresses' },
+    //{ label: 'Thông tin cá nhân', to: '/account' },
+    { label: 'Đơn hàng của tôi', to: '/my-orders' },
+    //{ label: 'Sổ địa chỉ', to: '/account/addresses' },
   ];
 
   const portal = [];
