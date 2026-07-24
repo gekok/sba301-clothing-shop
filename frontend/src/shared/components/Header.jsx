@@ -7,11 +7,16 @@ import {
 } from 'react-bootstrap';
 import { Bag, List, Person, Search, X } from 'react-bootstrap-icons';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { clearAuthState, getAuthState } from '../utils/auth';
-import { getCartSnapshot } from '../../features/cart/services/cartService.js';
+import {useAuth} from '../../app/provider/AuthProvider';
 import '../styles/layout.css';
 
 const SITE_NAME = 'SBA301 Shop';
+
+const ANNOUNCEMENT = {
+  message: 'Miễn phí vận chuyển cho đơn từ 499.000đ · Đổi trả trong 7 ngày',
+  link: '/products',
+  linkLabel: 'Mua ngay',
+};
 
 const STORE_NAV_BEFORE_PRODUCTS = [
   { label: 'Trang chủ', to: '/' },
@@ -55,111 +60,57 @@ const GUEST_ACCOUNT_MENU = [
   { label: 'Đăng ký', to: '/register' },
 ];
 
-// Dropdown tài khoản storefront này KHÔNG còn liệt kê link "Khu vực làm việc" (Admin/Staff) —
-// đã tách hẳn sang RoleNav.jsx bên trong AdminLayout/StaffLayout, tránh 2 nguồn dữ liệu link
-// công việc lẫn vào nhau ở 2 nơi khác nhau (storefront vs khu làm việc).
-const getAccountMenu = (isAuthenticated) => {
-  if (!isAuthenticated) {
-    return GUEST_ACCOUNT_MENU;
-  }
 
-  return [
-    { label: 'Thông tin cá nhân', to: '/account' },
-    { label: 'Đơn hàng của tôi', to: '/my-orders' },
-    { label: 'Sổ địa chỉ', to: '/account/addresses' },
-  ];
-};
-
-// Lấy số lượng item trong giỏ từ nguồn dữ liệu thật (giống CartExperience: getCartSnapshot() -> /carts/me),
-// KHÔNG đọc localStorage vì không có chỗ nào trong app ghi giỏ hàng vào đó.
-const getCartCount = async () => {
-  try {
-    const snapshot = await getCartSnapshot();
-    return snapshot.items.reduce((sum, item) => sum + (item.quantity || 1), 0);
-  } catch {
-    return 0;
-  }
-};
 
 const Header = () => {
+  const { user, logout } = useAuth();
+  console.log(user);
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [cartCount, setCartCount] = useState(0);
-  const [authState, setAuthStateLocal] = useState(getAuthState());
+  const cartCount = 0;
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
-  const accountLinks = getAccountMenu(authState.isAuthenticated);
+  const getAccountMenu = () => {
+  if (!user) {
+    return {
+      account: GUEST_ACCOUNT_MENU,
+      portal: [],
+    };
+  }
 
-  // Sync auth khi navigate (đăng nhập/đăng xuất ở trang khác)
-  useEffect(() => {
-    setAuthStateLocal(getAuthState());
-  }, [location.pathname]);
+  const account = [
+    //{ label: 'Thông tin cá nhân', to: '/account' },
+    { label: 'Đơn hàng của tôi', to: '/my-orders' },
+    //{ label: 'Sổ địa chỉ', to: '/account/addresses' },
+  ];
 
-  // Đóng tất cả panel khi chuyển trang
+  const portal = [];
+
+  return { account, portal };
+};
+
+  const { account: accountLinks, portal: portalLinks } = getAccountMenu(
+    user ? true:false,
+    user?.roles,
+  );
+
   useEffect(() => {
     setSearchOpen(false);
     setMobileMenuOpen(false);
     setAccountOpen(false);
   }, [location.pathname]);
 
-  // Scroll shadow
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
-
-  // Tải + đồng bộ số lượng giỏ hàng thật từ server, chỉ khi ĐÃ đăng nhập.
-  // Chạy lại mỗi khi authState.isAuthenticated đổi (login/logout) và khi có
-  // cart:updated (useCartItems dispatch sau khi add/update/remove thành công).
-  // Khách chưa đăng nhập: không gọi /carts/me, badge luôn về 0.
-  useEffect(() => {
-    if (!authState.isAuthenticated) {
-      setCartCount(0);
-      return undefined;
-    }
-
-    let mounted = true;
-    const syncCartCount = () => {
-      getCartCount().then((count) => {
-        if (mounted) setCartCount(count);
-      });
-    };
-
-    syncCartCount();
-    window.addEventListener('cart:updated', syncCartCount);
-    window.addEventListener('cartUpdated', syncCartCount);
-    return () => {
-      mounted = false;
-      window.removeEventListener('cart:updated', syncCartCount);
-      window.removeEventListener('cartUpdated', syncCartCount);
-    };
-  }, [authState.isAuthenticated]);
-
-  // Bắt 401 từ axios interceptor → force logout
-  // (axios.js chỉ bắn event này khi trước đó thực sự có access token, tức là
-  // phiên đã hết hạn — nên navigate('/login') ở đây là hợp lý, không xảy ra
-  // với khách chưa từng đăng nhập.)
-  useEffect(() => {
-    const onForceLogout = () => {
-      clearAuthState();
-      setAuthStateLocal(getAuthState());
-      setCartCount(0);
-      navigate('/login');
-    };
-
-    window.addEventListener('auth:logout', onForceLogout);
-
-    return () => {
-      window.removeEventListener('auth:logout', onForceLogout);
-    };
-  }, [navigate]);
 
   const closeMenus = () => {
     setMobileMenuOpen(false);
@@ -168,8 +119,7 @@ const Header = () => {
   };
 
   const handleLogout = () => {
-    clearAuthState();
-    setAuthStateLocal(getAuthState());
+    logout();
     closeMenus();
     navigate('/');
   };
@@ -188,8 +138,8 @@ const Header = () => {
   const renderAccountPanel = () => (
     <div className="store-account-panel">
       <div className="store-account-panel__head">
-        <div className="store-account-panel__email">{authState.email || 'Tài khoản'}</div>
-        <span className="store-account-panel__role">{authState.role || 'USER'}</span>
+        <div className="store-account-panel__email">{user?.email || 'Tài khoản'}</div>
+        <span className="store-account-panel__role">{user?.roles || 'USER'}</span>
       </div>
 
       <nav className="store-account-panel__nav">
@@ -203,6 +153,23 @@ const Header = () => {
             {item.label}
           </Link>
         ))}
+
+        {portalLinks.length > 0 && (
+          <>
+            <div className="store-account-panel__divider" />
+            <div className="store-account-panel__section-label">Khu vực làm việc</div>
+            {portalLinks.map((item) => (
+              <Link
+                key={item.to}
+                to={item.to}
+                className="store-account-panel__link store-account-panel__link--portal"
+                onClick={closeMenus}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </>
+        )}
 
         <div className="store-account-panel__divider" />
         <button type="button" className="store-account-panel__logout" onClick={handleLogout}>
@@ -231,6 +198,14 @@ const Header = () => {
 
   return (
     <header className={`store-header sticky-top ${scrolled ? 'store-header--scrolled' : ''}`}>
+      <div className="store-header__promo">
+        <Container className="store-header__promo-inner">
+          <span>{ANNOUNCEMENT.message}</span>
+          <Link to={ANNOUNCEMENT.link} onClick={closeMenus}>
+            {ANNOUNCEMENT.linkLabel}
+          </Link>
+        </Container>
+      </div>
 
       <div className="store-header__bar">
         <Container className="store-header__bar-inner">
@@ -325,13 +300,14 @@ const Header = () => {
             </button>
 
             <div
-              className={`store-header__account-wrap ${!authState.isAuthenticated ? 'store-header__account-wrap--guest' : ''
-                }`}
+              className={`store-header__account-wrap ${
+                !user ? 'store-header__account-wrap--guest' : ''
+              }`}
             >
               <button
                 type="button"
                 className="store-header__icon-btn store-header__icon-btn--account"
-                aria-label={authState.isAuthenticated ? 'Tài khoản' : 'Đăng nhập / Đăng ký'}
+                aria-label={user ? 'Tài khoản' : 'Đăng nhập / Đăng ký'}
                 aria-expanded={accountOpen}
                 onClick={() => {
                   setAccountOpen((prev) => !prev);
@@ -339,14 +315,15 @@ const Header = () => {
                 }}
               >
                 <Person size={20} />
-                {authState.isAuthenticated && (
+                {user && (
                   <span className="store-header__account-label d-none d-lg-inline">
                     Tài khoản
                   </span>
                 )}
               </button>
 
-              {authState.isAuthenticated && accountOpen && (
+              {/* Đã đăng nhập: dropdown chỉ mở khi click (giữ hành vi cũ) */}
+              {user && accountOpen && (
                 <>
                   <button
                     type="button"
@@ -360,7 +337,8 @@ const Header = () => {
                 </>
               )}
 
-              {!authState.isAuthenticated && accountOpen && (
+              {/* Guest: dropdown chỉ mở khi click, có backdrop để click ra ngoài là đóng */}
+              {!user && accountOpen && (
                 <>
                   <button
                     type="button"
@@ -378,7 +356,7 @@ const Header = () => {
             <Link to="/cart" className="store-header__cart" aria-label="Giỏ hàng" onClick={handleCartClick}>
               <Bag size={20} />
               <span className="store-header__cart-label d-none d-lg-inline">Giỏ hàng</span>
-              {cartCount > 0 && (
+              {user && cartCount > 0 && (
                 <span className="store-header__cart-count">{cartCount}</span>
               )}
             </Link>
@@ -451,12 +429,12 @@ const Header = () => {
               </Link>
             ))}
             <Link to="/cart" className="store-mobile-nav__link" onClick={handleCartClick}>
-              Giỏ hàng {cartCount > 0 ? `(${cartCount})` : ''}
+              Giỏ hàng {user && cartCount > 0 ? `(${cartCount})` : ''}
             </Link>
           </nav>
 
           <div className="store-mobile-nav__account border-top">
-            {authState.isAuthenticated ? renderAccountPanel() : renderGuestPanel()}
+            {user ? renderAccountPanel() : renderGuestPanel()}
           </div>
         </Offcanvas.Body>
       </Offcanvas>

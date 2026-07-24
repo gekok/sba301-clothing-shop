@@ -1,5 +1,5 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { clearAuthState, getAuthState } from '../utils/auth';
+import {useAuth} from '../../app/provider/AuthProvider';
 import { getRoleNav, getRoleNavMeta } from '../constants/roleNav';
 import '../styles/roleNav.css';
 
@@ -14,13 +14,13 @@ import '../styles/roleNav.css';
 // theo role THẬT từ getAuthState() (không phải prop) để không hiện nhầm menu nếu component này
 // sau này được dùng lại ở nơi role thật khác với layout đang đứng.
 const RoleNav = ({ role }) => {
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const { role: currentRole, email } = getAuthState();
-  const links = getRoleNav(currentRole);
+  const links = getRoleNav(user.roles);
   const { sectionLabel, ariaLabel } = getRoleNavMeta(role);
 
   const handleLogout = () => {
-    clearAuthState();
+    logout();
     navigate('/login');
   };
 
@@ -49,8 +49,8 @@ const RoleNav = ({ role }) => {
         </nav>
 
         <div className="role-nav__account">
-          <span className="role-nav__badge">{currentRole || role}</span>
-          <span className="role-nav__email">{email || 'Tài khoản'}</span>
+          <span className="role-nav__badge">{user?.roles}</span>
+          <span className="role-nav__email">{user?.email || 'Tài khoản'}</span>
           <button type="button" className="role-nav__logout" onClick={handleLogout}>
             Đăng xuất
           </button>
