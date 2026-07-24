@@ -1,6 +1,7 @@
 import { Modal, Button, Badge, Row, Col, Table } from 'react-bootstrap';
 import { formatVND } from '../../../shared/utils/format.js';
 import { BoxSeam, CreditCard, GeoAlt, FileText } from 'react-bootstrap-icons';
+import { ORDER_STATUS_LABEL } from '../../../shared/utils/orderStatus.js';
 
 export default function OrderDetailModal({ show, onHide, order }) {
   if (!order) return null;
@@ -14,8 +15,9 @@ export default function OrderDetailModal({ show, onHide, order }) {
       case 'SHIPPING':
         return <Badge bg="info" text="dark" className="rounded-0 text-uppercase px-3 py-2">Đang giao hàng</Badge>;
       case 'DELIVERED':
+        return <Badge bg="success" className="rounded-0 text-uppercase px-3 py-2">{ORDER_STATUS_LABEL.DELIVERED}</Badge>;
       case 'COMPLETED':
-        return <Badge bg="success" className="rounded-0 text-uppercase px-3 py-2">Đã hoàn thành</Badge>;
+        return <Badge bg="success" className="rounded-0 text-uppercase px-3 py-2">{ORDER_STATUS_LABEL.COMPLETED}</Badge>;
       case 'CANCELLED':
         return <Badge bg="danger" className="rounded-0 text-uppercase px-3 py-2">Đã hủy</Badge>;
       default:
