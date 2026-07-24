@@ -8,6 +8,28 @@ import { formatVND } from '../../../shared/utils/format.js';
 import { useProductReviewsApi } from '../../reviews/hooks/useReviews.js';
 import ReviewSummary from '../../reviews/components/ReviewSummary.jsx';
 import ReviewList from '../../reviews/components/ReviewList.jsx';
+import ReviewFormModal from '../../reviews/components/ReviewFormModal.jsx';
+
+// Phase 6b: lấy id của user đang đăng nhập để xác định "review nào là của mình" (hiện nút
+// Sửa + highlight "Bạn"). Không có endpoint /auth/me khả dụng (apiAuth.getMe() gọi
+// "/auth/me" nhưng AuthController chưa có route này — ngoài phạm vi FE-only của 6b),
+// và shared/utils/auth.js (getAuthState) chỉ lưu token/role/email, không có id.
+// -> Giải pháp tối thiểu, không cần đổi BE: tự decode claim "user_id" đã có sẵn trong JWT
+// access token (xem JwtService.generateJwtToken) — token vẫn được BE ký, FE chỉ đọc claim,
+// không dùng để xác thực (mọi request vẫn do BE validate token thật qua JwtAuthenticationFilter).
+function getCurrentUserIdFromToken() {
+  try {
+    const token = localStorage.getItem('accessToken');
+    if (!token) return null;
+    const payload = token.split('.')[1];
+    if (!payload) return null;
+    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const json = JSON.parse(decodeURIComponent(escape(atob(base64))));
+    return json.user_id != null ? Number(json.user_id) : null;
+  } catch {
+    return null;
+  }
+}
 
 export default function CustomerProductDetail() {
   const { id } = useParams();
@@ -25,7 +47,38 @@ export default function CustomerProductDetail() {
   const [toastMessage, setToastMessage] = useState('');
   const [showToast, setShowToast] = useState(false);
 
-  const { summary: reviewSummary, reviews, loading: reviewsLoading, error: reviewsError } = useProductReviewsApi(id);
+  const {
+    summary: reviewSummary,
+    reviews,
+    loading: reviewsLoading,
+    error: reviewsError,
+    page: reviewsPage,
+    totalPages: reviewsTotalPages,
+    goToPage: goToReviewsPage,
+    refetch: refetchReviews,
+  } = useProductReviewsApi(id);
+
+  const currentUserId = useMemo(() => getCurrentUserIdFromToken(), []);
+
+  // Phase 6b: state cho modal "Sửa đánh giá" (chỉ mở khi ReviewItem đã tự xác định
+  // canEdit=true cho đúng review đó — BE vẫn validate lại ownership/edit-lock khi submit).
+  const [editingReview, setEditingReview] = useState(null);
+  const [showEditReviewModal, setShowEditReviewModal] = useState(false);
+
+  const handleEditReview = (review) => {
+    setEditingReview({
+      id: review.id,
+      productId: id,
+      productName: product?.name,
+      rating: review.rating,
+      comment: review.comment,
+    });
+    setShowEditReviewModal(true);
+  };
+
+  const handleReviewUpdated = () => {
+    refetchReviews();
+  };
 
   useEffect(() => {
     loadProduct();
@@ -336,7 +389,14 @@ export default function CustomerProductDetail() {
           {!reviewsLoading && !reviewsError && (
             <>
               <ReviewSummary summary={reviewSummary} />
-              <ReviewList reviews={reviews} currentUserId={null} />
+              <ReviewList
+                reviews={reviews}
+                currentUserId={currentUserId}
+                page={reviewsPage}
+                totalPages={reviewsTotalPages}
+                onPageChange={goToReviewsPage}
+                onEditReview={handleEditReview}
+              />
             </>
           )}
         </div>
@@ -359,6 +419,15 @@ export default function CustomerProductDetail() {
           </Toast.Body>
         </Toast>
       </ToastContainer>
+
+      {/* Modal sửa đánh giá (Phase 6b) */}
+      <ReviewFormModal
+        show={showEditReviewModal}
+        onHide={() => setShowEditReviewModal(false)}
+        mode="edit"
+        review={editingReview}
+        onSubmitted={handleReviewUpdated}
+      />
     </div>
   );
 }
