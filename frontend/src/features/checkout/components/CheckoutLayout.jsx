@@ -161,7 +161,7 @@ function CheckoutLayout() {
 
   const handleViewOrder = () => {
     setShowSuccessModal(false);
-    navigate(`/order/${orderCode}`);
+    navigate('/my-orders');
   };
 
   if (loading) {
