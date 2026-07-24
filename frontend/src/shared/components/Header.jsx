@@ -94,7 +94,7 @@ const Header = () => {
 
   const account = [
     { label: 'Thông tin cá nhân', to: '/account' },
-    { label: 'Đơn hàng của tôi', to: '/orders' },
+    { label: 'Đơn hàng của tôi', to: '/my-orders' },
     { label: 'Sổ địa chỉ', to: '/account/addresses' },
   ];
 
