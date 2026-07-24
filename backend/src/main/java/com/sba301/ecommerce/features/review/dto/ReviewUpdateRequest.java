@@ -8,9 +8,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-// Dùng cho PUT /products/{productId}/reviews/{reviewId} (Phase 2b) — khách hàng chỉ được sửa
-// rating/comment của chính review mình, KHÔNG có orderItemId (không được đổi review sang order
-// item khác, tránh vi phạm unique constraint (user_id, order_item_id) — xem OVERVIEW Phần 5, rủi ro #6).
+import com.sba301.ecommerce.features.review.constant.ReviewConstants;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -20,6 +19,8 @@ public class ReviewUpdateRequest {
     @Max(value = 5, message = "rating tối đa là 5")
     private Integer rating;
 
-    @Size(max = 1000, message = "comment tối đa 1000 ký tự")
+    @Size(min = ReviewConstants.MIN_COMMENT_LENGTH, max = ReviewConstants.MAX_COMMENT_LENGTH,
+            message = "comment phải từ " + ReviewConstants.MIN_COMMENT_LENGTH + " đến "
+                    + ReviewConstants.MAX_COMMENT_LENGTH + " ký tự")
     private String comment;
 }

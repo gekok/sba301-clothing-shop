@@ -52,8 +52,6 @@ export default function MyOrders() {
     setShowReviewModal(true);
   };
 
-  // Đánh dấu reviewed=true ngay trên state cục bộ sau khi gửi thành công, khỏi
-  // phải fetch lại /orders/me chỉ để đổi 1 field.
   const handleReviewSubmitted = (orderItemId) => {
     setOrders((prev) =>
       prev.map((order) => ({

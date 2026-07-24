@@ -8,6 +8,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import com.sba301.ecommerce.features.review.constant.ReviewConstants;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -20,6 +22,8 @@ public class ReviewRequest {
     @Max(value = 5, message = "rating tối đa là 5")
     private Integer rating;
 
-    @Size(max = 1000, message = "comment tối đa 1000 ký tự")
+    @Size(min = ReviewConstants.MIN_COMMENT_LENGTH, max = ReviewConstants.MAX_COMMENT_LENGTH,
+            message = "comment phải từ " + ReviewConstants.MIN_COMMENT_LENGTH + " đến "
+                    + ReviewConstants.MAX_COMMENT_LENGTH + " ký tự")
     private String comment;
 }

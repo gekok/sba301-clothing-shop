@@ -1,6 +1,7 @@
 package com.sba301.ecommerce.features.review.controller;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
@@ -22,20 +23,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
-// Đường dẫn đầy đủ: /api/admin/reviews. Tách khỏi ReviewController (luồng khách: xem/tạo/sửa review
-// của chính mình) — cùng lý do tách AdminOrderController khỏi OrderController.
-//
-// @PreAuthorize ở đây có hiệu lực bảo vệ THẬT ngay lập tức dù SecurityConfig đang permitAll ở tầng
-// URL: @EnableMethodSecurity đã bật sẵn ở class-level của SecurityConfig, method security và URL
-// security là 2 lớp độc lập. Đây là bảo vệ riêng cho /admin/reviews/**, KHÔNG đụng/không phụ thuộc
-// SecurityConfig hay các controller khác (xem OVERVIEW Phần 5, rủi ro #5).
 @RestController
 @RequestMapping("/admin/reviews")
 @RequiredArgsConstructor
 @Tag(name = "Admin Reviews", description = "Quản trị đánh giá sản phẩm (ẩn/hiện)")
-// hasAnyAuthority (KHÔNG phải hasAnyRole): CustomUserDetails.getAuthorities() cấp authority thô
-// "ADMIN"/"STAFF", không có tiền tố "ROLE_". hasAnyRole tự thêm "ROLE_" trước khi so khớp nên sẽ
-// luôn fail (403) dù đúng admin/staff thật — hasAnyAuthority so khớp đúng chuỗi thô hiện có.
 @PreAuthorize("hasAnyAuthority('ADMIN','STAFF')")
 public class AdminReviewController {
 
@@ -48,11 +39,9 @@ public class AdminReviewController {
             @RequestParam(required = false) Integer rating,
             @RequestParam(required = false) Boolean isVisible,
             @RequestParam(required = false) String keyword,
-            // Không set sort ở đây: searchForAdmin đã cứng ORDER BY r.createdAt DESC trong @Query —
-            // thêm sort=createdAt ở Pageable sẽ làm SQL Server báo lỗi "column specified more than
-            // once in the order by list" (cùng bẫy đã ghi ở ReviewController/AdminOrderController).
             @PageableDefault(size = 10) Pageable pageable) {
-        return ResponseEntity.ok(adminReviewService.search(productId, rating, isVisible, keyword, pageable));
+        return ResponseEntity.ok(
+                adminReviewService.search(productId, rating, isVisible, keyword, stripSort(pageable)));
     }
 
     @PatchMapping("/{id}/visibility")
@@ -61,5 +50,9 @@ public class AdminReviewController {
             @PathVariable Long id,
             @Valid @RequestBody UpdateReviewVisibilityRequest request) {
         return ResponseEntity.ok(adminReviewService.updateVisibility(id, request));
+    }
+
+    private Pageable stripSort(Pageable pageable) {
+        return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
     }
 }

@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -19,7 +18,6 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 public class Review {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -34,13 +32,11 @@ public class Review {
             foreignKey = @ForeignKey(name = "fk_reviews_product"))
     private Product product;
 
-    // Links to the actual purchase — guarantees user can only review what they bought
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "order_item_id", nullable = false,
             foreignKey = @ForeignKey(name = "fk_reviews_order_item"))
     private OrderItem orderItem;
 
-    // 1..5 — CHECK constraint đã đặt trong docs/db.sql
     @Column(nullable = false)
     private Integer rating;
 
@@ -51,13 +47,11 @@ public class Review {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    // Ẩn/hiện do admin/staff toggle — review bị ẩn không xoá khỏi DB, chỉ loại khỏi API công khai.
     @ColumnDefault("1")
     @Column(name = "is_visible", nullable = false)
     private Boolean isVisible = true;
 
-    // Hibernate tự fill khi INSERT lẫn UPDATE (xem docs/db.sql migration để biết cách backfill dữ liệu cũ).
-    @UpdateTimestamp
+    @CreationTimestamp
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 }

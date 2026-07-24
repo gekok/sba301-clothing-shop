@@ -1,0 +1,3 @@
+export const EDIT_WINDOW_HOURS = 24
+
+export const EDIT_DETECTION_TOLERANCE_SECONDS = 5

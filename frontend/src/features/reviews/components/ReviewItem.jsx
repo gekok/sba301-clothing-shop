@@ -1,101 +1,86 @@
-import { OverlayTrigger, Tooltip } from 'react-bootstrap'
-import { PencilSquare } from 'react-bootstrap-icons'
+import {OverlayTrigger, Tooltip} from 'react-bootstrap'
+import {PencilSquare} from 'react-bootstrap-icons'
 import RatingStars from './RatingStars.jsx'
-
-// Phase 2b (BE): cùng ngưỡng với ReviewServiceImpl.updateReview — giữ đồng bộ để FE chỉ
-// hiện nút "Sửa" đúng những review mà BE thực sự sẽ chấp nhận (BE luôn là nguồn sự thật
-// cuối cùng, đây chỉ là gợi ý UI, tránh việc bấm "Sửa" rồi bị BE từ chối bất ngờ).
-const EDIT_WINDOW_HOURS = 24
-const EDIT_DETECTION_TOLERANCE_SECONDS = 5
+import {EDIT_WINDOW_HOURS, EDIT_DETECTION_TOLERANCE_SECONDS} from '../constant/constants.js'
 
 function formatDate(isoString) {
-  const d = new Date(isoString)
-  return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    const d = new Date(isoString)
+    return d.toLocaleDateString('vi-VN', {day: '2-digit', month: '2-digit', year: 'numeric'})
 }
 
 function getInitial(name) {
-  return name?.trim()?.charAt(0)?.toUpperCase() || '?'
+    return name?.trim()?.charAt(0)?.toUpperCase() || '?'
 }
 
-// Trả về { canEdit, reason } — reason chỉ có nghĩa khi canEdit=false và review là của
-// currentUser (nếu không phải chủ review thì không hiện nút, không cần reason).
 function getEditability(review) {
-  if (!review.createdAt) return { canEdit: false, reason: '' }
+    if (!review.createdAt) return {canEdit: false, reason: ''}
 
-  const createdAt = new Date(review.createdAt)
-  const now = new Date()
+    const createdAt = new Date(review.createdAt)
+    const now = new Date()
 
-  const alreadyEdited = review.updatedAt
-    ? Math.abs((new Date(review.updatedAt).getTime() - createdAt.getTime()) / 1000) > EDIT_DETECTION_TOLERANCE_SECONDS
-    : false
+    const alreadyEdited = review.updatedAt
+        ? Math.abs((new Date(review.updatedAt).getTime() - createdAt.getTime()) / 1000) > EDIT_DETECTION_TOLERANCE_SECONDS
+        : false
 
-  if (alreadyEdited) {
-    return { canEdit: false, reason: 'Đánh giá này đã được chỉnh sửa trước đó, chỉ được sửa 1 lần.' }
-  }
+    if (alreadyEdited) {
+        return {canEdit: false, reason: 'Đánh giá này đã được chỉnh sửa trước đó, chỉ được sửa 1 lần.'}
+    }
 
-  const expired = now.getTime() > createdAt.getTime() + EDIT_WINDOW_HOURS * 60 * 60 * 1000
-  if (expired) {
-    return { canEdit: false, reason: 'Đã quá 24 giờ kể từ khi tạo đánh giá, không thể chỉnh sửa.' }
-  }
+    const expired = now.getTime() > createdAt.getTime() + EDIT_WINDOW_HOURS * 60 * 60 * 1000
+    if (expired) {
+        return {canEdit: false, reason: 'Đã quá 24 giờ kể từ khi tạo đánh giá, không thể chỉnh sửa.'}
+    }
 
-  return { canEdit: true, reason: '' }
+    return {canEdit: true, reason: ''}
 }
 
-/**
- * ReviewItem
- * props:
- * - review: { id, userId, user: {fullName}, rating, comment, createdAt, updatedAt }
- * - currentUserId: number|null -> để xác định "review của bạn" + quyền hiện nút Sửa
- * - highlight: boolean -> đánh dấu "review của bạn"
- * - onEdit: (review) => void -> mở form sửa (chỉ gọi được khi canEdit=true)
- */
-export default function ReviewItem({ review, currentUserId = null, highlight = false, onEdit }) {
-  const displayName = review.user?.fullName || 'Người dùng'
+export default function ReviewItem({review, currentUserId = null, highlight = false, onEdit}) {
+    const displayName = review.user?.fullName || 'Người dùng'
 
-  const isOwner = currentUserId != null && review.userId != null && review.userId === currentUserId
-  const { canEdit, reason } = isOwner ? getEditability(review) : { canEdit: false, reason: '' }
+    const isOwner = currentUserId != null && review.userId != null && review.userId === currentUserId
+    const {canEdit, reason} = isOwner ? getEditability(review) : {canEdit: false, reason: ''}
 
-  return (
-    <div className={`review-card p-3 mb-3 ${highlight ? 'border-primary bg-primary-subtle' : 'bg-white'}`}>
-      <div className="d-flex gap-3">
-        <div className="avatar-circle">{getInitial(displayName)}</div>
-        <div className="flex-grow-1">
-          <div className="d-flex justify-content-between flex-wrap">
+    return (
+        <div className={`review-card p-3 mb-3 ${highlight ? 'border-primary bg-primary-subtle' : 'bg-white'}`}>
+            <div className="d-flex gap-3">
+                <div className="avatar-circle">{getInitial(displayName)}</div>
+                <div className="flex-grow-1">
+                    <div className="d-flex justify-content-between flex-wrap">
             <span className="fw-semibold">
               {displayName} {highlight && <span className="badge bg-primary ms-1">Bạn</span>}
             </span>
-            <small className="text-muted">{formatDate(review.createdAt)}</small>
-          </div>
-          <RatingStars value={review.rating} readOnly size="sm" />
-          <p className="mb-2 mt-2">{review.comment}</p>
+                        <small className="text-muted">{formatDate(review.createdAt)}</small>
+                    </div>
+                    <RatingStars value={review.rating} readOnly size="sm"/>
+                    <p className="mb-2 mt-2">{review.comment}</p>
 
-          {isOwner && (
-            canEdit ? (
-              <button
-                type="button"
-                className="btn btn-sm btn-outline-dark rounded-0 fw-bold text-uppercase d-inline-flex align-items-center gap-1"
-                style={{ fontSize: '0.75rem' }}
-                onClick={() => onEdit?.(review)}
-              >
-                <PencilSquare /> Sửa
-              </button>
-            ) : (
-              <OverlayTrigger placement="top" overlay={<Tooltip>{reason}</Tooltip>}>
+                    {isOwner && (
+                        canEdit ? (
+                            <button
+                                type="button"
+                                className="btn btn-sm btn-outline-dark rounded-0 fw-bold text-uppercase d-inline-flex align-items-center gap-1"
+                                style={{fontSize: '0.75rem'}}
+                                onClick={() => onEdit?.(review)}
+                            >
+                                <PencilSquare/> Sửa
+                            </button>
+                        ) : (
+                            <OverlayTrigger placement="top" overlay={<Tooltip>{reason}</Tooltip>}>
                 <span className="d-inline-block">
                   <button
-                    type="button"
-                    className="btn btn-sm btn-outline-secondary rounded-0 fw-bold text-uppercase d-inline-flex align-items-center gap-1"
-                    style={{ fontSize: '0.75rem', pointerEvents: 'none' }}
-                    disabled
+                      type="button"
+                      className="btn btn-sm btn-outline-secondary rounded-0 fw-bold text-uppercase d-inline-flex align-items-center gap-1"
+                      style={{fontSize: '0.75rem', pointerEvents: 'none'}}
+                      disabled
                   >
-                    <PencilSquare /> Sửa
+                    <PencilSquare/> Sửa
                   </button>
                 </span>
-              </OverlayTrigger>
-            )
-          )}
+                            </OverlayTrigger>
+                        )
+                    )}
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  )
+    )
 }

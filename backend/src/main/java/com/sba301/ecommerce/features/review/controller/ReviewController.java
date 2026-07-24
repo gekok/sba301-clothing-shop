@@ -1,6 +1,7 @@
 package com.sba301.ecommerce.features.review.controller;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
@@ -36,12 +37,8 @@ public class ReviewController {
     @Operation(summary = "Lấy danh sách review của 1 product (phân trang)")
     public ResponseEntity<Page<ReviewResponse>> getReviews(
             @PathVariable Long productId,
-            // Không set sort ở đây: findByProduct_IdOrderByCreatedAtDesc bên repository
-            // đã tự quy định ORDER BY created_at DESC rồi — set thêm sort=createdAt ở
-            // Pageable làm SQL Server nhận created_at 2 lần trong ORDER BY -> lỗi 500
-            // "column has been specified more than once in the order by list".
             @PageableDefault(size = 10) Pageable pageable) {
-        return ResponseEntity.ok(reviewService.getReviewsByProduct(productId, pageable));
+        return ResponseEntity.ok(reviewService.getReviewsByProduct(productId, stripSort(pageable)));
     }
 
     @GetMapping("/summary")
@@ -67,5 +64,9 @@ public class ReviewController {
             @Valid @RequestBody ReviewUpdateRequest request) {
         ReviewResponse response = reviewService.updateReview(productId, reviewId, request);
         return ResponseEntity.ok(response);
+    }
+
+    private Pageable stripSort(Pageable pageable) {
+        return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
     }
 }
